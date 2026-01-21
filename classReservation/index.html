@@ -678,7 +678,7 @@
 
         <div class="quick-actions">
             <button class="action-btn" onclick="showMyBookings()">📅 My Bookings</button>
-            <button class="action-btn" onclick="showMyPasscode()">🔐 My Passcode</button>
+            <button class="action-btn" id="passcodeBtn" onclick="showMyPasscode()" style="display: none;">🔐 View Passcodes</button>
             <button class="action-btn" onclick="showAvailableSlots()">🟢 Available Only</button>
             <button class="action-btn" onclick="clearFilters()">🔄 Show All</button>
             <button class="action-btn" onclick="exportSchedule()">📊 Export</button>
@@ -830,6 +830,7 @@
                 });
                 
                 showCoachModeInfo();
+                updatePasscodeButtonVisibility();
                 showNotification('Coach Mode: Viewing all student bookings', 'success');
             } else {
                 coachBtn.classList.remove('active');
@@ -838,11 +839,22 @@
                 passcodeSection.style.display = 'flex';
                 
                 hideCoachModeInfo();
+                updatePasscodeButtonVisibility();
                 showNotification('Student Mode: Select a student to book sessions', 'success');
             }
             
             updateWeeklyLimitDisplay();
             generateWeeklySchedule();
+        }
+        
+        function updatePasscodeButtonVisibility() {
+            const passcodeBtn = document.getElementById('passcodeBtn');
+            if (isCoachMode) {
+                passcodeBtn.style.display = 'block';
+                passcodeBtn.textContent = '🔐 View Passcodes';
+            } else {
+                passcodeBtn.style.display = 'none';
+            }
         }
         
         function showCoachModeInfo() {
@@ -1320,62 +1332,59 @@
         }
 
         function showMyPasscode() {
-            if (!currentStudent) {
-                showNotification('Please select a student first!', 'warning');
+            // Security check: Only coaches can view passcodes to prevent students from seeing each other's passcodes
+            if (!isCoachMode) {
+                showNotification('🚫 Only coaches can view passcodes! This prevents students from seeing each other\'s private passcodes.', 'error');
                 return;
             }
             
-            const myPasscode = studentPasscodes[currentStudent];
-            
-            if (!myPasscode) {
-                document.getElementById('modalTitle').textContent = '🔐 No Passcode Set';
-                document.getElementById('modalContent').innerHTML = `
-                    <div style="text-align: center; line-height: 1.8;">
-                        ⚠️ <strong>Student ${currentStudent} has no passcode set!</strong><br><br>
-                        <div style="background: rgba(255,100,100,0.2); padding: 1rem; border-radius: 10px; margin: 1rem 0;">
-                            You need to set a passcode to:
-                            <ul style="text-align: left; margin: 0.5rem 0;">
-                                <li>📝 Book new coaching sessions</li>
-                                <li>❌ Cancel your existing sessions</li>
-                                <li>🔒 Protect your bookings from other students</li>
-                            </ul>
-                        </div>
-                        <strong>Enter your new passcode below:</strong>
-                    </div>
-                `;
-                // Show the passcode input
-                document.getElementById('passcodeInput').style.display = 'block';
-                document.getElementById('passcodeInput').focus();
-                // Change primary button to "Set Passcode"
-                document.querySelector('.btn-primary').style.display = 'block';
-                document.querySelector('.btn-primary').textContent = '🔐 Set Passcode';
-                document.querySelector('.btn-primary').onclick = setPasscode;
-            } else {
-                document.getElementById('modalTitle').textContent = '🔐 My Passcode';
-                document.getElementById('modalContent').innerHTML = `
-                    <div style="text-align: center; line-height: 1.8;">
-                        <div style="background: rgba(255,215,0,0.1); padding: 2rem; border-radius: 15px; margin: 1rem 0;">
-                            <div style="font-size: 1.2em; margin-bottom: 1rem;">🎆 <strong>Student ${currentStudent}</strong></div>
-                            <div style="font-size: 2.5em; font-weight: bold; color: #FFD700; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); margin: 1rem 0;">
-                                ${myPasscode}
+            // Coach mode: Show all students' passcodes
+            const allStudents = ['A', 'B', 'C', 'D', 'E'];
+            let passcodeList = allStudents.map(student => {
+                const passcode = studentPasscodes[student];
+                const hasPasscode = passcode ? true : false;
+                const bgColor = hasPasscode ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)';
+                const borderColor = hasPasscode ? '#4CAF50' : '#f44336';
+                const statusIcon = hasPasscode ? '✅' : '⚠️';
+                
+                return `
+                    <div style="background: ${bgColor}; padding: 1rem; border-radius: 10px; border-left: 4px solid ${borderColor}; margin: 0.5rem 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="font-weight: bold; font-size: 1.1em;">
+                                ${statusIcon} Student ${student}
                             </div>
-                            <div style="font-size: 0.9em; opacity: 0.8;">
-                                🔒 Keep this passcode private!
+                            <div style="font-family: monospace; font-size: 1.2em; font-weight: bold; color: ${hasPasscode ? '#4CAF50' : '#f44336'};">
+                                ${hasPasscode ? passcode : 'NOT SET'}
                             </div>
-                        </div>
-                        
-                        <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; margin-top: 1rem;">
-                            <strong>📝 Passcode Uses:</strong><br>
-                            • Required to book new sessions<br>
-                            • Needed to cancel your bookings<br>
-                            • Protects your sessions from other students
                         </div>
                     </div>
                 `;
-                // Hide the primary button for this view
-                document.querySelector('.btn-primary').style.display = 'none';
-            }
+            }).join('');
             
+            const setPasscodes = allStudents.filter(student => studentPasscodes[student]).length;
+            
+            document.getElementById('modalTitle').textContent = '🔐 Coach View: All Student Passcodes';
+            document.getElementById('modalContent').innerHTML = `
+                <div style="text-align: left; line-height: 1.6;">
+                    <div style="background: rgba(255,215,0,0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1rem; text-align: center;">
+                        <strong>👨‍🏫 Coach Security Dashboard</strong><br>
+                        <small style="opacity: 0.8;">Passcodes Status: ${setPasscodes}/5 students have passcodes set</small>
+                    </div>
+                    
+                    ${passcodeList}
+                    
+                    <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; margin-top: 1rem;">
+                        <strong>🛡️ Security Notes:</strong><br>
+                        • Only coaches can view passcodes<br>
+                        • Students with passcodes can book and cancel sessions<br>
+                        • Students without passcodes cannot make bookings<br>
+                        • Passcodes prevent unauthorized session cancellations
+                    </div>
+                </div>
+            `;
+            
+            // Hide the primary button for this view
+            document.querySelector('.btn-primary').style.display = 'none';
             document.getElementById('bookingModal').classList.add('show');
         }
 
