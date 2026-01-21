@@ -129,6 +129,56 @@
             backdrop-filter: blur(5px);
         }
 
+        .datetime-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .datetime-inputs {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .datetime-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .datetime-label {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.8;
+            color: #FFD700;
+        }
+
+        .datetime-input {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            color: white;
+            backdrop-filter: blur(5px);
+            font-size: 1rem;
+        }
+
+        .datetime-input:focus {
+            outline: none;
+            border-color: #FFD700;
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .datetime-input::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
         .btn:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
@@ -325,8 +375,25 @@
 
         <div class="status" id="status">Ready to start your fasting journey!</div>
 
+        <div class="datetime-section">
+            <h3>⏰ Set Custom Start Time</h3>
+            <p style="margin-bottom: 1rem; opacity: 0.9;">Choose when your fast begins (leave blank for immediate start)</p>
+            
+            <div class="datetime-inputs">
+                <div class="datetime-group">
+                    <div class="datetime-label">📅 Start Date</div>
+                    <input type="date" id="startDate" class="datetime-input">
+                </div>
+                <div class="datetime-group">
+                    <div class="datetime-label">🕐 Start Time</div>
+                    <input type="time" id="startTime" class="datetime-input">
+                </div>
+            </div>
+        </div>
+
         <div class="buttons">
             <button class="btn start" onclick="startFasting()">🚀 Start Fasting</button>
+            <button class="btn" onclick="startFastingNow()">⚡ Start Now</button>
             <button class="btn stop" onclick="stopFasting()">⏹️ End Fasting</button>
             <button class="btn" onclick="showEncouragement()">💪 Get Motivation</button>
             <button class="btn" onclick="copyRefusal()">📋 Quick Refusal</button>
@@ -444,6 +511,27 @@
                 return;
             }
 
+            // Handle future start times
+            if (elapsed < 0) {
+                // Fast hasn't started yet
+                const timeUntilStart = Math.abs(elapsed);
+                const days = Math.floor(timeUntilStart / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeUntilStart % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeUntilStart % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeUntilStart % (1000 * 60)) / 1000);
+
+                document.getElementById('days').textContent = String(days).padStart(2, '0');
+                document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+                document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+                document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+
+                document.getElementById('progressBar').style.width = '0%';
+                document.getElementById('status').innerHTML = 
+                    `⏳ Fast will begin in <strong>${days}d ${hours}h ${minutes}m ${seconds}s</strong> 🎯`;
+                document.getElementById('motivationLevel').textContent = '100%';
+                return;
+            }
+
             const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
             const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
@@ -474,7 +562,54 @@
         }
 
         function startFasting() {
+            const dateInput = document.getElementById('startDate').value;
+            const timeInput = document.getElementById('startTime').value;
+            
+            if (dateInput && timeInput) {
+                // Use custom date/time
+                const customDateTime = new Date(`${dateInput}T${timeInput}`);
+                fastingStartTime = customDateTime.getTime();
+                
+                const now = new Date().getTime();
+                if (fastingStartTime > now) {
+                    // Future start time
+                    document.getElementById('status').textContent = 
+                        `⏳ Fast scheduled to start on ${customDateTime.toLocaleString()}! Get ready! 🎯`;
+                } else {
+                    // Past or current start time
+                    const elapsed = now - fastingStartTime;
+                    if (elapsed >= totalFastingTime) {
+                        showPopup("⚠️ Invalid Start Time", "The selected start time would have already completed the 100-hour fast. Please choose a more recent time.");
+                        return;
+                    }
+                    document.getElementById('status').textContent = 
+                        `🔥 Fast started on ${customDateTime.toLocaleString()}! You're already in progress! 💪`;
+                }
+            } else if (dateInput || timeInput) {
+                // Partial input
+                showPopup("⚠️ Incomplete Time", "Please set both date and time, or leave both blank to start immediately.");
+                return;
+            } else {
+                // No custom time, start immediately
+                fastingStartTime = new Date().getTime();
+                document.getElementById('status').textContent = "🎉 Fasting started! You're on your way to greatness! 🚀";
+            }
+            
+            startFastingProcess();
+        }
+
+        function startFastingNow() {
+            // Clear any custom date/time inputs and start immediately
+            document.getElementById('startDate').value = '';
+            document.getElementById('startTime').value = '';
+            
             fastingStartTime = new Date().getTime();
+            document.getElementById('status').textContent = "⚡ Instant fast started! No time to waste! 🚀";
+            
+            startFastingProcess();
+        }
+
+        function startFastingProcess() {
             countdownInterval = setInterval(updateCountdown, 1000);
             
             // Random encouragement popups
@@ -482,9 +617,11 @@
                 showRandomEncouragement();
             }, Math.random() * 30000 + 30000); // Every 30-60 seconds
 
-            document.getElementById('status').textContent = "🎉 Fasting started! You're on your way to greatness! 🚀";
             updateCountdown();
             showEncouragement();
+            
+            // Save progress
+            localStorage.setItem('fastingStartTime', fastingStartTime);
         }
 
         function stopFasting() {
@@ -499,6 +636,10 @@
             
             fastingStartTime = null;
             localStorage.removeItem('fastingStartTime');
+            
+            // Clear custom date/time inputs
+            document.getElementById('startDate').value = '';
+            document.getElementById('startTime').value = '';
             
             document.getElementById('days').textContent = '00';
             document.getElementById('hours').textContent = '00';
@@ -585,15 +726,33 @@
                 const now = new Date().getTime();
                 const elapsed = now - fastingStartTime;
                 
-                if (elapsed < totalFastingTime) {
+                if (elapsed < totalFastingTime && elapsed >= 0) {
                     countdownInterval = setInterval(updateCountdown, 1000);
                     encouragementInterval = setInterval(() => {
                         showRandomEncouragement();
                     }, Math.random() * 30000 + 30000);
                     updateCountdown();
-                } else {
+                    
+                    // Show the saved start time in inputs
+                    const savedDate = new Date(fastingStartTime);
+                    document.getElementById('startDate').value = savedDate.toISOString().split('T')[0];
+                    document.getElementById('startTime').value = savedDate.toTimeString().slice(0, 5);
+                } else if (elapsed >= totalFastingTime) {
                     completeFasting();
+                } else {
+                    // Future start time - show countdown to start
+                    countdownInterval = setInterval(updateCountdown, 1000);
+                    updateCountdown();
+                    
+                    const savedDate = new Date(fastingStartTime);
+                    document.getElementById('startDate').value = savedDate.toISOString().split('T')[0];
+                    document.getElementById('startTime').value = savedDate.toTimeString().slice(0, 5);
                 }
+            } else {
+                // Set default date to today for convenience
+                const today = new Date();
+                document.getElementById('startDate').value = today.toISOString().split('T')[0];
+                document.getElementById('startTime').value = today.toTimeString().slice(0, 5);
             }
             
             // Show initial encouragement
