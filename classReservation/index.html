@@ -1469,6 +1469,90 @@
             document.getElementById('bookingModal').classList.add('show');
         }
 
+        function debugFridayBooking() {
+            // Get Friday 1/23/2026 date
+            const friday = new Date(2026, 0, 23); // January 23, 2026
+            const dateKey = friday.toISOString().split('T')[0]; // 2026-01-23
+            
+            // Check current selections
+            const studentSelected = currentStudent || 'None';
+            const locationSelected = currentLocation || 'None';
+            const hasPasscode = currentStudent ? (studentPasscodes[currentStudent] ? 'Yes' : 'No') : 'N/A';
+            
+            // Check existing bookings for Friday
+            const fridayBookings = Object.entries(bookings).filter(([key, booking]) => 
+                key.startsWith(dateKey)
+            );
+            
+            // Check specifically for afternoon session
+            const afternoonKey = `${dateKey}_afternoon_${currentLocation || 'any'}`;
+            const afternoonBooking = bookings[afternoonKey];
+            
+            // Check daily session count for student A
+            const studentADailySessions = getDailySessionCount('A', dateKey);
+            
+            document.getElementById('modalTitle').textContent = '🔍 Friday 1/23 Booking Debug';
+            document.getElementById('modalContent').innerHTML = `
+                <div style="text-align: left; line-height: 1.8; font-family: monospace;">
+                    <h3 style="color: #FFD700;">Current Selections:</h3>
+                    <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                        • Student Selected: <strong>${studentSelected}</strong><br>
+                        • Location Selected: <strong>${locationSelected}</strong><br>
+                        • Student A Passcode Set: <strong>${studentSelected === 'A' ? hasPasscode : 'N/A'}</strong>
+                    </div>
+                    
+                    <h3 style="color: #FFD700;">Friday 1/23/2026 Analysis:</h3>
+                    <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                        • Date Key: <strong>${dateKey}</strong><br>
+                        • Total Friday Bookings: <strong>${fridayBookings.length}</strong><br>
+                        • Student A Daily Sessions: <strong>${studentADailySessions}/3</strong>
+                    </div>
+                    
+                    <h3 style="color: #FFD700;">Afternoon Session Check:</h3>
+                    <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                        • Slot Key: <strong>${afternoonKey}</strong><br>
+                        • Already Booked: <strong>${afternoonBooking ? 'YES' : 'NO'}</strong><br>
+                        ${afternoonBooking ? `• Booked by: <strong>Student ${afternoonBooking.student}</strong><br>• Location: <strong>${classrooms[afternoonBooking.location]?.name || 'Unknown'}</strong>` : ''}
+                    </div>
+                    
+                    <h3 style="color: #FFD700;">All Friday Bookings:</h3>
+                    <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px;">
+                        ${fridayBookings.length > 0 ? 
+                            fridayBookings.map(([key, booking]) => 
+                                `• ${key}: Student ${booking.student} at ${classrooms[booking.location]?.name || 'Unknown'}`
+                            ).join('<br>') 
+                            : '• No bookings found for Friday'
+                        }
+                    </div>
+                    
+                    <h3 style="color: ${studentADailySessions >= 3 ? '#ff6b6b' : '#4ecdc4'};">Diagnosis:</h3>
+                    <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px; border-left: 4px solid ${studentADailySessions >= 3 ? '#ff6b6b' : '#4ecdc4'};">
+                        ${getBookingDiagnosis(studentSelected, locationSelected, hasPasscode, afternoonBooking, studentADailySessions)}
+                    </div>
+                </div>
+            `;
+            
+            // Hide confirm button
+            document.querySelector('.btn-primary').style.display = 'none';
+            document.getElementById('bookingModal').classList.add('show');
+        }
+        
+        function getBookingDiagnosis(student, location, hasPasscode, afternoonBooking, dailySessions) {
+            const issues = [];
+            
+            if (!student) issues.push('⚠️ No student selected');
+            if (!location) issues.push('⚠️ No location selected');
+            if (student === 'A' && hasPasscode === 'No') issues.push('⚠️ Student A has no passcode set');
+            if (afternoonBooking && afternoonBooking.student !== 'A') issues.push(`❌ Afternoon slot taken by Student ${afternoonBooking.student}`);
+            if (dailySessions >= 3) issues.push('❌ Student A has reached daily limit (3/3 sessions)');
+            
+            if (issues.length === 0) {
+                return '✅ <strong>No issues detected!</strong> Student A should be able to book Friday afternoon.';
+            } else {
+                return '<strong>Issues preventing booking:</strong><br>' + issues.map(issue => `• ${issue}`).join('<br>');
+            }
+        }
+
         function exportSchedule() {
             const dateKey = currentDate.toISOString().split('T')[0];
             const dayBookings = Object.entries(bookings).filter(
