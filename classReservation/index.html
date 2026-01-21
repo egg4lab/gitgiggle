@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Coaching Reservation System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .student-selector {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .student-btn {
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .student-btn.active {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #333;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+        }
+
+        .student-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .date-nav {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            justify-content: center;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .current-date {
+            font-size: 1.2rem;
+            font-weight: bold;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .time-header {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            font-weight: bold;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .time-slot {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 10px;
+            text-align: center;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .slot-cell {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .slot-cell:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.02);
+        }
+
+        .slot-cell.available {
+            background: rgba(76, 175, 80, 0.3);
+            border-left: 4px solid #4CAF50;
+        }
+
+        .slot-cell.booked {
+            background: rgba(244, 67, 54, 0.3);
+            border-left: 4px solid #f44336;
+            cursor: default;
+        }
+
+        .slot-cell.my-booking {
+            background: rgba(255, 193, 7, 0.3);
+            border-left: 4px solid #FFC107;
+        }
+
+        .booking-info {
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .student-indicator {
+            background: #FFD700;
+            color: #333;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .stats {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-top: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 0.5rem;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            border: 2px solid #FFD700;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #FFD700;
+            color: #333;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .schedule-grid {
+                grid-template-columns: 80px 1fr;
+            }
+
+            .time-slot, .slot-cell {
+                padding: 10px 5px;
+                font-size: 0.8rem;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .student-selector {
+                justify-content: center;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: #f44336;
+        }
+
+        .notification.warning {
+            background: #FFC107;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 Personal Coaching Reservations</h1>
+        <p class="subtitle">Book your one-on-one coaching sessions</p>
+
+        <div class="controls">
+            <div class="student-selector">
+                <span>Select Student:</span>
+                <button class="student-btn" data-student="A">Student A</button>
+                <button class="student-btn" data-student="B">Student B</button>
+                <button class="student-btn" data-student="C">Student C</button>
+                <button class="student-btn" data-student="D">Student D</button>
+                <button class="student-btn" data-student="E">Student E</button>
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <button class="action-btn" onclick="showMyBookings()">📅 My Bookings</button>
+            <button class="action-btn" onclick="showAvailableSlots()">🟢 Available Only</button>
+            <button class="action-btn" onclick="clearFilters()">🔄 Show All</button>
+            <button class="action-btn" onclick="exportSchedule()">📊 Export</button>
+        </div>
+
+        <div class="date-nav">
+            <button class="nav-btn" onclick="previousDay()">‹</button>
+            <div class="current-date" id="currentDate"></div>
+            <button class="nav-btn" onclick="nextDay()">›</button>
+        </div>
+
+        <div class="schedule-grid" id="scheduleGrid">
+            <!-- Schedule will be generated by JavaScript -->
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: rgba(76, 175, 80, 0.5);"></div>
+                <span>Available</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: rgba(244, 67, 54, 0.5);"></div>
+                <span>Booked by Others</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: rgba(255, 193, 7, 0.5);"></div>
+                <span>My Bookings</span>
+            </div>
+        </div>
+
+        <div class="stats">
+            <h3 style="text-align: center; margin-bottom: 1rem;">📈 Weekly Statistics</h3>
+            <div class="stats-grid" id="statsGrid">
+                <!-- Stats will be generated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div class="modal" id="bookingModal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Confirm Booking</h3>
+            <p id="modalContent"></p>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="confirmBooking()">✅ Confirm</button>
+                <button class="btn btn-secondary" onclick="closeModal()">❌ Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <script>
+        let currentStudent = null;
+        let currentDate = new Date();
+        let bookings = JSON.parse(localStorage.getItem('coachingBookings')) || {};
+        let pendingBooking = null;
+
+        // Time slots from 9 AM to 6 PM
+        const timeSlots = [
+            '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+            '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
+            '15:00', '15:30', '16:00', '16:30', '17:00', '17:30'
+        ];
+
+        const students = ['A', 'B', 'C', 'D', 'E'];
+        const studentColors = {
+            'A': '#FF6B6B',
+            'B': '#4ECDC4', 
+            'C': '#45B7D1',
+            'D': '#96CEB4',
+            'E': '#FFEAA7'
+        };
+
+        function initializeApp() {
+            updateDateDisplay();
+            generateSchedule();
+            updateStats();
+            
+            // Add student button event listeners
+            document.querySelectorAll('.student-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    selectStudent(this.dataset.student);
+                });
+            });
+        }
+
+        function selectStudent(student) {
+            currentStudent = student;
+            
+            // Update button states
+            document.querySelectorAll('.student-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-student="${student}"]`).classList.add('active');
+            
+            // Refresh schedule to show student's perspective
+            generateSchedule();
+            showNotification(`Selected Student ${student}`, 'success');
+        }
+
+        function updateDateDisplay() {
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            document.getElementById('currentDate').textContent = 
+                currentDate.toLocaleDateString('en-US', options);
+        }
+
+        function previousDay() {
+            currentDate.setDate(currentDate.getDate() - 1);
+            updateDateDisplay();
+            generateSchedule();
+        }
+
+        function nextDay() {
+            currentDate.setDate(currentDate.getDate() + 1);
+            updateDateDisplay();
+            generateSchedule();
+        }
+
+        function generateSchedule() {
+            const grid = document.getElementById('scheduleGrid');
+            const dateKey = currentDate.toISOString().split('T')[0];
+            
+            grid.innerHTML = `
+                <div class="time-header">Time</div>
+                <div class="time-header">Availability</div>
+            `;
+
+            timeSlots.forEach(time => {
+                const slotKey = `${dateKey}_${time}`;
+                const booking = bookings[slotKey];
+                
+                // Time column
+                const timeCell = document.createElement('div');
+                timeCell.className = 'time-slot';
+                timeCell.textContent = time;
+                
+                // Availability column
+                const slotCell = document.createElement('div');
+                slotCell.className = 'slot-cell';
+                slotCell.dataset.slot = slotKey;
+                slotCell.dataset.time = time;
+                
+                if (booking) {
+                    if (booking.student === currentStudent) {
+                        slotCell.className += ' my-booking';
+                        slotCell.innerHTML = `
+                            <div>
+                                <div class="booking-info">My Session</div>
+                                <div style="font-size: 0.8rem; opacity: 0.8;">Click to cancel</div>
+                            </div>
+                        `;
+                        slotCell.onclick = () => cancelBooking(slotKey);
+                    } else {
+                        slotCell.className += ' booked';
+                        slotCell.innerHTML = `
+                            <div>
+                                <div class="booking-info">Booked</div>
+                                <div class="student-indicator">Student ${booking.student}</div>
+                            </div>
+                        `;
+                    }
+                } else {
+                    slotCell.className += ' available';
+                    slotCell.innerHTML = `
+                        <div>
+                            <div class="booking-info">Available</div>
+                            <div style="font-size: 0.8rem; opacity: 0.8;">Click to book</div>
+                        </div>
+                    `;
+                    slotCell.onclick = () => bookSlot(slotKey, time);
+                }
+                
+                grid.appendChild(timeCell);
+                grid.appendChild(slotCell);
+            });
+        }
+
+        function bookSlot(slotKey, time) {
+            if (!currentStudent) {
+                showNotification('Please select a student first!', 'warning');
+                return;
+            }
+
+            const date = slotKey.split('_')[0];
+            const formattedDate = new Date(date).toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'long', 
+                day: 'numeric'
+            });
+
+            pendingBooking = { slotKey, time };
+            
+            document.getElementById('modalTitle').textContent = 'Confirm Booking';
+            document.getElementById('modalContent').innerHTML = `
+                <strong>Student ${currentStudent}</strong><br>
+                📅 ${formattedDate}<br>
+                🕐 ${time}<br><br>
+                Do you want to book this coaching session?
+            `;
+            
+            document.getElementById('bookingModal').classList.add('show');
+        }
+
+        function confirmBooking() {
+            if (!pendingBooking || !currentStudent) return;
+            
+            bookings[pendingBooking.slotKey] = {
+                student: currentStudent,
+                time: pendingBooking.time,
+                bookedAt: new Date().toISOString()
+            };
+            
+            localStorage.setItem('coachingBookings', JSON.stringify(bookings));
+            
+            showNotification(`Session booked for Student ${currentStudent}!`, 'success');
+            generateSchedule();
+            updateStats();
+            closeModal();
+        }
+
+        function cancelBooking(slotKey) {
+            const booking = bookings[slotKey];
+            if (!booking || booking.student !== currentStudent) return;
+            
+            pendingBooking = { slotKey, cancel: true };
+            
+            document.getElementById('modalTitle').textContent = 'Cancel Booking';
+            document.getElementById('modalContent').innerHTML = `
+                Are you sure you want to cancel your session at <strong>${booking.time}</strong>?<br>
+                This action cannot be undone.
+            `;
+            
+            // Change button text for cancellation
+            document.querySelector('.btn-primary').textContent = '🗑️ Cancel Session';
+            document.querySelector('.btn-primary').onclick = confirmCancellation;
+            
+            document.getElementById('bookingModal').classList.add('show');
+        }
+
+        function confirmCancellation() {
+            if (!pendingBooking) return;
+            
+            delete bookings[pendingBooking.slotKey];
+            localStorage.setItem('coachingBookings', JSON.stringify(bookings));
+            
+            showNotification('Session cancelled successfully', 'success');
+            generateSchedule();
+            updateStats();
+            closeModal();
+            
+            // Reset button
+            document.querySelector('.btn-primary').textContent = '✅ Confirm';
+            document.querySelector('.btn-primary').onclick = confirmBooking;
+        }
+
+        function closeModal() {
+            document.getElementById('bookingModal').classList.remove('show');
+            pendingBooking = null;
+        }
+
+        function showMyBookings() {
+            if (!currentStudent) {
+                showNotification('Please select a student first!', 'warning');
+                return;
+            }
+            
+            const myBookings = Object.entries(bookings).filter(
+                ([key, booking]) => booking.student === currentStudent
+            );
+            
+            if (myBookings.length === 0) {
+                showNotification('No bookings found for this student', 'warning');
+                return;
+            }
+            
+            let bookingList = myBookings.map(([key, booking]) => {
+                const [date, time] = key.split('_');
+                const formattedDate = new Date(date).toLocaleDateString();
+                return `📅 ${formattedDate} at ${time}`;
+            }).join('<br>');
+            
+            document.getElementById('modalTitle').textContent = `My Bookings (Student ${currentStudent})`;
+            document.getElementById('modalContent').innerHTML = bookingList;
+            document.querySelector('.modal-buttons').innerHTML = `
+                <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+            `;
+            
+            document.getElementById('bookingModal').classList.add('show');
+        }
+
+        function showAvailableSlots() {
+            const availableSlots = document.querySelectorAll('.slot-cell.available');
+            
+            // Hide all slots except available ones
+            document.querySelectorAll('.slot-cell').forEach(cell => {
+                if (!cell.classList.contains('available')) {
+                    cell.style.display = 'none';
+                    cell.previousElementSibling.style.display = 'none'; // Hide time slot too
+                }
+            });
+            
+            showNotification(`Showing ${availableSlots.length} available slots`, 'success');
+        }
+
+        function clearFilters() {
+            document.querySelectorAll('.slot-cell, .time-slot').forEach(cell => {
+                cell.style.display = 'flex';
+            });
+            showNotification('All time slots visible', 'success');
+        }
+
+        function exportSchedule() {
+            const dateKey = currentDate.toISOString().split('T')[0];
+            const dayBookings = Object.entries(bookings).filter(
+                ([key]) => key.startsWith(dateKey)
+            );
+            
+            let exportText = `Coaching Schedule - ${currentDate.toDateString()}\n`;
+            exportText += '='.repeat(50) + '\n\n';
+            
+            if (dayBookings.length === 0) {
+                exportText += 'No bookings for this day.\n';
+            } else {
+                dayBookings.forEach(([key, booking]) => {
+                    const time = key.split('_')[1];
+                    exportText += `${time} - Student ${booking.student}\n`;
+                });
+            }
+            
+            // Create download
+            const blob = new Blob([exportText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `schedule-${dateKey}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showNotification('Schedule exported!', 'success');
+        }
+
+        function updateStats() {
+            const today = new Date();
+            const weekStart = new Date(today);
+            weekStart.setDate(today.getDate() - today.getDay());
+            
+            let weeklyStats = {
+                totalBookings: 0,
+                availableSlots: 0,
+                studentBookings: { A: 0, B: 0, C: 0, D: 0, E: 0 }
+            };
+            
+            // Calculate for the week
+            for (let i = 0; i < 7; i++) {
+                const checkDate = new Date(weekStart);
+                checkDate.setDate(weekStart.getDate() + i);
+                const dateKey = checkDate.toISOString().split('T')[0];
+                
+                timeSlots.forEach(time => {
+                    const slotKey = `${dateKey}_${time}`;
+                    if (bookings[slotKey]) {
+                        weeklyStats.totalBookings++;
+                        weeklyStats.studentBookings[bookings[slotKey].student]++;
+                    } else {
+                        weeklyStats.availableSlots++;
+                    }
+                });
+            }
+            
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-number">${weeklyStats.totalBookings}</div>
+                    <div class="stat-label">Total Bookings</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${weeklyStats.availableSlots}</div>
+                    <div class="stat-label">Available Slots</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${Math.round((weeklyStats.totalBookings / (weeklyStats.totalBookings + weeklyStats.availableSlots)) * 100)}%</div>
+                    <div class="stat-label">Utilization Rate</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${Object.values(weeklyStats.studentBookings).filter(count => count > 0).length}</div>
+                    <div class="stat-label">Active Students</div>
+                </div>
+            `;
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Prevent accidental page refresh when there are bookings
+        window.addEventListener('beforeunload', (e) => {
+            if (Object.keys(bookings).length > 0) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
+        // Initialize the app when page loads
+        window.addEventListener('load', initializeApp);
+    </script>
+</body>
+</html>
