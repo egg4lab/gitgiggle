@@ -810,10 +810,12 @@
             generateWeeklySchedule();
             updateStats();
             
-            // Add student button event listeners
-            document.querySelectorAll('.student-btn').forEach(btn => {
+            // Add student button event listeners (excluding coach button)
+            document.querySelectorAll('.student-btn[data-student]').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    selectStudent(this.dataset.student);
+                    if (this.dataset.student) {
+                        selectStudent(this.dataset.student);
+                    }
                 });
             });
             
@@ -823,6 +825,14 @@
                     selectLocation(this.dataset.location);
                 });
             });
+            
+            // Initialize button visibility
+            updatePasscodeButtonVisibility();
+            
+            // Show initial welcome message
+            setTimeout(() => {
+                showNotification('🎓 Coaching Reservation System Loaded! Select your student ID to begin.', 'success');
+            }, 500);
         }
         
         function selectLocation(location) {
