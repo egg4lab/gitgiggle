@@ -214,6 +214,18 @@
             background: rgba(255, 152, 0, 0.3) !important;
         }
 
+        .day-session-cell.coach-unavailable {
+            background: rgba(158, 158, 158, 0.3) !important;
+            border: 2px solid #9E9E9E !important;
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        .day-session-cell.coach-unavailable:hover {
+            transform: none;
+            background: rgba(158, 158, 158, 0.4) !important;
+        }
+
         .classroom-indicator {
             width: 100%;
             height: 4px;
@@ -672,10 +684,11 @@
                 <button class="student-btn" data-student="D">Student D</button>
                 <button class="student-btn" data-student="E">Student E</button>
             </div>
-            <div class="passcode-section" id="passcodeSection">
-                <span>🔐 Passcode:</span>
-                <input type="password" id="passcodeInput" class="passcode-input" placeholder="Enter your passcode" maxlength="6">
-                <button class="action-btn" onclick="setPasscode()">🔑 Set/Change</button>
+            <div class="passcode-section" id="passcodeSection" style="display: none;">
+                <span>🔐 Coach-Only Passcode Management:</span>
+                <input type="password" id="passcodeInput" class="passcode-input" placeholder="Enter student's passcode" maxlength="6">
+                <button class="action-btn" onclick="setPasscode()">🔑 Set Passcode</button>
+                <div style="font-size: 0.8em; opacity: 0.7; margin-top: 0.5rem;">Only coaches can set student passcodes for security</div>
             </div>
         </div>
 
@@ -689,8 +702,9 @@
         </div>
 
         <div class="quick-actions">
-            <button class="action-btn" onclick="showMyBookings()">📅 My Bookings</button>
-            <button class="action-btn" id="passcodeBtn" onclick="showMyPasscode()" style="display: none;">🔐 View Passcodes</button>
+            <button class="action-btn" onclick="showMyBookings()">📅 My Sessions</button>
+            <button class="action-btn" id="passcodeBtn" onclick="showMyPasscode()" style="display: none;">🔐 Manage Passcodes</button>
+            <button class="action-btn" id="availabilityBtn" onclick="toggleCoachAvailability()" style="display: none;">⏸️ Coach Availability</button>
             <button class="action-btn" onclick="showAvailableSlots()">🟢 Available Only</button>
             <button class="action-btn" onclick="clearFilters()">🔄 Show All</button>
             <button class="action-btn" onclick="exportSchedule()">📊 Export</button>
@@ -750,6 +764,7 @@
         let currentWeekStart = new Date();
         let bookings = JSON.parse(localStorage.getItem('coachingBookings')) || {};
         let studentPasscodes = JSON.parse(localStorage.getItem('studentPasscodes')) || {};
+        let coachUnavailable = JSON.parse(localStorage.getItem('coachUnavailable')) || {};
         let pendingBooking = null;
         let isCoachMode = false;
         
@@ -833,7 +848,7 @@
                 coachBtn.classList.add('active');
                 coachBtn.textContent = '👨‍🏫 Coach Mode: ON';
                 studentSelector.style.display = 'none';
-                passcodeSection.style.display = 'none';
+                passcodeSection.style.display = 'flex'; // Show for coach
                 currentStudent = null;
                 
                 // Clear student selection
@@ -843,16 +858,16 @@
                 
                 showCoachModeInfo();
                 updatePasscodeButtonVisibility();
-                showNotification('Coach Mode: Viewing all student bookings', 'success');
+                showNotification('Coach Mode: Managing all students', 'success');
             } else {
                 coachBtn.classList.remove('active');
                 coachBtn.textContent = '👩‍🏫 Coach View';
                 studentSelector.style.display = 'flex';
-                passcodeSection.style.display = 'flex';
+                passcodeSection.style.display = 'none'; // Hide for students
                 
                 hideCoachModeInfo();
                 updatePasscodeButtonVisibility();
-                showNotification('Student Mode: Select a student to book sessions', 'success');
+                showNotification('Student Mode: Select your student ID to view sessions', 'success');
             }
             
             updateWeeklyLimitDisplay();
@@ -861,11 +876,15 @@
         
         function updatePasscodeButtonVisibility() {
             const passcodeBtn = document.getElementById('passcodeBtn');
+            const availabilityBtn = document.getElementById('availabilityBtn');
             if (isCoachMode) {
                 passcodeBtn.style.display = 'block';
-                passcodeBtn.textContent = '🔐 View Passcodes';
+                passcodeBtn.textContent = '🔐 Manage Passcodes';
+                availabilityBtn.style.display = 'block';
+                availabilityBtn.textContent = '⏸️ Coach Availability';
             } else {
                 passcodeBtn.style.display = 'none';
+                availabilityBtn.style.display = 'none';
             }
         }
         
@@ -1129,35 +1148,54 @@
                             } else {
                                 dayCell.className += ' booked';
                                 dayCell.style.backgroundColor = `${classrooms[booking.location]?.color || '#666'}30`;
+                                const displayStudent = getDisplayStudentId(booking.student, currentStudent, isCoachMode);
                                 content.innerHTML = `
                                     <div class="session-status">❌ Taken</div>
-                                    <div class="session-details">Student ${booking.student}</div>
+                                    <div class="session-details">Student ${displayStudent}</div>
                                     <div class="session-details">${classrooms[booking.location]?.name || 'Unknown'}</div>
                                 `;
                             }
+                            }
                         } else {
-                            // Check if there's a location conflict (coach already booked at different location)
-                            const locationConflict = checkCoachLocationConflict(slotKey, currentLocation);
+                            // Check if coach is unavailable for this slot
+                            const unavailableSlotKey = `${dateKey}_${session.id}`;
+                            const isCoachUnavailable = coachUnavailable[unavailableSlotKey];
                             
-                            if (locationConflict) {
-                                dayCell.className += ' location-conflict';
-                                dayCell.style.backgroundColor = 'rgba(255, 152, 0, 0.2)';
-                                dayCell.style.border = '2px solid #FF9800';
+                            if (isCoachUnavailable) {
+                                dayCell.className += ' coach-unavailable';
+                                dayCell.style.backgroundColor = 'rgba(158, 158, 158, 0.3)';
+                                dayCell.style.border = '2px solid #9E9E9E';
                                 content.innerHTML = `
-                                    <div class="session-status">🚫 Coach Unavailable</div>
-                                    <div class="session-details">Teaching at ${classrooms[locationConflict.location]?.name}</div>
-                                    <div class="session-details">Student ${locationConflict.student}</div>
+                                    <div class="session-status">⏸️ Coach Unavailable</div>
+                                    <div class="session-details">Family time</div>
+                                    <div class="session-details">Personal schedule</div>
                                 `;
-                                // No click action for conflicted slots
+                                // No click action for unavailable slots
                             } else {
-                                dayCell.className += ' available';
-                                content.innerHTML = `
-                                    <div class="session-status">🟢 Available</div>
-                                    <div class="session-details">${session.time}</div>
-                                    <div class="session-details">${currentLocation ? classrooms[currentLocation].name : 'Select location'}</div>
-                                `;
-                                if (currentLocation && currentStudent) {
-                                    dayCell.onclick = () => bookSlot(slotKey, session, date);
+                                // Check if there's a location conflict (coach already booked at different location)
+                                const locationConflict = checkCoachLocationConflict(slotKey, currentLocation);
+                                
+                                if (locationConflict) {
+                                    dayCell.className += ' location-conflict';
+                                    dayCell.style.backgroundColor = 'rgba(255, 152, 0, 0.2)';
+                                    dayCell.style.border = '2px solid #FF9800';
+                                    const conflictDisplayStudent = getDisplayStudentId(locationConflict.student, currentStudent, isCoachMode);
+                                    content.innerHTML = `
+                                        <div class="session-status">🚫 Coach Teaching</div>
+                                        <div class="session-details">At ${classrooms[locationConflict.location]?.name}</div>
+                                        <div class="session-details">Student ${conflictDisplayStudent}</div>
+                                    `;
+                                    // No click action for conflicted slots
+                                } else {
+                                    dayCell.className += ' available';
+                                    content.innerHTML = `
+                                        <div class="session-status">🟢 Available</div>
+                                        <div class="session-details">${session.time}</div>
+                                        <div class="session-details">${currentLocation ? classrooms[currentLocation].name : 'Select location'}</div>
+                                    `;
+                                    if (currentLocation && currentStudent) {
+                                        dayCell.onclick = () => bookSlot(slotKey, session, date);
+                                    }
                                 }
                             }
                         }
@@ -1340,8 +1378,14 @@
         }
 
         function setPasscode() {
+            // Security check: Only coaches can set passcodes
+            if (!isCoachMode) {
+                showNotification('🚫 Only coaches can set student passcodes for security!', 'error');
+                return;
+            }
+            
             if (!currentStudent) {
-                showNotification('Please select a student first!', 'warning');
+                showNotification('Please select a student first from the coach management panel!', 'warning');
                 return;
             }
             
@@ -1354,7 +1398,7 @@
             studentPasscodes[currentStudent] = passcode;
             localStorage.setItem('studentPasscodes', JSON.stringify(studentPasscodes));
             
-            showNotification(`Passcode set for Student ${currentStudent}! 🔐`, 'success');
+            showNotification(`🔐 Passcode set for Student ${currentStudent} by coach!`, 'success');
             document.getElementById('passcodeInput').value = '';
         }
 
@@ -1415,18 +1459,152 @@
             document.getElementById('bookingModal').classList.add('show');
         }
 
-        function showMyBookings() {
-            if (!currentStudent) {
-                showNotification('Please select a student first!', 'warning');
+        function toggleCoachAvailability() {
+            if (!isCoachMode) {
+                showNotification('🚫 Only coaches can manage availability!', 'error');
                 return;
             }
             
-            const myBookings = Object.entries(bookings).filter(
-                ([key, booking]) => booking.student === currentStudent
-            );
+            document.getElementById('modalTitle').textContent = '⏸️ Coach Availability Management';
+            document.getElementById('modalContent').innerHTML = `
+                <div style="text-align: left; line-height: 1.6;">
+                    <div style="background: rgba(255,215,0,0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1rem; text-align: center;">
+                        <strong>📅 Family Time & Personal Schedule</strong><br>
+                        <small style="opacity: 0.8;">Block time slots when you're unavailable for coaching</small>
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <strong>Select Date & Session to Block:</strong><br><br>
+                        <label>Date: </label>
+                        <input type="date" id="blockDate" style="margin-bottom: 1rem; padding: 0.5rem; border-radius: 5px; border: 1px solid #ccc;">
+                        <br>
+                        <label>Session: </label>
+                        <select id="blockSession" style="padding: 0.5rem; border-radius: 5px; border: 1px solid #ccc; width: 100%;">
+                            <option value="morning">🌅 Morning Session (9:00-11:00)</option>
+                            <option value="afternoon">☀️ Afternoon Session (14:00-16:00)</option>
+                            <option value="night">🌙 Night Session (19:00-21:00)</option>
+                        </select>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <button onclick="blockTimeSlot()" style="background: #f44336; color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 8px; margin: 0.5rem; cursor: pointer;">⏸️ Block Time</button>
+                        <button onclick="unblockTimeSlot()" style="background: #4CAF50; color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 8px; margin: 0.5rem; cursor: pointer;">▶️ Unblock Time</button>
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; margin-top: 1rem;">
+                        <strong>📝 Current Blocked Slots:</strong><br>
+                        <div id="blockedSlotsList">${getBlockedSlotsList()}</div>
+                    </div>
+                </div>
+            `;
+            
+            // Set default date to today
+            document.getElementById('blockDate').value = new Date().toISOString().split('T')[0];
+            
+            // Hide primary button
+            document.querySelector('.btn-primary').style.display = 'none';
+            document.getElementById('bookingModal').classList.add('show');
+        }
+        
+        function blockTimeSlot() {
+            const date = document.getElementById('blockDate').value;
+            const session = document.getElementById('blockSession').value;
+            
+            if (!date) {
+                showNotification('Please select a date!', 'warning');
+                return;
+            }
+            
+            const slotKey = `${date}_${session}`;
+            coachUnavailable[slotKey] = {
+                date: date,
+                session: session,
+                blockedAt: new Date().toISOString(),
+                reason: 'Family time / Personal schedule'
+            };
+            
+            localStorage.setItem('coachUnavailable', JSON.stringify(coachUnavailable));
+            
+            // Update the blocked slots list
+            document.getElementById('blockedSlotsList').innerHTML = getBlockedSlotsList();
+            
+            showNotification(`⏸️ Time slot blocked for ${new Date(date).toLocaleDateString()}`, 'success');
+            generateWeeklySchedule(); // Refresh the schedule
+        }
+        
+        function unblockTimeSlot() {
+            const date = document.getElementById('blockDate').value;
+            const session = document.getElementById('blockSession').value;
+            
+            if (!date) {
+                showNotification('Please select a date!', 'warning');
+                return;
+            }
+            
+            const slotKey = `${date}_${session}`;
+            if (coachUnavailable[slotKey]) {
+                delete coachUnavailable[slotKey];
+                localStorage.setItem('coachUnavailable', JSON.stringify(coachUnavailable));
+                
+                // Update the blocked slots list
+                document.getElementById('blockedSlotsList').innerHTML = getBlockedSlotsList();
+                
+                showNotification(`▶️ Time slot unblocked for ${new Date(date).toLocaleDateString()}`, 'success');
+                generateWeeklySchedule(); // Refresh the schedule
+            } else {
+                showNotification('This time slot is not currently blocked', 'warning');
+            }
+        }
+        
+        function getBlockedSlotsList() {
+            const blockedSlots = Object.values(coachUnavailable);
+            if (blockedSlots.length === 0) {
+                return '<em style="opacity: 0.6;">No blocked time slots</em>';
+            }
+            
+            return blockedSlots.map(slot => {
+                const sessionLabels = {
+                    morning: '🌅 Morning',
+                    afternoon: '☀️ Afternoon', 
+                    night: '🌙 Night'
+                };
+                return `• ${new Date(slot.date).toLocaleDateString()} - ${sessionLabels[slot.session]}`;
+            }).join('<br>');
+        }
+
+        function getDisplayStudentId(actualStudent, viewingStudent, isCoachViewing = false) {
+            // If coach is viewing or student is viewing their own data, show actual ID
+            if (isCoachViewing || actualStudent === viewingStudent) {
+                return actualStudent;
+            }
+            // Otherwise, show anonymous "Student X"
+            return 'X';
+        }
+
+        function showMyBookings() {
+            if (!isCoachMode && !currentStudent) {
+                showNotification('Please select your student ID first!', 'warning');
+                return;
+            }
+            
+            let myBookings;
+            let title;
+            
+            if (isCoachMode) {
+                // Coach sees all bookings
+                myBookings = Object.entries(bookings);
+                title = 'All Student Sessions (Coach View)';
+            } else {
+                // Students see only their own bookings
+                myBookings = Object.entries(bookings).filter(
+                    ([key, booking]) => booking.student === currentStudent
+                );
+                title = `My Sessions (Student ${currentStudent})`;
+            }
             
             if (myBookings.length === 0) {
-                showNotification('No coaching sessions booked for this student', 'warning');
+                const message = isCoachMode ? 'No sessions booked by any student' : 'You have no coaching sessions booked';
+                showNotification(message, 'warning');
                 return;
             }
             
@@ -1442,6 +1620,9 @@
                 const classroom = classrooms[booking.location];
                 const locationInfo = classroom ? `${classroom.emoji} ${classroom.name}` : '📍 Location TBD';
                 
+                // Use privacy-aware student display
+                const displayStudent = getDisplayStudentId(booking.student, currentStudent, isCoachMode);
+                
                 return `
                     <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; border-left: 4px solid ${classroom?.color || '#ccc'};">
                         <div style="font-size: 1.1em; font-weight: bold; margin-bottom: 0.5rem;">
@@ -1451,12 +1632,13 @@
                             <div>📅 ${formattedDate}</div>
                             <div>🕐 ${sessionTime}</div>
                             <div style="font-weight: bold; color: ${classroom?.color || '#fff'};">${locationInfo}</div>
+                            ${isCoachMode || booking.student === currentStudent ? `<div>👤 Student ${displayStudent}</div>` : ''}
                         </div>
                     </div>
                 `;
             }).join('');
             
-            document.getElementById('modalTitle').textContent = `My Coaching Sessions (Student ${currentStudent})`;
+            document.getElementById('modalTitle').textContent = title;
             document.getElementById('modalContent').innerHTML = `
                 <div style="text-align: left; line-height: 1.6; display: flex; flex-direction: column; gap: 1rem;">
                     ${bookingList}
@@ -1464,7 +1646,7 @@
                 <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(255,215,0,0.1); border-radius: 8px; text-align: center;">
                     <strong>📊 Total Sessions: ${myBookings.length}</strong>
                     <div style="margin-top: 0.5rem; font-size: 0.9em; opacity: 0.8;">
-                        Click on any session in the calendar to cancel it
+                        ${isCoachMode ? 'Coach view: All student sessions' : 'Click on your sessions in the calendar to cancel'}
                     </div>
                 </div>
             `;
