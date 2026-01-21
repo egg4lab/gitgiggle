@@ -202,6 +202,18 @@
             border-color: #FFC107;
         }
 
+        .day-session-cell.location-conflict {
+            background: rgba(255, 152, 0, 0.2) !important;
+            border: 2px solid #FF9800 !important;
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        .day-session-cell.location-conflict:hover {
+            transform: none;
+            background: rgba(255, 152, 0, 0.3) !important;
+        }
+
         .classroom-indicator {
             width: 100%;
             height: 4px;
@@ -1124,14 +1136,29 @@
                                 `;
                             }
                         } else {
-                            dayCell.className += ' available';
-                            content.innerHTML = `
-                                <div class="session-status">🟢 Available</div>
-                                <div class="session-details">${session.time}</div>
-                                <div class="session-details">${currentLocation ? classrooms[currentLocation].name : 'Select location'}</div>
-                            `;
-                            if (currentLocation && currentStudent) {
-                                dayCell.onclick = () => bookSlot(slotKey, session, date);
+                            // Check if there's a location conflict (coach already booked at different location)
+                            const locationConflict = checkCoachLocationConflict(slotKey, currentLocation);
+                            
+                            if (locationConflict) {
+                                dayCell.className += ' location-conflict';
+                                dayCell.style.backgroundColor = 'rgba(255, 152, 0, 0.2)';
+                                dayCell.style.border = '2px solid #FF9800';
+                                content.innerHTML = `
+                                    <div class="session-status">🚫 Coach Unavailable</div>
+                                    <div class="session-details">Teaching at ${classrooms[locationConflict.location]?.name}</div>
+                                    <div class="session-details">Student ${locationConflict.student}</div>
+                                `;
+                                // No click action for conflicted slots
+                            } else {
+                                dayCell.className += ' available';
+                                content.innerHTML = `
+                                    <div class="session-status">🟢 Available</div>
+                                    <div class="session-details">${session.time}</div>
+                                    <div class="session-details">${currentLocation ? classrooms[currentLocation].name : 'Select location'}</div>
+                                `;
+                                if (currentLocation && currentStudent) {
+                                    dayCell.onclick = () => bookSlot(slotKey, session, date);
+                                }
                             }
                         }
                         
@@ -1198,16 +1225,16 @@
 
         // Function to check if coach has a location conflict
         function checkCoachLocationConflict(newSlotKey, newLocation) {
-            // Extract date and session from the new slot key
-            const newSlotParts = newSlotKey.split('-');
-            const newDate = `${newSlotParts[0]}-${newSlotParts[1]}-${newSlotParts[2]}`;
-            const newSession = newSlotParts[3];
+            // Extract date and session from the new slot key (format: YYYY-MM-DD_sessionId_location)
+            const newSlotParts = newSlotKey.split('_');
+            const newDate = newSlotParts[0]; // YYYY-MM-DD
+            const newSession = newSlotParts[1]; // morning/afternoon/night
             
             // Check all existing bookings for same date and session but different location
             for (const [slotKey, booking] of Object.entries(bookings)) {
-                const slotParts = slotKey.split('-');
-                const existingDate = `${slotParts[0]}-${slotParts[1]}-${slotParts[2]}`;
-                const existingSession = slotParts[3];
+                const slotParts = slotKey.split('_');
+                const existingDate = slotParts[0]; // YYYY-MM-DD
+                const existingSession = slotParts[1]; // morning/afternoon/night
                 
                 // If same date and session but different location, there's a conflict
                 if (existingDate === newDate && 
