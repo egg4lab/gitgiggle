@@ -262,6 +262,67 @@
             transform: translateY(-2px);
         }
 
+        .coach-toggle {
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .coach-btn {
+            background: linear-gradient(45deg, #9C27B0, #673AB7);
+            color: white;
+            font-size: 1.1rem;
+            padding: 12px 24px;
+        }
+
+        .coach-btn.active {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+            box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4);
+        }
+
+        .coach-view-info {
+            background: linear-gradient(135deg, #9C27B0, #673AB7);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .coach-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .coach-stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .coach-stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #FFD700;
+        }
+
+        .coach-stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 0.5rem;
+        }
+
+        .all-student-info {
+            font-size: 0.6rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 6px;
+            border-radius: 8px;
+            margin-top: 2px;
+        }
+
         .slot-cell:hover {
             background: rgba(255, 255, 255, 0.15);
             transform: scale(1.02);
@@ -588,7 +649,10 @@
         <p class="subtitle">Book your one-on-one coaching sessions</p>
 
         <div class="controls">
-            <div class="student-selector">
+            <div class="coach-toggle">
+                <button class="student-btn coach-btn" onclick="toggleCoachMode()" id="coachToggle">👩‍🏫 Coach View</button>
+            </div>
+            <div class="student-selector" id="studentSelector">
                 <span>Select Student:</span>
                 <button class="student-btn" data-student="A">Student A</button>
                 <button class="student-btn" data-student="B">Student B</button>
@@ -596,7 +660,7 @@
                 <button class="student-btn" data-student="D">Student D</button>
                 <button class="student-btn" data-student="E">Student E</button>
             </div>
-            <div class="passcode-section">
+            <div class="passcode-section" id="passcodeSection">
                 <span>🔐 Passcode:</span>
                 <input type="password" id="passcodeInput" class="passcode-input" placeholder="Enter your passcode" maxlength="6">
                 <button class="action-btn" onclick="setPasscode()">🔑 Set/Change</button>
@@ -674,6 +738,7 @@
         let bookings = JSON.parse(localStorage.getItem('coachingBookings')) || {};
         let studentPasscodes = JSON.parse(localStorage.getItem('studentPasscodes')) || {};
         let pendingBooking = null;
+        let isCoachMode = false;
         
         const MAX_DAILY_SESSIONS = 3; // Maximum sessions per student per day
         
@@ -744,6 +809,106 @@
             showNotification(`Selected ${classrooms[location].name} classroom ${classrooms[location].emoji}`, 'success');
             generateWeeklySchedule();
         }
+        
+        function toggleCoachMode() {
+            isCoachMode = !isCoachMode;
+            const coachBtn = document.getElementById('coachToggle');
+            const studentSelector = document.getElementById('studentSelector');
+            const passcodeSection = document.getElementById('passcodeSection');
+            
+            if (isCoachMode) {
+                coachBtn.classList.add('active');
+                coachBtn.textContent = '👨‍🏫 Coach Mode: ON';
+                studentSelector.style.display = 'none';
+                passcodeSection.style.display = 'none';
+                currentStudent = null;
+                
+                // Clear student selection
+                document.querySelectorAll('.student-btn:not(.coach-btn)').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                showCoachModeInfo();
+                showNotification('Coach Mode: Viewing all student bookings', 'success');
+            } else {
+                coachBtn.classList.remove('active');
+                coachBtn.textContent = '👩‍🏫 Coach View';
+                studentSelector.style.display = 'flex';
+                passcodeSection.style.display = 'flex';
+                
+                hideCoachModeInfo();
+                showNotification('Student Mode: Select a student to book sessions', 'success');
+            }
+            
+            updateWeeklyLimitDisplay();
+            generateWeeklySchedule();
+        }
+        
+        function showCoachModeInfo() {
+            // Remove existing info if present
+            hideCoachModeInfo();
+            
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'coach-view-info';
+            infoDiv.id = 'coachModeInfo';
+            
+            const weekDates = getWeekDates();
+            let totalBookings = 0;
+            let locationCounts = { hsinchu: 0, taipei: 0, ilan: 0 };
+            let studentCounts = { A: 0, B: 0, C: 0, D: 0, E: 0 };
+            
+            weekDates.forEach(date => {
+                const dateKey = date.toISOString().split('T')[0];
+                Object.entries(bookings).forEach(([key, booking]) => {
+                    if (key.startsWith(dateKey)) {
+                        totalBookings++;
+                        if (booking.location && locationCounts[booking.location] !== undefined) {
+                            locationCounts[booking.location]++;
+                        }
+                        if (studentCounts[booking.student] !== undefined) {
+                            studentCounts[booking.student]++;
+                        }
+                    }
+                });
+            });
+            
+            infoDiv.innerHTML = `
+                👩‍🏫 <strong>Coach Overview - This Week</strong>
+                <div class="coach-stats">
+                    <div class="coach-stat-card">
+                        <div class="coach-stat-number">${totalBookings}</div>
+                        <div class="coach-stat-label">Total Sessions</div>
+                    </div>
+                    <div class="coach-stat-card">
+                        <div class="coach-stat-number">${locationCounts.hsinchu}</div>
+                        <div class="coach-stat-label">🏢 Hsin-Chu</div>
+                    </div>
+                    <div class="coach-stat-card">
+                        <div class="coach-stat-number">${locationCounts.taipei}</div>
+                        <div class="coach-stat-label">🏙️ Tai-Pei</div>
+                    </div>
+                    <div class="coach-stat-card">
+                        <div class="coach-stat-number">${locationCounts.ilan}</div>
+                        <div class="coach-stat-label">🏞️ I-Lan</div>
+                    </div>
+                    <div class="coach-stat-card">
+                        <div class="coach-stat-number">${Object.values(studentCounts).filter(count => count > 0).length}</div>
+                        <div class="coach-stat-label">Active Students</div>
+                    </div>
+                </div>
+            `;
+            
+            // Insert after location selector
+            const locationSection = document.querySelector('.classroom-location');
+            locationSection.insertAdjacentElement('afterend', infoDiv);
+        }
+        
+        function hideCoachModeInfo() {
+            const existing = document.getElementById('coachModeInfo');
+            if (existing) {
+                existing.remove();
+            }
+        }
 
         function selectStudent(student) {
             currentStudent = student;
@@ -770,6 +935,20 @@
         }
 
         function updateWeeklyLimitDisplay() {
+            // Remove existing weekly limit display
+            const existingLimit = document.querySelector('.weekly-limit');
+            if (existingLimit) {
+                existingLimit.remove();
+            }
+            
+            if (isCoachMode) {
+                // Update coach mode info instead
+                if (document.getElementById('coachModeInfo')) {
+                    showCoachModeInfo();
+                }
+                return;
+            }
+            
             if (!currentStudent) return;
             
             const weekDates = getWeekDates();
@@ -779,12 +958,6 @@
                 const dateKey = date.toISOString().split('T')[0];
                 totalWeeklySessions += getDailySessionCount(currentStudent, dateKey);
             });
-            
-            // Remove existing weekly limit display
-            const existingLimit = document.querySelector('.weekly-limit');
-            if (existingLimit) {
-                existingLimit.remove();
-            }
             
             // Create new weekly limit display
             const limitDiv = document.createElement('div');
@@ -797,9 +970,11 @@
                 ${remaining > 0 ? `(${remaining} available)` : '(Weekly limit reached! 🚫)'}
             `;
             
-            // Insert after location selector
+            // Insert after location selector or coach info
             const locationSection = document.querySelector('.classroom-location');
-            locationSection.insertAdjacentElement('afterend', limitDiv);
+            const coachInfo = document.getElementById('coachModeInfo');
+            const insertAfter = coachInfo || locationSection;
+            insertAfter.insertAdjacentElement('afterend', limitDiv);
         }
 
         function getDailySessionCount(student, dateKey) {
@@ -854,57 +1029,102 @@
                 // Day cells for this session
                 weekDates.forEach(date => {
                     const dateKey = date.toISOString().split('T')[0];
-                    const slotKey = `${dateKey}_${session.id}_${currentLocation || 'any'}`;
-                    const booking = bookings[slotKey];
                     
                     const dayCell = document.createElement('div');
                     dayCell.className = 'day-session-cell';
-                    dayCell.dataset.slot = slotKey;
-                    dayCell.dataset.session = session.id;
-                    dayCell.dataset.date = dateKey;
                     
-                    // Add classroom color indicator
-                    if (currentLocation) {
-                        const colorBar = document.createElement('div');
-                        colorBar.className = 'classroom-indicator';
-                        colorBar.style.backgroundColor = classrooms[currentLocation].color;
-                        dayCell.appendChild(colorBar);
-                    }
-                    
-                    const content = document.createElement('div');
-                    content.className = 'session-content';
-                    
-                    if (booking) {
-                        if (booking.student === currentStudent) {
-                            dayCell.className += ' my-booking';
-                            content.innerHTML = `
-                                <div class="session-status">✅ My Session</div>
-                                <div class="session-details">Student ${booking.student}</div>
-                                <div class="session-details">${classrooms[booking.location]?.name || 'Location TBD'}</div>
-                            `;
-                            dayCell.onclick = () => cancelBooking(slotKey);
-                        } else {
+                    if (isCoachMode) {
+                        // Coach mode: show all bookings for this date/session across all locations
+                        const sessionsForSlot = Object.entries(bookings).filter(([key, booking]) => {
+                            return key.startsWith(`${dateKey}_${session.id}`);
+                        });
+                        
+                        if (sessionsForSlot.length > 0) {
                             dayCell.className += ' booked';
-                            dayCell.style.backgroundColor = `${classrooms[booking.location]?.color || '#666'}30`;
+                            
+                            const content = document.createElement('div');
+                            content.className = 'session-content';
+                            
+                            let bookingInfo = sessionsForSlot.map(([key, booking]) => {
+                                const location = booking.location || 'unknown';
+                                const classroom = classrooms[location];
+                                const color = classroom ? classroom.color : '#666';
+                                
+                                return `
+                                    <div class="all-student-info" style="background: ${color}30; border-left: 3px solid ${color};">
+                                        Student ${booking.student} @ ${classroom ? classroom.name : 'Unknown'}
+                                    </div>
+                                `;
+                            }).join('');
+                            
                             content.innerHTML = `
-                                <div class="session-status">❌ Taken</div>
-                                <div class="session-details">Student ${booking.student}</div>
-                                <div class="session-details">${classrooms[booking.location]?.name || 'Unknown'}</div>
+                                <div class="session-status">📋 ${sessionsForSlot.length} Booked</div>
+                                ${bookingInfo}
                             `;
+                            
+                            dayCell.appendChild(content);
+                        } else {
+                            dayCell.className += ' available';
+                            const content = document.createElement('div');
+                            content.className = 'session-content';
+                            content.innerHTML = `
+                                <div class="session-status">🟢 Available</div>
+                                <div class="session-details">All locations open</div>
+                            `;
+                            dayCell.appendChild(content);
                         }
                     } else {
-                        dayCell.className += ' available';
-                        content.innerHTML = `
-                            <div class="session-status">🟢 Available</div>
-                            <div class="session-details">${session.time}</div>
-                            <div class="session-details">${currentLocation ? classrooms[currentLocation].name : 'Select location'}</div>
-                        `;
+                        // Student mode: existing logic
+                        const slotKey = `${dateKey}_${session.id}_${currentLocation || 'any'}`;
+                        const booking = bookings[slotKey];
+                        dayCell.dataset.slot = slotKey;
+                        dayCell.dataset.session = session.id;
+                        dayCell.dataset.date = dateKey;
+                        
+                        // Add classroom color indicator
                         if (currentLocation) {
-                            dayCell.onclick = () => bookSlot(slotKey, session, date);
+                            const colorBar = document.createElement('div');
+                            colorBar.className = 'classroom-indicator';
+                            colorBar.style.backgroundColor = classrooms[currentLocation].color;
+                            dayCell.appendChild(colorBar);
                         }
+                        
+                        const content = document.createElement('div');
+                        content.className = 'session-content';
+                        
+                        if (booking) {
+                            if (booking.student === currentStudent) {
+                                dayCell.className += ' my-booking';
+                                content.innerHTML = `
+                                    <div class="session-status">✅ My Session</div>
+                                    <div class="session-details">Student ${booking.student}</div>
+                                    <div class="session-details">${classrooms[booking.location]?.name || 'Location TBD'}</div>
+                                `;
+                                dayCell.onclick = () => cancelBooking(slotKey);
+                            } else {
+                                dayCell.className += ' booked';
+                                dayCell.style.backgroundColor = `${classrooms[booking.location]?.color || '#666'}30`;
+                                content.innerHTML = `
+                                    <div class="session-status">❌ Taken</div>
+                                    <div class="session-details">Student ${booking.student}</div>
+                                    <div class="session-details">${classrooms[booking.location]?.name || 'Unknown'}</div>
+                                `;
+                            }
+                        } else {
+                            dayCell.className += ' available';
+                            content.innerHTML = `
+                                <div class="session-status">🟢 Available</div>
+                                <div class="session-details">${session.time}</div>
+                                <div class="session-details">${currentLocation ? classrooms[currentLocation].name : 'Select location'}</div>
+                            `;
+                            if (currentLocation && currentStudent) {
+                                dayCell.onclick = () => bookSlot(slotKey, session, date);
+                            }
+                        }
+                        
+                        dayCell.appendChild(content);
                     }
                     
-                    dayCell.appendChild(content);
                     grid.appendChild(dayCell);
                 });
             });
