@@ -337,6 +337,49 @@
             background: rgba(255, 255, 255, 0.3);
         }
 
+        .passcode-section {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .passcode-input {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            color: white;
+            width: 150px;
+            font-size: 1rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .passcode-input:focus {
+            outline: none;
+            border-color: #FFD700;
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .passcode-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .daily-limit {
+            background: rgba(255, 193, 7, 0.2);
+            border-left: 4px solid #FFC107;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 1rem 0;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .limit-warning {
+            background: rgba(244, 67, 54, 0.2);
+            border-left: 4px solid #f44336;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
@@ -362,6 +405,15 @@
 
             .student-selector {
                 justify-content: center;
+            }
+
+            .passcode-section {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .passcode-input {
+                width: 120px;
             }
         }
 
@@ -406,6 +458,11 @@
                 <button class="student-btn" data-student="C">Student C</button>
                 <button class="student-btn" data-student="D">Student D</button>
                 <button class="student-btn" data-student="E">Student E</button>
+            </div>
+            <div class="passcode-section">
+                <span>🔐 Passcode:</span>
+                <input type="password" id="passcodeInput" class="passcode-input" placeholder="Enter your passcode" maxlength="6">
+                <button class="action-btn" onclick="setPasscode()">🔑 Set/Change</button>
             </div>
         </div>
 
@@ -468,7 +525,10 @@
         let currentStudent = null;
         let currentDate = new Date();
         let bookings = JSON.parse(localStorage.getItem('coachingBookings')) || {};
+        let studentPasscodes = JSON.parse(localStorage.getItem('studentPasscodes')) || {};
         let pendingBooking = null;
+        
+        const MAX_DAILY_SESSIONS = 3; // Maximum sessions per student per day
 
         // Time slots from 9 AM to 6 PM
         const timeSlots = [
@@ -508,6 +568,9 @@
             });
             document.querySelector(`[data-student="${student}"]`).classList.add('active');
             
+            // Show daily session count
+            updateDailyLimitDisplay();
+            
             // Refresh schedule to show student's perspective
             generateSchedule();
             showNotification(`Selected Student ${student}`, 'success');
@@ -524,15 +587,50 @@
                 currentDate.toLocaleDateString('en-US', options);
         }
 
+        function updateDailyLimitDisplay() {
+            if (!currentStudent) return;
+            
+            const dateKey = currentDate.toISOString().split('T')[0];
+            const dailySessions = getDailySessionCount(currentStudent, dateKey);
+            
+            // Remove existing daily limit display
+            const existingLimit = document.querySelector('.daily-limit');
+            if (existingLimit) {
+                existingLimit.remove();
+            }
+            
+            // Create new daily limit display
+            const limitDiv = document.createElement('div');
+            limitDiv.className = `daily-limit ${dailySessions >= MAX_DAILY_SESSIONS ? 'limit-warning' : ''}`;
+            
+            const remaining = MAX_DAILY_SESSIONS - dailySessions;
+            limitDiv.innerHTML = `
+                📊 Student ${currentStudent}: ${dailySessions}/${MAX_DAILY_SESSIONS} sessions booked today
+                ${remaining > 0 ? `(${remaining} remaining)` : '(Daily limit reached! 🚫)'}
+            `;
+            
+            // Insert after date navigation
+            const dateNav = document.querySelector('.date-nav');
+            dateNav.insertAdjacentElement('afterend', limitDiv);
+        }
+
+        function getDailySessionCount(student, dateKey) {
+            return Object.entries(bookings).filter(
+                ([key, booking]) => key.startsWith(dateKey) && booking.student === student
+            ).length;
+        }
+
         function previousDay() {
             currentDate.setDate(currentDate.getDate() - 1);
             updateDateDisplay();
+            updateDailyLimitDisplay();
             generateSchedule();
         }
 
         function nextDay() {
             currentDate.setDate(currentDate.getDate() + 1);
             updateDateDisplay();
+            updateDailyLimitDisplay();
             generateSchedule();
         }
 
@@ -600,8 +698,23 @@
                 showNotification('Please select a student first!', 'warning');
                 return;
             }
+            
+            // Check if student has set a passcode
+            if (!studentPasscodes[currentStudent]) {
+                showNotification('Please set a passcode first to secure your bookings!', 'warning');
+                document.getElementById('passcodeInput').focus();
+                return;
+            }
 
+            // Check daily session limit
             const date = slotKey.split('_')[0];
+            const dailySessions = getDailySessionCount(currentStudent, date);
+            
+            if (dailySessions >= MAX_DAILY_SESSIONS) {
+                showNotification(`Daily limit reached! Student ${currentStudent} can only book ${MAX_DAILY_SESSIONS} sessions per day.`, 'error');
+                return;
+            }
+
             const formattedDate = new Date(date).toLocaleDateString('en-US', {
                 weekday: 'long',
                 month: 'long', 
@@ -610,11 +723,14 @@
 
             pendingBooking = { slotKey, time };
             
+            const remaining = MAX_DAILY_SESSIONS - dailySessions - 1;
             document.getElementById('modalTitle').textContent = 'Confirm Booking';
             document.getElementById('modalContent').innerHTML = `
                 <strong>Student ${currentStudent}</strong><br>
                 📅 ${formattedDate}<br>
-                🕐 ${time}<br><br>
+                🕐 ${time}<br>
+                📊 This will be session ${dailySessions + 1}/${MAX_DAILY_SESSIONS} for today<br>
+                ${remaining > 0 ? `(${remaining} slots remaining)` : '(Last available slot for today!)'}<br><br>
                 Do you want to book this coaching session?
             `;
             
@@ -627,13 +743,15 @@
             bookings[pendingBooking.slotKey] = {
                 student: currentStudent,
                 time: pendingBooking.time,
-                bookedAt: new Date().toISOString()
+                bookedAt: new Date().toISOString(),
+                passcode: studentPasscodes[currentStudent]
             };
             
             localStorage.setItem('coachingBookings', JSON.stringify(bookings));
             
             showNotification(`Session booked for Student ${currentStudent}!`, 'success');
             generateSchedule();
+            updateDailyLimitDisplay();
             updateStats();
             closeModal();
         }
@@ -642,10 +760,24 @@
             const booking = bookings[slotKey];
             if (!booking || booking.student !== currentStudent) return;
             
+            // Verify passcode
+            const enteredPasscode = document.getElementById('passcodeInput').value;
+            if (!enteredPasscode) {
+                showNotification('Please enter your passcode to cancel this session!', 'warning');
+                document.getElementById('passcodeInput').focus();
+                return;
+            }
+            
+            if (enteredPasscode !== studentPasscodes[currentStudent]) {
+                showNotification('Incorrect passcode! Cannot cancel this session.', 'error');
+                return;
+            }
+            
             pendingBooking = { slotKey, cancel: true };
             
             document.getElementById('modalTitle').textContent = 'Cancel Booking';
             document.getElementById('modalContent').innerHTML = `
+                🔐 Passcode verified ✅<br><br>
                 Are you sure you want to cancel your session at <strong>${booking.time}</strong>?<br>
                 This action cannot be undone.
             `;
@@ -665,6 +797,7 @@
             
             showNotification('Session cancelled successfully', 'success');
             generateSchedule();
+            updateDailyLimitDisplay();
             updateStats();
             closeModal();
             
@@ -676,6 +809,25 @@
         function closeModal() {
             document.getElementById('bookingModal').classList.remove('show');
             pendingBooking = null;
+        }
+
+        function setPasscode() {
+            if (!currentStudent) {
+                showNotification('Please select a student first!', 'warning');
+                return;
+            }
+            
+            const passcode = document.getElementById('passcodeInput').value;
+            if (!passcode || passcode.length < 3) {
+                showNotification('Passcode must be at least 3 characters long!', 'warning');
+                return;
+            }
+            
+            studentPasscodes[currentStudent] = passcode;
+            localStorage.setItem('studentPasscodes', JSON.stringify(studentPasscodes));
+            
+            showNotification(`Passcode set for Student ${currentStudent}! 🔐`, 'success');
+            document.getElementById('passcodeInput').value = '';
         }
 
         function showMyBookings() {
