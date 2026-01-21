@@ -1183,8 +1183,44 @@
             document.getElementById('bookingModal').classList.add('show');
         }
 
+        // Function to check if coach has a location conflict
+        function checkCoachLocationConflict(newSlotKey, newLocation) {
+            // Extract date and session from the new slot key
+            const newSlotParts = newSlotKey.split('-');
+            const newDate = `${newSlotParts[0]}-${newSlotParts[1]}-${newSlotParts[2]}`;
+            const newSession = newSlotParts[3];
+            
+            // Check all existing bookings for same date and session but different location
+            for (const [slotKey, booking] of Object.entries(bookings)) {
+                const slotParts = slotKey.split('-');
+                const existingDate = `${slotParts[0]}-${slotParts[1]}-${slotParts[2]}`;
+                const existingSession = slotParts[3];
+                
+                // If same date and session but different location, there's a conflict
+                if (existingDate === newDate && 
+                    existingSession === newSession && 
+                    booking.location !== newLocation) {
+                    return {
+                        location: booking.location,
+                        student: booking.student,
+                        slotKey: slotKey
+                    };
+                }
+            }
+            return null;
+        }
+
         function confirmBooking() {
             if (!pendingBooking || !currentStudent) return;
+            
+            // Check for coach location conflict
+            const locationConflict = checkCoachLocationConflict(pendingBooking.slotKey, pendingBooking.location);
+            if (locationConflict) {
+                const conflictLocation = classrooms[locationConflict.location];
+                const conflictStudent = locationConflict.student;
+                showNotification(`❌ Coach is already teaching Student ${conflictStudent} at ${conflictLocation.name} during ${pendingBooking.session.label.toLowerCase()}! Please choose a different time slot.`, 'error');
+                return;
+            }
             
             bookings[pendingBooking.slotKey] = {
                 student: currentStudent,
@@ -1343,6 +1379,94 @@
                 cell.style.display = 'flex';
             });
             showNotification('All time slots visible', 'success');
+        }
+
+        function showCancelInstructions() {
+            document.getElementById('modalTitle').textContent = '❌ How to Cancel Your Class';
+            document.getElementById('modalContent').innerHTML = `
+                <div style="text-align: left; line-height: 1.8;">
+                    <h3 style="color: #FFD700; margin-bottom: 1rem;">📋 Cancellation Instructions:</h3>
+                    
+                    <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <strong>Step 1:</strong> 👤 Select your student ID (A, B, C, D, or E)
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <strong>Step 2:</strong> 📅 Find your booked session on the weekly calendar<br>
+                        <small style="opacity: 0.8;">• Booked sessions appear with your student color</small><br>
+                        <small style="opacity: 0.8;">• They show session time, location, and your student ID</small>
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <strong>Step 3:</strong> 🖱️ Click directly on your booked session
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <strong>Step 4:</strong> 🔐 Enter your passcode when prompted<br>
+                        <small style="opacity: 0.8;">• This prevents other students from canceling your sessions</small>
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <strong>Step 5:</strong> ✅ Confirm cancellation
+                    </div>
+                    
+                    <div style="background: rgba(255,100,100,0.2); padding: 1rem; border-radius: 10px; border-left: 4px solid #ff6b6b;">
+                        <strong>⚠️ Important Notes:</strong><br>
+                        • Coach cannot teach at multiple locations simultaneously<br>
+                        • If coach is at Hsin-Chu, no classes can be booked at Tai-Pei or Yi-Lan during the same session<br>
+                        • Cancel early to allow other students to book the time slot<br>
+                        • Each student can book maximum 3 sessions per week
+                    </div>
+                </div>
+            `;
+            
+            // Hide the confirm button, only show cancel/close
+            document.querySelector('.btn-primary').style.display = 'none';
+            document.getElementById('bookingModal').classList.add('show');
+        }
+
+        function showCancelInstructions() {
+            document.getElementById('modalTitle').textContent = '❌ How to Cancel Your Class';
+            document.getElementById('modalContent').innerHTML = `
+                <div style="text-align: left; line-height: 1.8;">
+                    <h3 style="color: #FFD700; margin-bottom: 1rem;">📋 Cancellation Instructions:</h3>
+                    
+                    <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <strong>Step 1:</strong> 👤 Select your student ID (A, B, C, D, or E)
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <strong>Step 2:</strong> 📅 Find your booked session on the weekly calendar<br>
+                        <small style="opacity: 0.8;">• Booked sessions appear with your student color</small><br>
+                        <small style="opacity: 0.8;">• They show session time, location, and your student ID</small>
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <strong>Step 3:</strong> 🖱️ Click directly on your booked session
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <strong>Step 4:</strong> 🔐 Enter your passcode when prompted<br>
+                        <small style="opacity: 0.8;">• This prevents other students from canceling your sessions</small>
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                        <strong>Step 5:</strong> ✅ Confirm cancellation
+                    </div>
+                    
+                    <div style="background: rgba(255,100,100,0.2); padding: 1rem; border-radius: 10px; border-left: 4px solid #ff6b6b;">
+                        <strong>⚠️ Important Notes:</strong><br>
+                        • Coach cannot teach at multiple locations simultaneously<br>
+                        • If coach is at Hsin-Chu, no classes can be booked at Tai-Pei or Yi-Lan during the same session<br>
+                        • Cancel early to allow other students to book the time slot<br>
+                        • Each student can book maximum 3 sessions per week
+                    </div>
+                </div>
+            `;
+            
+            // Hide the confirm button, only show cancel/close
+            document.querySelector('.btn-primary').style.display = 'none';
+            document.getElementById('bookingModal').classList.add('show');
         }
 
         function exportSchedule() {
