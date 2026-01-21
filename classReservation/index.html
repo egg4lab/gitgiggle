@@ -124,88 +124,142 @@
 
         .schedule-grid {
             display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 1px;
+            grid-template-columns: 120px repeat(7, 1fr);
+            gap: 2px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             overflow: hidden;
             margin-bottom: 2rem;
         }
 
-        .time-header {
+        .week-header {
             background: rgba(255, 255, 255, 0.2);
-            padding: 15px;
+            padding: 10px 5px;
             font-weight: bold;
             text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .time-slot {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px 15px;
+            font-size: 0.9rem;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-            min-height: 100px;
+            min-height: 60px;
         }
 
-        .session-info {
-            text-align: center;
+        .day-name {
+            font-size: 0.8rem;
+            margin-bottom: 2px;
         }
 
-        .session-label {
-            font-size: 1.1rem;
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-
-        .session-time {
-            font-size: 0.9rem;
+        .day-date {
+            font-size: 0.7rem;
             opacity: 0.8;
-            color: #FFD700;
         }
 
-        .slot-cell {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            min-height: 100px;
+        .session-header {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 5px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.8rem;
             display: flex;
             align-items: center;
             justify-content: center;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+        }
+
+        .day-session-cell {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             text-align: center;
+            position: relative;
+            border: 2px solid transparent;
         }
 
-        .session-slot {
-            min-height: 120px;
+        .day-session-cell:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.02);
         }
 
-        .booking-content {
+        .day-session-cell.available {
+            background: rgba(76, 175, 80, 0.2);
+            border-color: #4CAF50;
+        }
+
+        .day-session-cell.booked {
+            cursor: default;
+        }
+
+        .day-session-cell.my-booking {
+            background: rgba(255, 193, 7, 0.3);
+            border-color: #FFC107;
+        }
+
+        .classroom-indicator {
             width: 100%;
+            height: 4px;
+            margin-bottom: 4px;
+            border-radius: 2px;
         }
 
-        .booking-status {
-            font-size: 1.1rem;
+        .session-content {
+            font-size: 0.7rem;
+            line-height: 1.2;
+        }
+
+        .session-status {
             font-weight: bold;
-            margin-bottom: 0.5rem;
+            margin-bottom: 2px;
         }
 
-        .booking-details {
-            font-size: 0.9rem;
+        .session-details {
+            font-size: 0.6rem;
             opacity: 0.8;
-            margin-bottom: 0.5rem;
         }
 
-        .booking-action {
-            font-size: 0.8rem;
-            opacity: 0.7;
-            font-style: italic;
+        .classroom-location {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin: 1rem 0;
+        }
+
+        .location-selector {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .location-btn {
+            padding: 10px 20px;
+            border: 2px solid transparent;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .location-btn.active {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .location-btn:hover {
+            transform: translateY(-2px);
         }
 
         .slot-cell:hover {
@@ -432,28 +486,37 @@
             }
 
             .schedule-grid {
-                grid-template-columns: 1fr;
-                gap: 2px;
+                grid-template-columns: 80px repeat(7, 1fr);
+                gap: 1px;
+                font-size: 0.8rem;
             }
 
-            .time-slot {
-                border-right: none;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                min-height: 80px;
-                padding: 15px 10px;
+            .week-header {
+                padding: 5px;
+                font-size: 0.7rem;
+                min-height: 50px;
             }
 
-            .slot-cell {
-                min-height: 100px;
-                padding: 15px 10px;
+            .session-header {
+                padding: 5px;
+                font-size: 0.6rem;
             }
 
-            .session-slot {
-                min-height: 100px;
+            .day-session-cell {
+                padding: 5px;
+                min-height: 60px;
             }
 
-            .booking-content {
-                font-size: 0.9rem;
+            .session-content {
+                font-size: 0.6rem;
+            }
+
+            .session-status {
+                font-size: 0.6rem;
+            }
+
+            .session-details {
+                font-size: 0.5rem;
             }
 
             .controls {
@@ -463,6 +526,22 @@
 
             .student-selector {
                 justify-content: center;
+                margin-bottom: 1rem;
+            }
+
+            .student-btn {
+                padding: 8px 12px;
+                font-size: 0.9rem;
+            }
+
+            .location-selector {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .location-btn {
+                padding: 8px 16px;
+                font-size: 0.8rem;
             }
 
             .passcode-section {
@@ -524,6 +603,15 @@
             </div>
         </div>
 
+        <div class="classroom-location">
+            <h3 style="text-align: center; margin-bottom: 1rem;">🏢 Select Classroom Location</h3>
+            <div class="location-selector">
+                <button class="location-btn" data-location="hsinchu" style="background: #FF6B6B;">🏢 Hsin-Chu</button>
+                <button class="location-btn" data-location="taipei" style="background: #4ECDC4;">🏙️ Tai-Pei</button>
+                <button class="location-btn" data-location="ilan" style="background: #96CEB4;">🏞️ I-Lan</button>
+            </div>
+        </div>
+
         <div class="quick-actions">
             <button class="action-btn" onclick="showMyBookings()">📅 My Bookings</button>
             <button class="action-btn" onclick="showAvailableSlots()">🟢 Available Only</button>
@@ -532,9 +620,9 @@
         </div>
 
         <div class="date-nav">
-            <button class="nav-btn" onclick="previousDay()">‹</button>
-            <div class="current-date" id="currentDate"></div>
-            <button class="nav-btn" onclick="nextDay()">›</button>
+            <button class="nav-btn" onclick="previousWeek()">‹</button>
+            <div class="current-date" id="currentWeek"></div>
+            <button class="nav-btn" onclick="nextWeek()">›</button>
         </div>
 
         <div class="schedule-grid" id="scheduleGrid">
@@ -581,12 +669,26 @@
 
     <script>
         let currentStudent = null;
-        let currentDate = new Date();
+        let currentLocation = null;
+        let currentWeekStart = new Date();
         let bookings = JSON.parse(localStorage.getItem('coachingBookings')) || {};
         let studentPasscodes = JSON.parse(localStorage.getItem('studentPasscodes')) || {};
         let pendingBooking = null;
         
         const MAX_DAILY_SESSIONS = 3; // Maximum sessions per student per day
+        
+        // Set current week to start of week (Sunday)
+        currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay());
+        
+        function getWeekDates() {
+            const dates = [];
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(currentWeekStart);
+                date.setDate(currentWeekStart.getDate() + i);
+                dates.push(date);
+            }
+            return dates;
+        }
 
         // Three 2-hour coaching sessions per day
         const timeSlots = [
@@ -603,10 +705,16 @@
             'D': '#96CEB4',
             'E': '#FFEAA7'
         };
+        
+        const classrooms = {
+            'hsinchu': { name: 'Hsin-Chu', color: '#FF6B6B', emoji: '🏢' },
+            'taipei': { name: 'Tai-Pei', color: '#4ECDC4', emoji: '🏙️' },
+            'ilan': { name: 'I-Lan', color: '#96CEB4', emoji: '🏞️' }
+        };
 
         function initializeApp() {
-            updateDateDisplay();
-            generateSchedule();
+            updateWeekDisplay();
+            generateWeeklySchedule();
             updateStats();
             
             // Add student button event listeners
@@ -615,6 +723,26 @@
                     selectStudent(this.dataset.student);
                 });
             });
+            
+            // Add location button event listeners
+            document.querySelectorAll('.location-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    selectLocation(this.dataset.location);
+                });
+            });
+        }
+        
+        function selectLocation(location) {
+            currentLocation = location;
+            
+            // Update button states
+            document.querySelectorAll('.location-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-location="${location}"]`).classList.add('active');
+            
+            showNotification(`Selected ${classrooms[location].name} classroom ${classrooms[location].emoji}`, 'success');
+            generateWeeklySchedule();
         }
 
         function selectStudent(student) {
@@ -626,50 +754,52 @@
             });
             document.querySelector(`[data-student="${student}"]`).classList.add('active');
             
-            // Show daily session count
-            updateDailyLimitDisplay();
+            // Show weekly session count
+            updateWeeklyLimitDisplay();
             
             // Refresh schedule to show student's perspective
-            generateSchedule();
+            generateWeeklySchedule();
             showNotification(`Selected Student ${student}`, 'success');
         }
 
-        function updateDateDisplay() {
-            const options = { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-            };
-            document.getElementById('currentDate').textContent = 
-                currentDate.toLocaleDateString('en-US', options);
+        function updateWeekDisplay() {
+            const weekDates = getWeekDates();
+            const startDate = weekDates[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            const endDate = weekDates[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            document.getElementById('currentWeek').textContent = `${startDate} - ${endDate}`;
         }
 
-        function updateDailyLimitDisplay() {
+        function updateWeeklyLimitDisplay() {
             if (!currentStudent) return;
             
-            const dateKey = currentDate.toISOString().split('T')[0];
-            const dailySessions = getDailySessionCount(currentStudent, dateKey);
+            const weekDates = getWeekDates();
+            let totalWeeklySessions = 0;
             
-            // Remove existing daily limit display
-            const existingLimit = document.querySelector('.daily-limit');
+            weekDates.forEach(date => {
+                const dateKey = date.toISOString().split('T')[0];
+                totalWeeklySessions += getDailySessionCount(currentStudent, dateKey);
+            });
+            
+            // Remove existing weekly limit display
+            const existingLimit = document.querySelector('.weekly-limit');
             if (existingLimit) {
                 existingLimit.remove();
             }
             
-            // Create new daily limit display
+            // Create new weekly limit display
             const limitDiv = document.createElement('div');
-            limitDiv.className = `daily-limit ${dailySessions >= MAX_DAILY_SESSIONS ? 'limit-warning' : ''}`;
+            limitDiv.className = 'daily-limit weekly-limit';
             
-            const remaining = MAX_DAILY_SESSIONS - dailySessions;
+            const maxWeekly = MAX_DAILY_SESSIONS * 7;
+            const remaining = maxWeekly - totalWeeklySessions;
             limitDiv.innerHTML = `
-                📊 Student ${currentStudent}: ${dailySessions}/${MAX_DAILY_SESSIONS} sessions booked today
-                ${remaining > 0 ? `(${remaining} remaining)` : '(Daily limit reached! 🚫)'}
+                📊 Student ${currentStudent}: ${totalWeeklySessions}/${maxWeekly} sessions this week
+                ${remaining > 0 ? `(${remaining} available)` : '(Weekly limit reached! 🚫)'}
             `;
             
-            // Insert after date navigation
-            const dateNav = document.querySelector('.date-nav');
-            dateNav.insertAdjacentElement('afterend', limitDiv);
+            // Insert after location selector
+            const locationSection = document.querySelector('.classroom-location');
+            locationSection.insertAdjacentElement('afterend', limitDiv);
         }
 
         function getDailySessionCount(student, dateKey) {
@@ -678,89 +808,116 @@
             ).length;
         }
 
-        function previousDay() {
-            currentDate.setDate(currentDate.getDate() - 1);
-            updateDateDisplay();
-            updateDailyLimitDisplay();
-            generateSchedule();
+        function previousWeek() {
+            currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+            updateWeekDisplay();
+            updateWeeklyLimitDisplay();
+            generateWeeklySchedule();
         }
 
-        function nextDay() {
-            currentDate.setDate(currentDate.getDate() + 1);
-            updateDateDisplay();
-            updateDailyLimitDisplay();
-            generateSchedule();
+        function nextWeek() {
+            currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+            updateWeekDisplay();
+            updateWeeklyLimitDisplay();
+            generateWeeklySchedule();
         }
 
-        function generateSchedule() {
+        function generateWeeklySchedule() {
             const grid = document.getElementById('scheduleGrid');
-            const dateKey = currentDate.toISOString().split('T')[0];
+            const weekDates = getWeekDates();
             
-            grid.innerHTML = `
-                <div class="time-header">Session Period</div>
-                <div class="time-header">Availability Status</div>
-            `;
-
-            timeSlots.forEach(session => {
-                const slotKey = `${dateKey}_${session.id}`;
-                const booking = bookings[slotKey];
+            // Create header row with days
+            grid.innerHTML = `<div class="session-header">Session</div>`;
+            
+            weekDates.forEach(date => {
+                const headerCell = document.createElement('div');
+                headerCell.className = 'week-header';
                 
-                // Session info column
-                const sessionCell = document.createElement('div');
-                sessionCell.className = 'time-slot session-info';
-                sessionCell.innerHTML = `
-                    <div class="session-label">${session.label}</div>
-                    <div class="session-time">${session.description}</div>
+                const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                const dayDate = date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
+                
+                headerCell.innerHTML = `
+                    <div class="day-name">${dayName}</div>
+                    <div class="day-date">${dayDate}</div>
                 `;
+                grid.appendChild(headerCell);
+            });
+            
+            // Create rows for each session type
+            timeSlots.forEach(session => {
+                // Session type header
+                const sessionHeader = document.createElement('div');
+                sessionHeader.className = 'session-header';
+                sessionHeader.textContent = session.label;
+                grid.appendChild(sessionHeader);
                 
-                // Availability column
-                const slotCell = document.createElement('div');
-                slotCell.className = 'slot-cell session-slot';
-                slotCell.dataset.slot = slotKey;
-                slotCell.dataset.session = session.id;
-                slotCell.dataset.time = session.time;
-                
-                if (booking) {
-                    if (booking.student === currentStudent) {
-                        slotCell.className += ' my-booking';
-                        slotCell.innerHTML = `
-                            <div class="booking-content">
-                                <div class="booking-status">✅ My 2-Hour Session</div>
-                                <div class="booking-details">Booked: ${new Date(booking.bookedAt).toLocaleDateString()}</div>
-                                <div class="booking-action">🗑️ Click to cancel</div>
-                            </div>
-                        `;
-                        slotCell.onclick = () => cancelBooking(slotKey);
-                    } else {
-                        slotCell.className += ' booked';
-                        slotCell.innerHTML = `
-                            <div class="booking-content">
-                                <div class="booking-status">❌ Session Taken</div>
-                                <div class="student-indicator">Student ${booking.student}</div>
-                                <div class="booking-details">2-hour coaching session</div>
-                            </div>
-                        `;
+                // Day cells for this session
+                weekDates.forEach(date => {
+                    const dateKey = date.toISOString().split('T')[0];
+                    const slotKey = `${dateKey}_${session.id}_${currentLocation || 'any'}`;
+                    const booking = bookings[slotKey];
+                    
+                    const dayCell = document.createElement('div');
+                    dayCell.className = 'day-session-cell';
+                    dayCell.dataset.slot = slotKey;
+                    dayCell.dataset.session = session.id;
+                    dayCell.dataset.date = dateKey;
+                    
+                    // Add classroom color indicator
+                    if (currentLocation) {
+                        const colorBar = document.createElement('div');
+                        colorBar.className = 'classroom-indicator';
+                        colorBar.style.backgroundColor = classrooms[currentLocation].color;
+                        dayCell.appendChild(colorBar);
                     }
-                } else {
-                    slotCell.className += ' available';
-                    slotCell.innerHTML = `
-                        <div class="booking-content">
-                            <div class="booking-status">🟢 Available</div>
-                            <div class="booking-details">2-hour personal coaching</div>
-                            <div class="booking-action">📅 Click to reserve</div>
-                        </div>
-                    `;
-                    slotCell.onclick = () => bookSlot(slotKey, session);
-                }
-                
-                grid.appendChild(sessionCell);
-                grid.appendChild(slotCell);
+                    
+                    const content = document.createElement('div');
+                    content.className = 'session-content';
+                    
+                    if (booking) {
+                        if (booking.student === currentStudent) {
+                            dayCell.className += ' my-booking';
+                            content.innerHTML = `
+                                <div class="session-status">✅ My Session</div>
+                                <div class="session-details">Student ${booking.student}</div>
+                                <div class="session-details">${classrooms[booking.location]?.name || 'Location TBD'}</div>
+                            `;
+                            dayCell.onclick = () => cancelBooking(slotKey);
+                        } else {
+                            dayCell.className += ' booked';
+                            dayCell.style.backgroundColor = `${classrooms[booking.location]?.color || '#666'}30`;
+                            content.innerHTML = `
+                                <div class="session-status">❌ Taken</div>
+                                <div class="session-details">Student ${booking.student}</div>
+                                <div class="session-details">${classrooms[booking.location]?.name || 'Unknown'}</div>
+                            `;
+                        }
+                    } else {
+                        dayCell.className += ' available';
+                        content.innerHTML = `
+                            <div class="session-status">🟢 Available</div>
+                            <div class="session-details">${session.time}</div>
+                            <div class="session-details">${currentLocation ? classrooms[currentLocation].name : 'Select location'}</div>
+                        `;
+                        if (currentLocation) {
+                            dayCell.onclick = () => bookSlot(slotKey, session, date);
+                        }
+                    }
+                    
+                    dayCell.appendChild(content);
+                    grid.appendChild(dayCell);
+                });
             });
         }
 
-        function bookSlot(slotKey, session) {
+        function bookSlot(slotKey, session, date) {
             if (!currentStudent) {
                 showNotification('Please select a student first!', 'warning');
+                return;
+            }
+            
+            if (!currentLocation) {
+                showNotification('Please select a classroom location first!', 'warning');
                 return;
             }
             
@@ -772,29 +929,32 @@
             }
 
             // Check daily session limit
-            const date = slotKey.split('_')[0];
-            const dailySessions = getDailySessionCount(currentStudent, date);
+            const dateKey = date.toISOString().split('T')[0];
+            const dailySessions = getDailySessionCount(currentStudent, dateKey);
             
             if (dailySessions >= MAX_DAILY_SESSIONS) {
                 showNotification(`Daily limit reached! Student ${currentStudent} can only book ${MAX_DAILY_SESSIONS} sessions per day.`, 'error');
                 return;
             }
 
-            const formattedDate = new Date(date).toLocaleDateString('en-US', {
+            const formattedDate = date.toLocaleDateString('en-US', {
                 weekday: 'long',
                 month: 'long', 
                 day: 'numeric'
             });
 
-            pendingBooking = { slotKey, session };
+            pendingBooking = { slotKey, session, date, location: currentLocation };
             
             const remaining = MAX_DAILY_SESSIONS - dailySessions - 1;
+            const classroom = classrooms[currentLocation];
+            
             document.getElementById('modalTitle').textContent = 'Confirm 2-Hour Coaching Session';
             document.getElementById('modalContent').innerHTML = `
                 <strong>Student ${currentStudent}</strong><br>
                 📅 ${formattedDate}<br>
                 ${session.label}<br>
                 🕐 ${session.description}<br>
+                ${classroom.emoji} <strong>${classroom.name} Classroom</strong><br>
                 📊 This will be session ${dailySessions + 1}/${MAX_DAILY_SESSIONS} for today<br>
                 ${remaining > 0 ? `(${remaining} slots remaining today)` : '(Last available slot for today!)'}<br><br>
                 <strong>Confirm this 2-hour personal coaching session?</strong>
@@ -811,15 +971,17 @@
                 session: pendingBooking.session,
                 time: pendingBooking.session.time,
                 label: pendingBooking.session.label,
+                location: pendingBooking.location,
                 bookedAt: new Date().toISOString(),
                 passcode: studentPasscodes[currentStudent]
             };
             
             localStorage.setItem('coachingBookings', JSON.stringify(bookings));
             
-            showNotification(`2-hour ${pendingBooking.session.label.toLowerCase()} booked for Student ${currentStudent}! 🎯`, 'success');
-            generateSchedule();
-            updateDailyLimitDisplay();
+            const classroom = classrooms[pendingBooking.location];
+            showNotification(`${pendingBooking.session.label.toLowerCase()} booked at ${classroom.name} for Student ${currentStudent}! 🎯`, 'success');
+            generateWeeklySchedule();
+            updateWeeklyLimitDisplay();
             updateStats();
             closeModal();
         }
@@ -866,8 +1028,8 @@
             localStorage.setItem('coachingBookings', JSON.stringify(bookings));
             
             showNotification('Session cancelled successfully', 'success');
-            generateSchedule();
-            updateDailyLimitDisplay();
+            generateWeeklySchedule();
+            updateWeeklyLimitDisplay();
             updateStats();
             closeModal();
             
