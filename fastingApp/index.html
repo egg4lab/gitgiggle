@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>100 Hour Fasting Journey</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .countdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .time-unit {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 1.5rem 1rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .time-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            display: block;
+            color: #FFD700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .time-label {
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            opacity: 0.8;
+        }
+
+        .progress-container {
+            margin: 2rem 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            padding: 5px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background: linear-gradient(90deg, #00C9FF 0%, #92FE9D 100%);
+            border-radius: 20px;
+            transition: width 1s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn.start {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            border: none;
+        }
+
+        .btn.stop {
+            background: linear-gradient(45deg, #f44336, #da190b);
+            border: none;
+        }
+
+        .encouragement {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            border-left: 4px solid #FFD700;
+            text-align: left;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .encouragement-text {
+            font-size: 1.1rem;
+            font-style: italic;
+            line-height: 1.6;
+        }
+
+        .refusal-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+        }
+
+        .refusal-responses {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .refusal-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .refusal-card:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .refusal-title {
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 0.5rem;
+        }
+
+        .refusal-text {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        .status {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            max-width: 400px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid #FFD700;
+        }
+
+        .popup.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .popup-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .close-popup {
+            background: #FFD700;
+            color: #333;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-top: 1rem;
+            font-weight: bold;
+        }
+
+        .motivation-score {
+            margin: 1rem 0;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .countdown {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .time-number {
+                font-size: 2rem;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌟 100 Hour Fasting Journey 🌟</h1>
+        <p class="subtitle">Transform Your Body, Mind & Spirit</p>
+
+        <div class="countdown" id="countdown">
+            <div class="time-unit">
+                <span class="time-number" id="days">00</span>
+                <div class="time-label">Days</div>
+            </div>
+            <div class="time-unit">
+                <span class="time-number" id="hours">00</span>
+                <div class="time-label">Hours</div>
+            </div>
+            <div class="time-unit">
+                <span class="time-number" id="minutes">00</span>
+                <div class="time-label">Minutes</div>
+            </div>
+            <div class="time-unit">
+                <span class="time-number" id="seconds">00</span>
+                <div class="time-label">Seconds</div>
+            </div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+        </div>
+
+        <div class="status" id="status">Ready to start your fasting journey!</div>
+
+        <div class="buttons">
+            <button class="btn start" onclick="startFasting()">🚀 Start Fasting</button>
+            <button class="btn stop" onclick="stopFasting()">⏹️ End Fasting</button>
+            <button class="btn" onclick="showEncouragement()">💪 Get Motivation</button>
+            <button class="btn" onclick="copyRefusal()">📋 Quick Refusal</button>
+        </div>
+
+        <div class="encouragement">
+            <div class="encouragement-text" id="encouragementText">
+                "Every hour you fast is a step closer to a healthier, stronger you. You've got this! 💪"
+            </div>
+        </div>
+
+        <div class="motivation-score">
+            <strong>Motivation Level: <span id="motivationLevel">100%</span></strong>
+        </div>
+
+        <div class="refusal-section">
+            <h3>🙏 Polite Refusal Responses</h3>
+            <p style="margin-bottom: 1rem;">Click to copy to clipboard:</p>
+            
+            <div class="refusal-responses">
+                <div class="refusal-card" onclick="copyToClipboard(this.querySelector('.refusal-text').textContent)">
+                    <div class="refusal-title">🌱 Health Focus</div>
+                    <div class="refusal-text">Thank you so much for thinking of me! I'm currently doing a health cleanse and need to stick to my plan. I really appreciate your kindness! ❤️</div>
+                </div>
+
+                <div class="refusal-card" onclick="copyToClipboard(this.querySelector('.refusal-text').textContent)">
+                    <div class="refusal-title">🧘 Spiritual Practice</div>
+                    <div class="refusal-text">I'm touched by your offer! I'm currently observing a spiritual fasting period and need to honor that commitment. Your thoughtfulness means the world to me! 🙏</div>
+                </div>
+
+                <div class="refusal-card" onclick="copyToClipboard(this.querySelector('.refusal-text').textContent)">
+                    <div class="refusal-title">🎯 Personal Challenge</div>
+                    <div class="refusal-text">You're so sweet to offer! I'm in the middle of a personal wellness challenge and need to stay disciplined. Thank you for understanding! 💪</div>
+                </div>
+
+                <div class="refusal-card" onclick="copyToClipboard(this.querySelector('.refusal-text').textContent)">
+                    <div class="refusal-title">🩺 Medical Reasons</div>
+                    <div class="refusal-text">I appreciate you so much! I'm following a specific eating schedule for health reasons right now. Rain check? Your kindness is amazing! 🌟</div>
+                </div>
+
+                <div class="refusal-card" onclick="copyToClipboard(this.querySelector('.refusal-text').textContent)">
+                    <div class="refusal-title">⏰ Timing</div>
+                    <div class="refusal-text">Thank you for the lovely invitation! I'm not eating right now, but I'd love to join you for company instead! 😊</div>
+                </div>
+
+                <div class="refusal-card" onclick="copyToClipboard(this.querySelector('.refusal-text').textContent)">
+                    <div class="refusal-title">🎉 Alternative Suggestion</div>
+                    <div class="refusal-text">You're wonderful for thinking of me! I'm fasting right now, but how about we grab tea/coffee instead? I'd love to catch up! ☕</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popup for encouragement -->
+    <div class="popup-overlay" id="popupOverlay" onclick="closePopup()"></div>
+    <div class="popup" id="popup">
+        <div id="popupContent">
+            <h3>💪 Motivation Boost!</h3>
+            <p id="popupText"></p>
+        </div>
+        <button class="close-popup" onclick="closePopup()">Keep Going! 🚀</button>
+    </div>
+
+    <script>
+        let fastingStartTime = null;
+        let countdownInterval = null;
+        let encouragementInterval = null;
+        const totalFastingTime = 100 * 60 * 60 * 1000; // 100 hours in milliseconds
+
+        const encouragementMessages = [
+            "🌟 You're doing amazingly! Your body is thanking you right now!",
+            "💪 Every moment of discipline is building a stronger you!",
+            "🧘 Feel the clarity and focus flowing through your mind!",
+            "✨ You're not just fasting, you're transforming!",
+            "🎯 Stay strong! You're closer to your goal than when you started!",
+            "🌱 Your cells are regenerating and healing as you read this!",
+            "🚀 Champions are made in moments like these. Keep pushing!",
+            "💎 Discipline is the bridge between goals and accomplishment!",
+            "🔥 Your willpower is like a muscle - it's getting stronger!",
+            "🌈 Every hour completed is a victory worth celebrating!",
+            "🦋 You're in the process of an incredible transformation!",
+            "⚡ Feel the energy of accomplishment flowing through you!",
+            "🏆 You're proving to yourself what you're truly capable of!",
+            "🌙 Rest in the knowledge that you're doing something extraordinary!",
+            "☀️ Tomorrow's version of you will thank today's version!",
+            "🎨 You're painting a masterpiece of self-discipline!",
+            "🔮 Visualize how amazing you'll feel when you complete this!",
+            "🌊 Flow with the process, you're exactly where you need to be!",
+            "🗻 Mountains are moved one stone at a time. Keep going!",
+            "🎵 Listen to your body's wisdom as it cleanses and heals!"
+        ];
+
+        const motivationalQuotes = [
+            "The groundwork for all happiness is good health. - Leigh Hunt",
+            "Take care of your body. It's the only place you have to live. - Jim Rohn",
+            "Health is not about the weight you lose, but about the life you gain.",
+            "Your body can stand almost anything. It's your mind you have to convince.",
+            "Discipline is choosing between what you want now and what you want most.",
+            "The first wealth is health. - Ralph Waldo Emerson",
+            "A healthy outside starts from the inside.",
+            "Every expert was once a beginner. Every pro was once an amateur.",
+            "Success is the sum of small efforts repeated day in and day out.",
+            "The pain you feel today will be the strength you feel tomorrow."
+        ];
+
+        function updateCountdown() {
+            if (!fastingStartTime) return;
+
+            const now = new Date().getTime();
+            const elapsed = now - fastingStartTime;
+            const remaining = totalFastingTime - elapsed;
+
+            if (remaining <= 0) {
+                completeFasting();
+                return;
+            }
+
+            const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+
+            document.getElementById('days').textContent = String(days).padStart(2, '0');
+            document.getElementById('hours').textContent = String(hours).padStart(2, '0');
+            document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+            document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+
+            // Update progress bar
+            const progress = ((elapsed / totalFastingTime) * 100);
+            document.getElementById('progressBar').style.width = progress + '%';
+
+            // Update status
+            const hoursCompleted = Math.floor(elapsed / (1000 * 60 * 60));
+            const hoursRemaining = 100 - hoursCompleted;
+            document.getElementById('status').textContent = 
+                `🔥 ${hoursCompleted}/100 hours completed! ${hoursRemaining} hours to go! 💪`;
+
+            // Update motivation level (decreases slightly over time but never below 70%)
+            const motivationBase = 100 - (hoursCompleted * 0.3);
+            const motivation = Math.max(70, Math.round(motivationBase));
+            document.getElementById('motivationLevel').textContent = motivation + '%';
+
+            // Save progress
+            localStorage.setItem('fastingStartTime', fastingStartTime);
+        }
+
+        function startFasting() {
+            fastingStartTime = new Date().getTime();
+            countdownInterval = setInterval(updateCountdown, 1000);
+            
+            // Random encouragement popups
+            encouragementInterval = setInterval(() => {
+                showRandomEncouragement();
+            }, Math.random() * 30000 + 30000); // Every 30-60 seconds
+
+            document.getElementById('status').textContent = "🎉 Fasting started! You're on your way to greatness! 🚀";
+            updateCountdown();
+            showEncouragement();
+        }
+
+        function stopFasting() {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+            if (encouragementInterval) {
+                clearInterval(encouragementInterval);
+                encouragementInterval = null;
+            }
+            
+            fastingStartTime = null;
+            localStorage.removeItem('fastingStartTime');
+            
+            document.getElementById('days').textContent = '00';
+            document.getElementById('hours').textContent = '00';
+            document.getElementById('minutes').textContent = '00';
+            document.getElementById('seconds').textContent = '00';
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('status').textContent = "Fasting ended. Ready for your next challenge! 🌟";
+            document.getElementById('motivationLevel').textContent = '100%';
+        }
+
+        function completeFasting() {
+            clearInterval(countdownInterval);
+            clearInterval(encouragementInterval);
+            
+            document.getElementById('status').textContent = "🎊 CONGRATULATIONS! You've completed 100 hours of fasting! 🎊";
+            document.getElementById('progressBar').style.width = '100%';
+            
+            // Celebration popup
+            showPopup("🎉 AMAZING ACHIEVEMENT! 🎉", 
+                     "You've successfully completed 100 hours of fasting! You've proven your incredible willpower and dedication. Your body and mind have been transformed through this journey. You are truly extraordinary! 🌟💪🏆");
+            
+            localStorage.removeItem('fastingStartTime');
+        }
+
+        function showEncouragement() {
+            const randomMessage = encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)];
+            document.getElementById('encouragementText').textContent = randomMessage;
+            document.querySelector('.encouragement').classList.add('pulse');
+            setTimeout(() => {
+                document.querySelector('.encouragement').classList.remove('pulse');
+            }, 2000);
+        }
+
+        function showRandomEncouragement() {
+            if (!fastingStartTime) return;
+            
+            const randomMessage = encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)];
+            const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+            
+            showPopup("💪 Stay Strong!", `${randomMessage}\n\n"${randomQuote}"`);
+        }
+
+        function showPopup(title, message) {
+            document.getElementById('popupContent').innerHTML = `
+                <h3>${title}</h3>
+                <p style="white-space: pre-line; margin: 1rem 0;">${message}</p>
+            `;
+            document.getElementById('popupOverlay').classList.add('show');
+            document.getElementById('popup').classList.add('show');
+        }
+
+        function closePopup() {
+            document.getElementById('popupOverlay').classList.remove('show');
+            document.getElementById('popup').classList.remove('show');
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showPopup("📋 Copied!", "Refusal message copied to clipboard! You can now paste it in your message. 👍");
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showPopup("📋 Copied!", "Refusal message copied to clipboard! You can now paste it in your message. 👍");
+            });
+        }
+
+        function copyRefusal() {
+            const randomRefusal = document.querySelectorAll('.refusal-text')[
+                Math.floor(Math.random() * document.querySelectorAll('.refusal-text').length)
+            ].textContent;
+            copyToClipboard(randomRefusal);
+        }
+
+        // Load saved fasting session on page load
+        window.addEventListener('load', () => {
+            const savedStartTime = localStorage.getItem('fastingStartTime');
+            if (savedStartTime) {
+                fastingStartTime = parseInt(savedStartTime);
+                const now = new Date().getTime();
+                const elapsed = now - fastingStartTime;
+                
+                if (elapsed < totalFastingTime) {
+                    countdownInterval = setInterval(updateCountdown, 1000);
+                    encouragementInterval = setInterval(() => {
+                        showRandomEncouragement();
+                    }, Math.random() * 30000 + 30000);
+                    updateCountdown();
+                } else {
+                    completeFasting();
+                }
+            }
+            
+            // Show initial encouragement
+            showEncouragement();
+        });
+
+        // Prevent accidental page refresh
+        window.addEventListener('beforeunload', (e) => {
+            if (fastingStartTime) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    </script>
+</body>
+</html>
