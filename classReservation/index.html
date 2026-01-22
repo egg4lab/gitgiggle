@@ -404,6 +404,25 @@
     .inbox-item:last-child {
       border-bottom: none;
     }
+
+    .holiday {
+      background: #fff3cd !important;
+      border: 2px solid #ffc107 !important;
+      position: relative;
+    }
+
+    .holiday-label {
+      font-size: 9px;
+      color: #856404;
+      font-weight: bold;
+      margin-top: 2px;
+      text-align: center;
+    }
+
+    .holiday-cell {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+    }
   </style>
 </head>
 <body>
@@ -623,6 +642,83 @@
       student4: 'stu4444',
       student5: 'stu5555'
     };
+
+    // Taiwan Holidays (2025-2026)
+    // Format: { year: { month: [day, day, ...], ... }, ... }
+    const TAIWAN_HOLIDAYS = {
+      2025: {
+        1: [1], // New Year's Day
+        2: [28, 29, 30], // Peace Memorial Day (Feb 28) + Lunar New Year (Feb 29-30, approximate)
+        3: [3, 4], // Lunar New Year continuation (approximate)
+        4: [4, 5], // Children's Day (Apr 4) + Tomb Sweeping Day (Apr 5)
+        5: [1], // Labor Day
+        6: [2], // Dragon Boat Festival (Jun 2, approximate)
+        9: [29], // Mid-Autumn Festival (Sep 29, approximate)
+        10: [10, 11], // Double Tenth Day (Oct 10) + make-up holiday
+        12: [25] // Christmas
+      },
+      2026: {
+        1: [1], // New Year's Day
+        2: [16, 17, 18, 28], // Lunar New Year (Feb 16-18, approximate) + Peace Memorial Day (Feb 28)
+        4: [4, 5], // Children's Day + Tomb Sweeping Day
+        5: [1], // Labor Day
+        6: [22], // Dragon Boat Festival (Jun 22, approximate)
+        9: [17], // Mid-Autumn Festival (Sep 17, approximate)
+        10: [10, 11], // Double Tenth Day + make-up holiday
+        12: [25] // Christmas
+      }
+    };
+
+    // Function to get holiday name for a date
+    function getHolidayName(date) {
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      
+      if (!TAIWAN_HOLIDAYS[year] || !TAIWAN_HOLIDAYS[year][month]) {
+        return null;
+      }
+      
+      if (!TAIWAN_HOLIDAYS[year][month].includes(day)) {
+        return null;
+      }
+
+      // Map dates to holiday names
+      const holidayMap = {
+        '1-1': 'New Year\'s Day',
+        '2-28': 'Peace Memorial Day',
+        '2-29': 'Lunar New Year',
+        '2-30': 'Lunar New Year',
+        '3-3': 'Lunar New Year',
+        '3-4': 'Lunar New Year',
+        '4-4': 'Children\'s Day',
+        '4-5': 'Tomb Sweeping Day',
+        '5-1': 'Labor Day',
+        '6-2': 'Dragon Boat Festival',
+        '6-22': 'Dragon Boat Festival',
+        '9-17': 'Mid-Autumn Festival',
+        '9-29': 'Mid-Autumn Festival',
+        '10-10': 'Double Tenth Day',
+        '10-11': 'Holiday',
+        '12-25': 'Christmas'
+      };
+
+      const key = `${month}-${day}`;
+      return holidayMap[key] || 'Holiday';
+    }
+
+    // Function to check if a date is a holiday
+    function isHoliday(date) {
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      
+      if (!TAIWAN_HOLIDAYS[year] || !TAIWAN_HOLIDAYS[year][month]) {
+        return false;
+      }
+      
+      return TAIWAN_HOLIDAYS[year][month].includes(day);
+    }
 
     let currentUser = null; // { role: 'student'|'coach', userId: 'student1'|'coach' }
     let currentWeekStart = startOfWeek(new Date());
@@ -857,9 +953,16 @@
         const dayDate = addDays(currentWeekStart, i);
         const cell = document.createElement('div');
         const stats = getDayStats(dayDate);
+        const holidayName = isHoliday(dayDate) ? getHolidayName(dayDate) : null;
+        
+        if (holidayName) {
+          cell.classList.add('holiday');
+        }
+        
         cell.innerHTML = `
           ${formatDayOfWeek(dayDate)}<br />
           <span class="text-muted">${formatDate(dayDate)}</span><br />
+          ${holidayName ? `<div class="holiday-label">${holidayName}</div>` : ''}
           <div class="daily-bar">
             <div class="daily-bar-fill ${stats.ratio < 0.34 ? 'low' : stats.ratio < 0.67 ? 'medium' : 'high'}" 
                  style="width: ${Math.round(stats.ratio * 100)}%"></div>
@@ -910,10 +1013,26 @@
           const inMonth = cellDate.getMonth() === currentMonth.getMonth();
           cell.style.opacity = inMonth ? '1' : '0.4';
 
+          const holidayName = isHoliday(cellDate) ? getHolidayName(cellDate) : null;
+          if (holidayName) {
+            cell.classList.add('holiday-cell');
+          }
+
           const dayLabel = document.createElement('div');
           dayLabel.style.fontWeight = 'bold';
           dayLabel.textContent = cellDate.getDate();
+          if (holidayName) {
+            dayLabel.style.color = '#856404';
+          }
           cell.appendChild(dayLabel);
+
+          if (holidayName) {
+            const holidayLabel = document.createElement('div');
+            holidayLabel.className = 'holiday-label';
+            holidayLabel.textContent = holidayName;
+            holidayLabel.style.marginTop = '2px';
+            cell.appendChild(holidayLabel);
+          }
 
           const stats = getDayStats(cellDate);
           const barWrapper = document.createElement('div');
@@ -985,6 +1104,13 @@
           const cell = document.createElement('div');
           cell.className = 'slot-cell';
 
+          // Mark holidays
+          if (isHoliday(dayDate)) {
+            cell.classList.add('holiday');
+            cell.style.cursor = 'not-allowed';
+            cell.title = getHolidayName(dayDate) + ' - No bookings available';
+          }
+
           const slotBookings = bookings.filter(b =>
             rangesOverlap(
               slotStart,
@@ -1033,9 +1159,14 @@
               });
             }
           } else {
-            cell.addEventListener('click', () =>
-              tryOpenBooking(slotStart)
-            );
+            if (isHoliday(dayDate)) {
+              cell.style.cursor = 'not-allowed';
+              cell.title = getHolidayName(dayDate) + ' - No bookings available';
+            } else {
+              cell.addEventListener('click', () =>
+                tryOpenBooking(slotStart)
+              );
+            }
           }
 
           row.appendChild(cell);
@@ -1281,6 +1412,13 @@
         return;
       }
 
+      // Check if it's a holiday
+      if (isHoliday(slotStart)) {
+        const holidayName = getHolidayName(slotStart);
+        alert(`${holidayName} - No bookings available on holidays.`);
+        return;
+      }
+
       bookingTypeSel.value = '1on1';
       bookingTypeSel.disabled = currentUser.role !== 'coach';
 
@@ -1321,6 +1459,13 @@
       const location = bookingLocationSel.value;
       const start = cloneDate(bookingSlotStart);
       const end = new Date(start.getTime() + SESSION_DURATION_MS);
+
+      // Check if it's a holiday
+      if (isHoliday(start)) {
+        const holidayName = getHolidayName(start);
+        alert(`${holidayName} - No bookings available on holidays.`);
+        return;
+      }
 
       // Validate travel buffer
       const travelCheck = validateTravelBuffer(start, end, location);
