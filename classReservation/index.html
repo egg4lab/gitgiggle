@@ -476,7 +476,7 @@
 
     <div class="notification-info">
       <strong>Rules:</strong>
-      - Coach offers 1 on 1 sessions (2 hours), 3–6 per day, across Hsin-Chu, TaiPei, Yi-Lan (1.5hr travel buffer).<br />
+      - Coach offers 1 on 1 sessions (100 minutes), 3–6 per day, across Hsin-Chu, TaiPei, Yi-Lan (1.5hr travel buffer).<br />
       - Group classes are visible to all students and block 1 on 1 availability in the same time.<br />
       - Coach can cancel a 1 on 1 class but must notify the student at least 2 hours in advance.<br />
       - Students log in with a passcode and only see coach availability (not other students).
@@ -626,21 +626,41 @@
     const TRAVEL_BUFFER_MS = 1.5 * 60 * 60 * 1000; // 1.5 hours
     const MIN_SESSIONS_PER_DAY = 3;
     const MAX_SESSIONS_PER_DAY = 6;
-    const SESSION_DURATION_MS = 2 * 60 * 60 * 1000; // 2 hours
+    const SESSION_DURATION_MS = 100 * 60 * 1000; // 100 minutes (1 hour 40 minutes)
     const CANCELLATION_NOTICE_MS = 2 * 60 * 60 * 1000; // 2 hours
 
     const STORAGE_KEY_BOOKINGS = 'cr_bookings_v2';
     const STORAGE_KEY_PASSCODES = 'cr_passcodes_v1';
     const STORAGE_KEY_NOTIFICATIONS = 'cr_notifications_v1';
 
-    // Default passcodes
+    // Default passcodes - 25 students
     const DEFAULT_PASSCODES = {
       coach: 'coach123',
-      student1: 'stu1111',
-      student2: 'stu2222',
-      student3: 'stu3333',
-      student4: 'stu4444',
-      student5: 'stu5555'
+      student1: 'stu0001',
+      student2: 'stu0002',
+      student3: 'stu0003',
+      student4: 'stu0004',
+      student5: 'stu0005',
+      student6: 'stu0006',
+      student7: 'stu0007',
+      student8: 'stu0008',
+      student9: 'stu0009',
+      student10: 'stu0010',
+      student11: 'stu0011',
+      student12: 'stu0012',
+      student13: 'stu0013',
+      student14: 'stu0014',
+      student15: 'stu0015',
+      student16: 'stu0016',
+      student17: 'stu0017',
+      student18: 'stu0018',
+      student19: 'stu0019',
+      student20: 'stu0020',
+      student21: 'stu0021',
+      student22: 'stu0022',
+      student23: 'stu0023',
+      student24: 'stu0024',
+      student25: 'stu0025'
     };
 
     // Taiwan Holidays (2025-2026)
@@ -1344,7 +1364,7 @@
             <div class="schedule-item">
               <strong>${formatDateTime(b.start)}</strong><br />
               Location: ${loc ? loc.name : b.location}<br />
-              Duration: 2 hours
+              Duration: 100 minutes (1h 40m)
             </div>
           `;
         }).join('');
@@ -1642,48 +1662,107 @@
     });
 
     // --- Sample Data ---
+    // Coach schedule: Fri-Sun in Hsin-Chu, Mon-Tue in Taipei, Wed-Thu in Yi-Lan
     function seedSampleData() {
       const base = startOfWeek(new Date());
-      const groups = [
-        { dayOffset: 1, hour: 10, location: 'HC' },
-        { dayOffset: 3, hour: 18, location: 'TP' },
-        { dayOffset: 4, hour: 15, location: 'YL' }
-      ];
+      
+      // Helper function to get location for day of week (0=Sun, 1=Mon, ..., 6=Sat)
+      function getLocationForDay(dayOfWeek) {
+        if (dayOfWeek === 0 || dayOfWeek === 5 || dayOfWeek === 6) return 'HC'; // Sun, Fri, Sat
+        if (dayOfWeek === 1 || dayOfWeek === 2) return 'TP'; // Mon, Tue
+        if (dayOfWeek === 3 || dayOfWeek === 4) return 'YL'; // Wed, Thu
+        return 'TP'; // default
+      }
 
-      groups.forEach(g => {
-        const d = addDays(base, g.dayOffset);
-        d.setHours(g.hour, 0, 0, 0);
-        bookings.push({
-          id: 'group-' + g.dayOffset + '-' + g.hour,
-          start: cloneDate(d),
-          end: new Date(d.getTime() + SESSION_DURATION_MS),
-          type: 'group',
-          location: g.location,
-          createdBy: 'coach'
+      // Generate schedule for 4 weeks
+      for (let week = 0; week < 4; week++) {
+        const weekStart = addDays(base, week * 7);
+        
+        // Group classes - 2 per week
+        const groupClasses = [
+          { dayOffset: 5, hour: 14, week: week }, // Friday afternoon in HC
+          { dayOffset: 1, hour: 18, week: week }  // Monday evening in TP
+        ];
+
+        groupClasses.forEach(g => {
+          const d = addDays(weekStart, g.dayOffset);
+          const dayOfWeek = d.getDay();
+          const location = getLocationForDay(dayOfWeek);
+          d.setHours(g.hour, 0, 0, 0);
+          
+          if (!isHoliday(d)) {
+            bookings.push({
+              id: `group-w${week}-d${g.dayOffset}-h${g.hour}`,
+              start: cloneDate(d),
+              end: new Date(d.getTime() + SESSION_DURATION_MS),
+              type: 'group',
+              location: location,
+              createdBy: 'coach',
+              notes: `Group Class - Week ${week + 1}`
+            });
+          }
         });
-      });
 
-      const oneOnOnes = [
-        { dayOffset: 0, hour: 9, loc: 'HC', studentId: 'student1' },
-        { dayOffset: 0, hour: 14, loc: 'TP', studentId: 'student2' },
-        { dayOffset: 2, hour: 11, loc: 'YL', studentId: 'student3' },
-        { dayOffset: 2, hour: 16, loc: 'HC', studentId: 'student4' },
-        { dayOffset: 4, hour: 9, loc: 'TP', studentId: 'student5' }
-      ];
+        // 1-on-1 sessions - distribute 25 students across 4 weeks
+        // Week 1: students 1-7
+        // Week 2: students 8-14
+        // Week 3: students 15-21
+        // Week 4: students 22-25 + some repeats
+        const studentsPerWeek = [
+          [1, 2, 3, 4, 5, 6, 7],
+          [8, 9, 10, 11, 12, 13, 14],
+          [15, 16, 17, 18, 19, 20, 21],
+          [22, 23, 24, 25, 1, 2, 3]
+        ];
 
-      oneOnOnes.forEach(o => {
-        const d = addDays(base, o.dayOffset);
-        d.setHours(o.hour, 0, 0, 0);
-        bookings.push({
-          id: '1on1-' + o.dayOffset + '-' + o.hour,
-          start: cloneDate(d),
-          end: new Date(d.getTime() + SESSION_DURATION_MS),
-          type: '1on1',
-          location: o.loc,
-          createdBy: 'coach',
-          studentId: o.studentId
-        });
-      });
+        const studentList = studentsPerWeek[week] || [];
+        let studentIndex = 0;
+
+        // Schedule sessions for each day of the week
+        for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+          const d = addDays(weekStart, dayOffset);
+          const dayOfWeek = d.getDay();
+          const location = getLocationForDay(dayOfWeek);
+          
+          // Skip holidays
+          if (isHoliday(d)) continue;
+
+          // Available hours: 9, 11, 13, 15, 17, 19 (with 100 min sessions + 1.5h buffer = ~3.5h between different locations)
+          const availableHours = [9, 11, 13, 15, 17, 19];
+          let sessionCount = 0;
+          const maxSessions = 5; // Leave room for group classes
+
+          for (let hour of availableHours) {
+            if (sessionCount >= maxSessions) break;
+            if (studentIndex >= studentList.length) break;
+
+            const sessionDate = cloneDate(d);
+            sessionDate.setHours(hour, 0, 0, 0);
+            
+            // Check if this slot conflicts with existing bookings
+            const hasConflict = bookings.some(b => {
+              const sessionEnd = new Date(sessionDate.getTime() + SESSION_DURATION_MS);
+              return rangesOverlap(sessionDate, sessionEnd, b.start, b.end);
+            });
+
+            if (!hasConflict) {
+              const studentId = `student${studentList[studentIndex]}`;
+              bookings.push({
+                id: `1on1-w${week}-d${dayOffset}-h${hour}-s${studentList[studentIndex]}`,
+                start: cloneDate(sessionDate),
+                end: new Date(sessionDate.getTime() + SESSION_DURATION_MS),
+                type: '1on1',
+                location: location,
+                createdBy: 'coach',
+                studentId: studentId,
+                notes: `Student ${studentList[studentIndex]} - 1-on-1`
+              });
+              studentIndex++;
+              sessionCount++;
+            }
+          }
+        }
+      }
     }
 
     // --- Initial load ---
