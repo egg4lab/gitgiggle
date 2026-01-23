@@ -799,10 +799,11 @@
       try {
         const raw = localStorage.getItem(STORAGE_KEY_PASSCODES);
         if (raw) {
-          passcodes = JSON.parse(raw);
+          const stored = JSON.parse(raw);
           // Merge with DEFAULT_PASSCODES to ensure all 25 students are present
           // This handles migration from old versions with fewer students
-          passcodes = { ...DEFAULT_PASSCODES, ...passcodes };
+          // DEFAULT_PASSCODES first, then stored (so stored custom passcodes override defaults)
+          passcodes = { ...DEFAULT_PASSCODES, ...stored };
           // Ensure coach passcode is always correct
           passcodes.coach = DEFAULT_PASSCODES.coach;
           savePasscodes();
@@ -814,6 +815,11 @@
         passcodes = { ...DEFAULT_PASSCODES };
         savePasscodes();
       }
+    }
+
+    // Helper function to get merged passcodes (always includes all 25 students)
+    function getAllPasscodes() {
+      return { ...DEFAULT_PASSCODES, ...passcodes };
     }
 
     function savePasscodes() {
@@ -1201,7 +1207,17 @@
       loginStudentIdLabel.classList.toggle('hidden', !isStudent);
       if (isStudent) {
         loginStudentId.innerHTML = '<option value="">Select student</option>';
-        Object.keys(passcodes).filter(k => k.startsWith('student')).forEach(id => {
+        // Use getAllPasscodes to ensure all 25 students are available
+        const allPasscodes = getAllPasscodes();
+        // Sort students by number to ensure proper order (student1, student2, ..., student25)
+        const studentIds = Object.keys(allPasscodes)
+          .filter(k => k.startsWith('student'))
+          .sort((a, b) => {
+            const numA = parseInt(a.replace('student', ''));
+            const numB = parseInt(b.replace('student', ''));
+            return numA - numB;
+          });
+        studentIds.forEach(id => {
           const opt = document.createElement('option');
           opt.value = id;
           opt.textContent = id.charAt(0).toUpperCase() + id.slice(1).replace(/(\d+)/, ' $1');
@@ -1235,14 +1251,17 @@
 
       if (role === 'coach') {
         userId = 'coach';
-        isValid = passcodes.coach === passcode;
+        // Check both passcodes and DEFAULT_PASSCODES
+        isValid = (passcodes.coach === passcode) || (DEFAULT_PASSCODES.coach === passcode);
       } else if (role === 'student') {
         userId = loginStudentId.value;
         if (!userId) {
           alert('Please select a student.');
           return;
         }
-        isValid = passcodes[userId] === passcode;
+        // Use getAllPasscodes to ensure we check all available passcodes
+        const allPasscodes = getAllPasscodes();
+        isValid = allPasscodes[userId] === passcode;
       }
 
       if (!isValid) {
