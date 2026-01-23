@@ -440,7 +440,7 @@
     <div class="top-bar">
       <div class="view-switch">
         <button id="loginBtn" class="primary">Login</button>
-        <button id="logoutBtn" class="hidden">Logout</button>
+        <button id="logoutBtn" class="hidden" type="button">Logout</button>
         <span id="roleLabel" class="text-muted"></span>
       </div>
 
@@ -1466,9 +1466,17 @@
       }
     });
 
-    logoutBtn.addEventListener('click', () => {
+    logoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       currentUser = null;
       updateUserUI();
+      // Close any open modals
+      document.getElementById('loginModalBackdrop').classList.add('hidden');
+      document.getElementById('bookingModalBackdrop').classList.add('hidden');
+      document.getElementById('scheduleSummaryModalBackdrop').classList.add('hidden');
+      document.getElementById('inboxModalBackdrop').classList.add('hidden');
+      document.getElementById('sessionModalBackdrop').classList.add('hidden');
     });
 
     function updateUserUI() {
