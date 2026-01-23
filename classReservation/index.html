@@ -431,7 +431,7 @@
     <div class="user-info" id="userInfo">
       Not logged in
       <button id="notificationBtn" class="hidden" style="margin-left: 10px; padding: 4px 8px;">
-        ?“§ Inbox <span class="notification-badge" id="notificationBadge" data-count="0"></span>
+        ðŸ“§ Inbox <span class="notification-badge" id="notificationBadge" data-count="0"></span>
       </button>
     </div>
   </header>
@@ -476,7 +476,7 @@
 
     <div class="notification-info">
       <strong>Rules:</strong>
-      - Coach offers 1 on 1 sessions (100 minutes), 3?? per day, across Hsin-Chu, TaiPei, Yi-Lan (1.5hr travel buffer).<br />
+      - Coach offers 1 on 1 sessions (100 minutes), 3â€“6 per day, across Hsin-Chu, TaiPei, Yi-Lan (1.5hr travel buffer).<br />
       - Coach location schedule: Hsin-Chu (Fri-Sun), Taipei (Mon-Tue), Yi-Lan (Wed-Thu).<br />
       - Group classes are visible to all students and block 1 on 1 availability in the same time.<br />
       - Coach can cancel a 1 on 1 class but must notify the student at least 2 hours in advance.<br />
@@ -634,7 +634,7 @@
     const STORAGE_KEY_PASSCODES = 'cr_passcodes_v1';
     const STORAGE_KEY_NOTIFICATIONS = 'cr_notifications_v1';
 
-    // Default passcodes - 25 students (Updated)
+    // Default passcodes - 25 students
     const DEFAULT_PASSCODES = {
       coach: 'coach123',
       student1: 'stu0001', student2: 'stu0002', student3: 'stu0003', student4: 'stu0004', student5: 'stu0005',
@@ -1430,8 +1430,7 @@
         ' ' +
         formatTime(bookingSlotStart) +
         ' ~ ' +
-        formatTime(end) +
-        ' (100 minutes)';
+        formatTime(end);
 
       bookingNotes.value = '';
       bookingTitle.textContent =
@@ -1646,8 +1645,8 @@
     // --- Sample Data ---
     // Coach Schedule: Hsin-Chu (Fri-Sun), Taipei (Mon-Tue), Yi-Lan (Wed-Thu)
     function seedSampleData() {
-      // Start from current week
-      const base = startOfWeek(new Date());
+      // Start from February 1, 2025 (Saturday)
+      const febStart = new Date(2025, 1, 1); // Month is 0-indexed, so 1 = February
       
       // Helper function to get location based on day of week
       // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
@@ -1659,120 +1658,116 @@
       }
 
       let studentCounter = 1;
-      const availableHours = [9, 10, 11, 13, 14, 15, 16, 17, 18, 19]; // 9 AM to 7 PM
+      const availableHours = [9, 10, 11, 13, 14, 15, 16, 17, 18, 19]; // 8 AM to 7 PM (some hours)
       
-      // Schedule for 5 weeks to accommodate all 25 students
-      for (let week = 0; week < 5; week++) {
-        for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
-          const currentDate = addDays(base, week * 7 + dayOffset);
-          const dayOfWeek = currentDate.getDay();
-          
-          // Skip holidays
-          if (isHoliday(currentDate)) {
-            continue;
-          }
-          
-          const location = getLocationForDay(dayOfWeek);
-          const sessionsForDay = [];
-          
-          // Add 1-2 group classes per week (on different days)
-          if (week % 2 === 0 && (dayOfWeek === 5 || dayOfWeek === 0)) { // Some Fridays/Sundays
-            const groupHour = dayOfWeek === 5 ? 14 : 16;
-            sessionsForDay.push({
-              hour: groupHour,
-              type: 'group',
-              location: location
-            });
-          }
-          
-          // Add 1-on-1 sessions (3-5 per day, respecting 6 max per day)
-          const oneOnOneCount = Math.min(5, MAX_SESSIONS_PER_DAY - sessionsForDay.length);
-          const shuffledHours = [...availableHours].sort(() => Math.random() - 0.5);
-          
-          for (let i = 0; i < oneOnOneCount && studentCounter <= 25; i++) {
-            const hour = shuffledHours[i];
-            // Check if this hour overlaps with existing sessions (100 min = 1h 40min)
-            const hourStart = hour * 60; // minutes from midnight
-            const hourEnd = hourStart + 100; // 100 minutes duration
-            const hasOverlap = sessionsForDay.some(s => {
-              const sStart = s.hour * 60;
-              const sEnd = sStart + 100;
-              return (hourStart < sEnd && sStart < hourEnd);
-            });
-            
-            if (!hasOverlap) {
-              sessionsForDay.push({
-                hour: hour,
-                type: '1on1',
-                location: location,
-                studentId: `student${studentCounter}`
-              });
-              studentCounter++;
-            }
-          }
-          
-          // Create bookings for this day
-          sessionsForDay.forEach(session => {
-            const sessionDate = new Date(currentDate);
-            sessionDate.setHours(session.hour, 0, 0, 0);
-            
-            const booking = {
-              id: `booking-${week}-${dayOffset}-${session.hour}-${Date.now()}-${Math.random()}`,
-              start: cloneDate(sessionDate),
-              end: new Date(sessionDate.getTime() + SESSION_DURATION_MS),
-              type: session.type,
-              location: session.location,
-              createdBy: 'coach'
-            };
-            
-            if (session.type === '1on1' && session.studentId) {
-              booking.studentId = session.studentId;
-            }
-            
-            bookings.push(booking);
+      // Schedule for February 2025 (28 days, avoiding holidays on Feb 28)
+      for (let day = 1; day <= 28; day++) {
+        const currentDate = new Date(2025, 1, day);
+        const dayOfWeek = currentDate.getDay();
+        
+        // Skip holidays (Feb 28 is Peace Memorial Day)
+        if (isHoliday(currentDate)) {
+          continue;
+        }
+        
+        const location = getLocationForDay(dayOfWeek);
+        const sessionsForDay = [];
+        
+        // Add 1-2 group classes per week (on different days)
+        if ((day % 7 === 5 || day % 7 === 0) && day <= 14) { // Some Fridays/Sundays in first half
+          const groupHour = day % 2 === 0 ? 14 : 16;
+          sessionsForDay.push({
+            hour: groupHour,
+            type: 'group',
+            location: location
           });
         }
+        
+        // Add 1-on-1 sessions (3-5 per day, respecting 6 max per day)
+        const oneOnOneCount = Math.min(5, 6 - sessionsForDay.length);
+        const shuffledHours = [...availableHours].sort(() => Math.random() - 0.5);
+        
+        for (let i = 0; i < oneOnOneCount && studentCounter <= 25; i++) {
+          const hour = shuffledHours[i];
+          // Check if this hour overlaps with existing sessions (100 min = 1h 40min)
+          const hourStart = hour * 60; // minutes from midnight
+          const hourEnd = hourStart + 100; // 100 minutes duration
+          const hasOverlap = sessionsForDay.some(s => {
+            const sStart = s.hour * 60;
+            const sEnd = sStart + 100;
+            return (hourStart < sEnd && sStart < hourEnd);
+          });
+          
+          if (!hasOverlap) {
+            sessionsForDay.push({
+              hour: hour,
+              type: '1on1',
+              location: location,
+              studentId: `student${studentCounter}`
+            });
+            studentCounter++;
+          }
+        }
+        
+        // Create bookings for this day
+        sessionsForDay.forEach(session => {
+          const sessionDate = new Date(currentDate);
+          sessionDate.setHours(session.hour, 0, 0, 0);
+          
+          const booking = {
+            id: `booking-${day}-${session.hour}-${Date.now()}-${Math.random()}`,
+            start: cloneDate(sessionDate),
+            end: new Date(sessionDate.getTime() + SESSION_DURATION_MS),
+            type: session.type,
+            location: session.location,
+            createdBy: 'coach'
+          };
+          
+          if (session.type === '1on1' && session.studentId) {
+            booking.studentId = session.studentId;
+          }
+          
+          bookings.push(booking);
+        });
       }
       
       // If we haven't scheduled all 25 students, add more sessions in the remaining days
       if (studentCounter <= 25) {
-        for (let week = 0; week < 5 && studentCounter <= 25; week++) {
-          for (let dayOffset = 0; dayOffset < 7 && studentCounter <= 25; dayOffset++) {
-            const currentDate = addDays(base, week * 7 + dayOffset);
-            if (isHoliday(currentDate)) continue;
-            
-            const dayOfWeek = currentDate.getDay();
-            const location = getLocationForDay(dayOfWeek);
-            const dayBookings = bookings.filter(b => isSameDay(b.start, currentDate));
-            
-            if (dayBookings.length < MAX_SESSIONS_PER_DAY) {
-              const availableHoursForDay = availableHours.filter(h => {
-                const hStart = h * 60;
-                const hEnd = hStart + 100;
-                return !dayBookings.some(b => {
-                  const bStart = b.start.getHours() * 60 + b.start.getMinutes();
-                  const bEnd = bStart + 100;
-                  return (hStart < bEnd && bStart < hEnd);
-                });
+        for (let day = 1; day <= 28 && studentCounter <= 25; day++) {
+          const currentDate = new Date(2025, 1, day);
+          if (isHoliday(currentDate)) continue;
+          
+          const dayOfWeek = currentDate.getDay();
+          const location = getLocationForDay(dayOfWeek);
+          const dayBookings = bookings.filter(b => isSameDay(b.start, currentDate));
+          
+          if (dayBookings.length < 6) {
+            const availableHoursForDay = availableHours.filter(h => {
+              const hStart = h * 60;
+              const hEnd = hStart + 100;
+              return !dayBookings.some(b => {
+                const bStart = b.start.getHours() * 60 + b.start.getMinutes();
+                const bEnd = bStart + 100;
+                return (hStart < bEnd && bStart < hEnd);
               });
-              
-              const slotsNeeded = Math.min(MAX_SESSIONS_PER_DAY - dayBookings.length, 25 - studentCounter + 1);
-              for (let i = 0; i < slotsNeeded && studentCounter <= 25; i++) {
-                if (availableHoursForDay[i]) {
-                  const sessionDate = new Date(currentDate);
-                  sessionDate.setHours(availableHoursForDay[i], 0, 0, 0);
-                  
-                  bookings.push({
-                    id: `booking-${week}-${dayOffset}-${availableHoursForDay[i]}-${Date.now()}-${Math.random()}`,
-                    start: cloneDate(sessionDate),
-                    end: new Date(sessionDate.getTime() + SESSION_DURATION_MS),
-                    type: '1on1',
-                    location: location,
-                    createdBy: 'coach',
-                    studentId: `student${studentCounter}`
-                  });
-                  studentCounter++;
-                }
+            });
+            
+            const slotsNeeded = Math.min(6 - dayBookings.length, 25 - studentCounter + 1);
+            for (let i = 0; i < slotsNeeded && studentCounter <= 25; i++) {
+              if (availableHoursForDay[i]) {
+                const sessionDate = new Date(currentDate);
+                sessionDate.setHours(availableHoursForDay[i], 0, 0, 0);
+                
+                bookings.push({
+                  id: `booking-${day}-${availableHoursForDay[i]}-${Date.now()}-${Math.random()}`,
+                  start: cloneDate(sessionDate),
+                  end: new Date(sessionDate.getTime() + SESSION_DURATION_MS),
+                  type: '1on1',
+                  location: location,
+                  createdBy: 'coach',
+                  studentId: `student${studentCounter}`
+                });
+                studentCounter++;
               }
             }
           }
