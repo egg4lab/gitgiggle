@@ -1,0 +1,1938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Class Reservation System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --hc: #4caf50;
+      --tp: #2196f3;
+      --yl: #ff9800;
+      --oneonone: #e3f2fd;
+      --group: #fce4ec;
+      --busy: #ddd;
+      --border: #ccc;
+      --bg: #f7f7f7;
+      --accent: #3f51b5;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: #333;
+    }
+
+    header {
+      background: var(--accent);
+      color: #fff;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    header .user-info {
+      font-size: 14px;
+    }
+
+    main {
+      padding: 15px;
+    }
+
+    .top-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .view-switch, .legend, .controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      cursor: pointer;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: white;
+      padding: 5px 10px;
+      font-size: 13px;
+    }
+
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    button.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    select, input[type="password"], input[type="text"], textarea {
+      padding: 4px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    textarea {
+      resize: vertical;
+      width: 100%;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+    }
+
+    .legend-color {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border: 1px solid #aaa;
+    }
+
+    .hc { background: var(--hc); }
+    .tp { background: var(--tp); }
+    .yl { background: var(--yl); }
+    .oneonone { background: var(--oneonone); }
+    .group { background: var(--group); }
+
+    .calendar {
+      background: #fff;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .calendar-header {
+      display: grid;
+      grid-template-columns: 80px repeat(7, 1fr);
+      background: #f1f1f1;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .calendar-header div {
+      padding: 6px 4px;
+      font-size: 12px;
+      text-align: center;
+      font-weight: bold;
+      border-left: 1px solid var(--border);
+    }
+
+    .calendar-header div:first-child {
+      border-left: none;
+    }
+
+    .calendar-body {
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    .calendar-row {
+      display: grid;
+      grid-template-columns: 80px repeat(7, 1fr);
+      border-bottom: 1px solid #eee;
+      min-height: 36px;
+    }
+
+    .time-cell {
+      padding: 4px;
+      font-size: 11px;
+      border-right: 1px solid var(--border);
+      text-align: right;
+      color: #666;
+    }
+
+    .slot-cell {
+      border-right: 1px solid #f1f1f1;
+      font-size: 11px;
+      position: relative;
+      cursor: pointer;
+      padding: 2px;
+    }
+
+    .slot-cell:hover {
+      background: #f5f5f5;
+    }
+
+    .slot-cell.busy {
+      background: var(--busy);
+      cursor: default;
+    }
+
+    .slot-tag {
+      display: inline-block;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-size: 10px;
+      margin-bottom: 2px;
+    }
+
+    .slot-location {
+      font-weight: bold;
+      display: inline-block;
+      margin-right: 4px;
+    }
+
+    .slot-type {
+      opacity: 0.85;
+    }
+
+    .slot-group {
+      background: var(--group);
+    }
+
+    .slot-oneonone {
+      background: var(--oneonone);
+    }
+
+    .slot-label {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .daily-bar {
+      height: 4px;
+      background: #eee;
+      border-radius: 2px;
+      margin-top: 2px;
+      overflow: hidden;
+    }
+
+    .daily-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+
+    .daily-bar-fill.low { background: #4caf50; }
+    .daily-bar-fill.medium { background: #ffc107; }
+    .daily-bar-fill.high { background: #f44336; }
+
+    .notification-badge {
+      position: relative;
+    }
+
+    .notification-badge::after {
+      content: attr(data-count);
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #f44336;
+      color: white;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .notification-badge[data-count="0"]::after {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .calendar-header div:nth-child(n+5),
+      .calendar-row .slot-cell:nth-child(n+5) {
+        display: none;
+      }
+
+      .calendar-header {
+        grid-template-columns: 60px repeat(4, 1fr);
+      }
+
+      .calendar-row {
+        grid-template-columns: 60px repeat(4, 1fr);
+      }
+
+      .top-bar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+    /* Modal (Login & Booking) */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal {
+      background: #fff;
+      border-radius: 6px;
+      padding: 15px;
+      min-width: 260px;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .modal h2 {
+      margin-top: 0;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .modal-row {
+      margin-bottom: 8px;
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .modal-row label {
+      font-weight: bold;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .text-muted {
+      font-size: 11px;
+      color: #777;
+    }
+
+    .notification-info {
+      font-size: 11px;
+      margin-top: 6px;
+      padding: 4px 6px;
+      background: #fafafa;
+      border-radius: 4px;
+      border: 1px dashed #ccc;
+    }
+
+    .hidden { display: none !important; }
+
+    .schedule-summary {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .schedule-item {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+      font-size: 12px;
+    }
+
+    .schedule-item:last-child {
+      border-bottom: none;
+    }
+
+    .coach-panel {
+      background: white;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 15px;
+      border: 1px solid var(--border);
+    }
+
+    .coach-panel h3 {
+      margin-top: 0;
+      font-size: 16px;
+    }
+
+    .student-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .student-card {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 8px;
+      font-size: 12px;
+    }
+
+    .student-card h4 {
+      margin: 0 0 4px 0;
+      font-size: 13px;
+    }
+
+    .student-card input {
+      width: 100%;
+      margin-top: 4px;
+    }
+
+    .inbox-item {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+      font-size: 12px;
+    }
+
+    .inbox-item.unread {
+      background: #f0f7ff;
+      font-weight: bold;
+    }
+
+    .inbox-item:last-child {
+      border-bottom: none;
+    }
+
+    .holiday {
+      background: #fff3cd !important;
+      border: 2px solid #ffc107 !important;
+      position: relative;
+    }
+
+    .holiday-label {
+      font-size: 9px;
+      color: #856404;
+      font-weight: bold;
+      margin-top: 2px;
+      text-align: center;
+    }
+
+    .holiday-cell {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Class Reservation System</h1>
+    <div class="user-info" id="userInfo">
+      Not logged in
+      <button id="notificationBtn" class="hidden" style="margin-left: 10px; padding: 4px 8px;">
+        📧 Inbox <span class="notification-badge" id="notificationBadge" data-count="0"></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <div class="top-bar">
+      <div class="view-switch">
+        <button id="loginBtn" class="primary">Login</button>
+        <button id="logoutBtn" class="hidden">Logout</button>
+        <span id="roleLabel" class="text-muted"></span>
+      </div>
+
+      <div class="controls">
+        <span style="font-size: 12px; font-weight: bold;">View:</span>
+        <button id="weeklyViewBtn" class="active">Weekly</button>
+        <button id="monthlyViewBtn">Monthly</button>
+        <button id="todayBtn">Today</button>
+        <button id="prevBtn">&lt; Prev</button>
+        <button id="nextBtn">Next &gt;</button>
+      </div>
+
+      <div class="legend">
+        <span style="font-size: 12px; font-weight: bold;">Locations:</span>
+        <div class="legend-item">
+          <span class="legend-color hc"></span> Hsin-Chu
+        </div>
+        <div class="legend-item">
+          <span class="legend-color tp"></span> TaiPei
+        </div>
+        <div class="legend-item">
+          <span class="legend-color yl"></span> Yi-Lan
+        </div>
+        <span style="font-size: 12px; font-weight: bold; margin-left:8px;">Types:</span>
+        <div class="legend-item">
+          <span class="legend-color oneonone"></span> 1 on 1
+        </div>
+        <div class="legend-item">
+          <span class="legend-color group"></span> Group
+        </div>
+      </div>
+    </div>
+
+    <div class="notification-info">
+      <strong>Rules:</strong>
+      - Coach offers 1 on 1 sessions (100 minutes), 3–6 per day, across Hsin-Chu, TaiPei, Yi-Lan (1.5hr travel buffer).<br />
+      - Coach location schedule: Hsin-Chu (Fri-Sun), Taipei (Mon-Tue), Yi-Lan (Wed-Thu).<br />
+      - Group classes are visible to all students and block 1 on 1 availability in the same time.<br />
+      - Coach can cancel a 1 on 1 class but must notify the student at least 2 hours in advance.<br />
+      - Students log in with a passcode and only see coach availability (not other students).
+    </div>
+
+    <!-- Coach Admin Panel -->
+    <div id="coachPanel" class="coach-panel hidden">
+      <h3>Coach Admin Panel - Manage Student Passcodes</h3>
+      <div class="student-list" id="studentList"></div>
+    </div>
+
+    <div class="calendar" id="calendar">
+      <div class="calendar-header" id="calendarHeader"></div>
+      <div class="calendar-body" id="calendarBody"></div>
+    </div>
+  </main>
+
+  <!-- Login Modal -->
+  <div class="modal-backdrop hidden" id="loginModalBackdrop">
+    <div class="modal">
+      <h2>Login</h2>
+      <div class="modal-row">
+        <label for="loginRole">Role</label>
+        <select id="loginRole">
+          <option value="student">Student</option>
+          <option value="coach">Coach</option>
+        </select>
+      </div>
+      <div class="modal-row">
+        <label for="loginStudentId" id="loginStudentIdLabel" class="hidden">Student ID</label>
+        <select id="loginStudentId" class="hidden">
+          <option value="">Select student</option>
+        </select>
+      </div>
+      <div class="modal-row">
+        <label for="loginPasscode">Passcode</label>
+        <input type="password" id="loginPasscode" placeholder="Enter passcode" />
+      </div>
+      <div class="modal-footer">
+        <button id="loginCancelBtn">Cancel</button>
+        <button class="primary" id="loginConfirmBtn">Login</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Booking Modal -->
+  <div class="modal-backdrop hidden" id="bookingModalBackdrop">
+    <div class="modal">
+      <h2 id="bookingTitle">Book 1 on 1 Session</h2>
+      <div class="modal-row">
+        <label>Time</label>
+        <div id="bookingTimeLabel"></div>
+      </div>
+      <div class="modal-row">
+        <label>Location</label>
+        <select id="bookingLocation">
+          <option value="HC">Hsin-Chu</option>
+          <option value="TP">TaiPei</option>
+          <option value="YL">Yi-Lan</option>
+        </select>
+      </div>
+      <div class="modal-row">
+        <label>Type</label>
+        <select id="bookingType">
+          <option value="1on1">1 on 1</option>
+          <option value="group">Group (coach only)</option>
+        </select>
+        <span class="text-muted">
+          Group classes are public and block 1 on 1 availability at the same time.
+        </span>
+      </div>
+      <div class="modal-row">
+        <label>Notes</label>
+        <textarea id="bookingNotes" rows="3" placeholder="Optional: topic, student name(s)"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button id="bookingCancelBtn">Cancel</button>
+        <button class="primary" id="bookingSaveBtn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule Summary Modal (for students) -->
+  <div class="modal-backdrop hidden" id="scheduleSummaryModalBackdrop">
+    <div class="modal">
+      <h2>Your Schedule Summary</h2>
+      <div class="schedule-summary" id="scheduleSummaryContent">
+        <!-- Populated dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button class="primary" id="scheduleSummaryCloseBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Inbox Modal -->
+  <div class="modal-backdrop hidden" id="inboxModalBackdrop">
+    <div class="modal">
+      <h2>Notifications</h2>
+      <div id="inboxContent" style="max-height: 400px; overflow-y: auto;">
+        <!-- Populated dynamically -->
+      </div>
+      <div class="modal-footer">
+        <button class="primary" id="inboxCloseBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Session Details / Cancel Modal (coach only, 1 on 1 only) -->
+  <div class="modal-backdrop hidden" id="sessionModalBackdrop">
+    <div class="modal">
+      <h2>Session Details</h2>
+      <div class="modal-row">
+        <label>Time</label>
+        <div id="sessionTimeLabel"></div>
+      </div>
+      <div class="modal-row">
+        <label>Location</label>
+        <div id="sessionLocationLabel"></div>
+      </div>
+      <div class="modal-row">
+        <label>Type</label>
+        <div id="sessionTypeLabel"></div>
+      </div>
+      <div class="modal-row">
+        <label>Notes</label>
+        <div id="sessionNotesLabel" class="text-muted"></div>
+      </div>
+      <div class="modal-row text-muted">
+        Coach can cancel a 1 on 1 session only if more than 2 hours remain, and must notify the student.
+      </div>
+      <div class="modal-footer">
+        <button id="sessionCloseBtn">Close</button>
+        <button class="primary" id="sessionCancelBtn">Cancel Session</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Configuration ---
+    const LOCATIONS = {
+      HC: { name: 'Hsin-Chu', className: 'hc' },
+      TP: { name: 'TaiPei', className: 'tp' },
+      YL: { name: 'Yi-Lan', className: 'yl' }
+    };
+
+    const TRAVEL_BUFFER_MS = 1.5 * 60 * 60 * 1000; // 1.5 hours
+    const MIN_SESSIONS_PER_DAY = 3;
+    const MAX_SESSIONS_PER_DAY = 6;
+    const SESSION_DURATION_MS = 100 * 60 * 1000; // 100 minutes (1 hour 40 minutes)
+    const CANCELLATION_NOTICE_MS = 2 * 60 * 60 * 1000; // 2 hours
+
+    const STORAGE_KEY_BOOKINGS = 'cr_bookings_v3';
+    const STORAGE_KEY_PASSCODES = 'cr_passcodes_v1';
+    const STORAGE_KEY_NOTIFICATIONS = 'cr_notifications_v1';
+
+    // Default passcodes - 25 students
+    const DEFAULT_PASSCODES = {
+      coach: 'coach123',
+      student1: 'stu0001', student2: 'stu0002', student3: 'stu0003', student4: 'stu0004', student5: 'stu0005',
+      student6: 'stu0006', student7: 'stu0007', student8: 'stu0008', student9: 'stu0009', student10: 'stu0010',
+      student11: 'stu0011', student12: 'stu0012', student13: 'stu0013', student14: 'stu0014', student15: 'stu0015',
+      student16: 'stu0016', student17: 'stu0017', student18: 'stu0018', student19: 'stu0019', student20: 'stu0020',
+      student21: 'stu0021', student22: 'stu0022', student23: 'stu0023', student24: 'stu0024', student25: 'stu0025'
+    };
+
+    // Taiwan Holidays (2025-2026)
+    // Format: { year: { month: [day, day, ...], ... }, ... }
+    const TAIWAN_HOLIDAYS = {
+      2025: {
+        1: [1], // New Year's Day
+        2: [28, 29, 30], // Peace Memorial Day (Feb 28) + Lunar New Year (Feb 29-30, approximate)
+        3: [3, 4], // Lunar New Year continuation (approximate)
+        4: [4, 5], // Children's Day (Apr 4) + Tomb Sweeping Day (Apr 5)
+        5: [1], // Labor Day
+        6: [2], // Dragon Boat Festival (Jun 2, approximate)
+        9: [29], // Mid-Autumn Festival (Sep 29, approximate)
+        10: [10, 11], // Double Tenth Day (Oct 10) + make-up holiday
+        12: [25] // Christmas
+      },
+      2026: {
+        1: [1], // New Year's Day
+        2: [16, 17, 18, 28], // Lunar New Year (Feb 16-18, approximate) + Peace Memorial Day (Feb 28)
+        4: [4, 5], // Children's Day + Tomb Sweeping Day
+        5: [1], // Labor Day
+        6: [22], // Dragon Boat Festival (Jun 22, approximate)
+        9: [17], // Mid-Autumn Festival (Sep 17, approximate)
+        10: [10, 11], // Double Tenth Day + make-up holiday
+        12: [25] // Christmas
+      }
+    };
+
+    // Function to get holiday name for a date
+    function getHolidayName(date) {
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      
+      if (!TAIWAN_HOLIDAYS[year] || !TAIWAN_HOLIDAYS[year][month]) {
+        return null;
+      }
+      
+      if (!TAIWAN_HOLIDAYS[year][month].includes(day)) {
+        return null;
+      }
+
+      // Map dates to holiday names
+      const holidayMap = {
+        '1-1': 'New Year\'s Day',
+        '2-28': 'Peace Memorial Day',
+        '2-29': 'Lunar New Year',
+        '2-30': 'Lunar New Year',
+        '3-3': 'Lunar New Year',
+        '3-4': 'Lunar New Year',
+        '4-4': 'Children\'s Day',
+        '4-5': 'Tomb Sweeping Day',
+        '5-1': 'Labor Day',
+        '6-2': 'Dragon Boat Festival',
+        '6-22': 'Dragon Boat Festival',
+        '9-17': 'Mid-Autumn Festival',
+        '9-29': 'Mid-Autumn Festival',
+        '10-10': 'Double Tenth Day',
+        '10-11': 'Holiday',
+        '12-25': 'Christmas'
+      };
+
+      const key = `${month}-${day}`;
+      return holidayMap[key] || 'Holiday';
+    }
+
+    // Function to check if a date is a holiday
+    function isHoliday(date) {
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      
+      if (!TAIWAN_HOLIDAYS[year] || !TAIWAN_HOLIDAYS[year][month]) {
+        return false;
+      }
+      
+      return TAIWAN_HOLIDAYS[year][month].includes(day);
+    }
+
+    // Function to get location based on day of week
+    // Coach Schedule: Hsin-Chu (Fri-Sun), Taipei (Mon-Tue), Yi-Lan (Wed-Thu)
+    function getLocationForDay(dayOfWeek) {
+      // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+      if (dayOfWeek === 0 || dayOfWeek === 5 || dayOfWeek === 6) return 'HC'; // Sun, Fri, Sat -> Hsin-Chu
+      if (dayOfWeek === 1 || dayOfWeek === 2) return 'TP'; // Mon, Tue -> Taipei
+      if (dayOfWeek === 3 || dayOfWeek === 4) return 'YL'; // Wed, Thu -> Yi-Lan
+      return 'TP'; // Default
+    }
+
+    let currentUser = null; // { role: 'student'|'coach', userId: 'student1'|'coach' }
+    let currentWeekStart = startOfWeek(new Date());
+    let currentMonth = new Date();
+    let view = 'weekly';
+    let bookings = [];
+    let passcodes = {};
+    let notifications = {}; // { studentId: [{ id, type, message, date, read }] }
+
+    // --- Utility functions ---
+    function startOfWeek(d) {
+      const date = new Date(d);
+      const day = date.getDay();
+      const diff = date.getDate() - day + 1;
+      date.setHours(0, 0, 0, 0);
+      date.setDate(diff);
+      return date;
+    }
+
+    function startOfMonth(d) {
+      const date = new Date(d);
+      date.setDate(1);
+      date.setHours(0, 0, 0, 0);
+      return date;
+    }
+
+    function addDays(date, days) {
+      const d = new Date(date);
+      d.setDate(d.getDate() + days);
+      return d;
+    }
+
+    function addMonths(date, months) {
+      const d = new Date(date);
+      d.setMonth(d.getMonth() + months);
+      return d;
+    }
+
+    function formatDate(d) {
+      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    }
+
+    function formatDayOfWeek(d) {
+      return d.toLocaleDateString(undefined, { weekday: 'short' });
+    }
+
+    function formatTime(d) {
+      return d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function formatDateTime(d) {
+      return formatDate(d) + ' ' + formatTime(d);
+    }
+
+    function cloneDate(d) {
+      return new Date(d.getTime());
+    }
+
+    function isSameDay(a, b) {
+      return (
+        a.getFullYear() === b.getFullYear() &&
+        a.getMonth() === b.getMonth() &&
+        a.getDate() === b.getDate()
+      );
+    }
+
+    function rangesOverlap(aStart, aEnd, bStart, bEnd) {
+      return aStart < bEnd && bStart < aEnd;
+    }
+
+    function roleLabel(role) {
+      return role === 'coach' ? 'Coach' : 'Student';
+    }
+
+    // --- Storage functions ---
+    function loadPasscodes() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_PASSCODES);
+        if (raw) {
+          passcodes = JSON.parse(raw);
+          // Merge with DEFAULT_PASSCODES to ensure all 25 students are present
+          // This handles migration from old versions with fewer students
+          passcodes = { ...DEFAULT_PASSCODES, ...passcodes };
+          // Ensure coach passcode is always correct
+          passcodes.coach = DEFAULT_PASSCODES.coach;
+          savePasscodes();
+        } else {
+          passcodes = { ...DEFAULT_PASSCODES };
+          savePasscodes();
+        }
+      } catch (e) {
+        passcodes = { ...DEFAULT_PASSCODES };
+        savePasscodes();
+      }
+    }
+
+    function savePasscodes() {
+      try {
+        localStorage.setItem(STORAGE_KEY_PASSCODES, JSON.stringify(passcodes));
+      } catch (e) {
+        console.warn('Could not save passcodes', e);
+      }
+    }
+
+    function loadNotifications() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_NOTIFICATIONS);
+        if (raw) {
+          notifications = JSON.parse(raw);
+        }
+      } catch (e) {
+        notifications = {};
+      }
+    }
+
+    function saveNotifications() {
+      try {
+        localStorage.setItem(STORAGE_KEY_NOTIFICATIONS, JSON.stringify(notifications));
+      } catch (e) {
+        console.warn('Could not save notifications', e);
+      }
+    }
+
+    function addNotification(studentId, type, message) {
+      if (!notifications[studentId]) {
+        notifications[studentId] = [];
+      }
+      notifications[studentId].unshift({
+        id: Date.now() + Math.random(),
+        type,
+        message,
+        date: new Date().toISOString(),
+        read: false
+      });
+      saveNotifications();
+      updateNotificationBadge();
+    }
+
+    function saveBookingsToStorage() {
+      try {
+        const serialized = JSON.stringify(bookings);
+        localStorage.setItem(STORAGE_KEY_BOOKINGS, serialized);
+      } catch (e) {
+        console.warn('Could not save bookings', e);
+      }
+    }
+
+    function loadBookingsFromStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_BOOKINGS);
+        if (!raw) {
+          bookings = [];
+          seedYear2026Data();
+          saveBookingsToStorage();
+          return;
+        }
+        const parsed = JSON.parse(raw);
+        bookings = Array.isArray(parsed) ? parsed.map(b => ({
+          ...b,
+          start: new Date(b.start),
+          end: new Date(b.end)
+        })) : [];
+        
+        // If no bookings exist, seed the data
+        if (bookings.length === 0) {
+          seedYear2026Data();
+          saveBookingsToStorage();
+        }
+      } catch (e) {
+        bookings = [];
+        seedYear2026Data();
+        saveBookingsToStorage();
+      }
+    }
+
+    // Seed entire year 2026 with 1-on-1 sessions and group classes
+    function seedYear2026Data() {
+      const yearStart = new Date(2026, 0, 1); // January 1, 2026
+      const yearEnd = new Date(2026, 11, 31, 23, 59, 59); // December 31, 2026
+      
+      // Available hours for sessions (9 AM to 7 PM)
+      const availableHours = [9, 10, 11, 13, 14, 15, 16, 17, 18, 19];
+      
+      let currentDate = new Date(yearStart);
+      let groupClassCounter = 0; // Track group classes for Sunday workshops
+      let monthlyGroupCounter = 0; // Track monthly group classes
+      
+      // Track student rotation to ensure fair distribution (25 students)
+      // Students 21-25 are distributed across all days
+      const studentRotation = {
+        'TP': { students: [1, 2, 3, 4, 5, 6, 21, 22], index: 0 }, // Mon-Tue: Students 1-6 + 21-22
+        'YL': { students: [7, 8, 9, 10, 11, 12, 23], index: 0 }, // Wed-Thu: Students 7-12 + 23
+        'HC': { students: [13, 14, 15, 16, 17, 18, 24], index: 0 }, // Fri-Sat: Students 13-18 + 24
+        'HC_SUN': { students: [19, 20, 25], index: 0 } // Sunday: Students 19-20 + 25
+      };
+      
+      while (currentDate <= yearEnd) {
+        const dayOfWeek = currentDate.getDay();
+        
+        // Skip holidays
+        if (isHoliday(currentDate)) {
+          currentDate = addDays(currentDate, 1);
+          continue;
+        }
+        
+        // Determine location and students based on day
+        let location, studentStart, studentEnd, sessionsPerDay, rotationKey;
+        
+        if (dayOfWeek === 1 || dayOfWeek === 2) { // Mon-Tue: Taipei
+          location = 'TP';
+          rotationKey = 'TP';
+          studentStart = 1;
+          studentEnd = 6;
+          sessionsPerDay = 4; // Increased to accommodate students 21-22
+        } else if (dayOfWeek === 3 || dayOfWeek === 4) { // Wed-Thu: Yi-Lan
+          location = 'YL';
+          rotationKey = 'YL';
+          studentStart = 7;
+          studentEnd = 12;
+          sessionsPerDay = 4; // Increased to accommodate student 23
+        } else if (dayOfWeek === 5 || dayOfWeek === 6) { // Fri-Sat: Hsin-Chu
+          location = 'HC';
+          rotationKey = 'HC';
+          studentStart = 13;
+          studentEnd = 18;
+          sessionsPerDay = 4; // Increased to accommodate student 24
+        } else if (dayOfWeek === 0) { // Sunday: Hsin-Chu
+          location = 'HC';
+          rotationKey = 'HC_SUN';
+          studentStart = 19;
+          studentEnd = 20;
+          sessionsPerDay = 3; // Increased to accommodate student 25
+          
+          // Add group workshop on Sundays (every 2 weeks)
+          if (groupClassCounter % 2 === 0) {
+            const groupHour = 14; // 2 PM
+            const groupStart = new Date(currentDate);
+            groupStart.setHours(groupHour, 0, 0, 0);
+            const groupEnd = new Date(groupStart.getTime() + SESSION_DURATION_MS);
+            
+            bookings.push({
+              id: `group-sunday-${currentDate.getTime()}-${Math.random()}`,
+              start: groupStart,
+              end: groupEnd,
+              type: 'group',
+              location: location,
+              createdBy: 'coach',
+              notes: 'Group Workshop - All Welcome'
+            });
+          }
+          groupClassCounter++;
+        } else {
+          currentDate = addDays(currentDate, 1);
+          continue;
+        }
+        
+        // Get existing bookings for this day to check conflicts
+        let existingDayBookings = bookings.filter(b => isSameDay(b.start, currentDate));
+        
+        // Create 1-on-1 sessions for the day using rotation
+        const dayBookings = [];
+        const rotation = studentRotation[rotationKey];
+        const shuffledHours = [...availableHours].sort(() => Math.random() - 0.5);
+        let sessionCount = 0;
+        
+        for (let i = 0; i < sessionsPerDay && shuffledHours.length > 0; i++) {
+          // Rotate through students for fair distribution
+          const studentIndex = (rotation.index + i) % rotation.students.length;
+          const studentId = rotation.students[studentIndex];
+          const hour = shuffledHours[i % shuffledHours.length];
+          
+          const sessionStart = new Date(currentDate);
+          sessionStart.setHours(hour, 0, 0, 0);
+          const sessionEnd = new Date(sessionStart.getTime() + SESSION_DURATION_MS);
+          
+          // Check for conflicts with existing bookings (including group classes)
+          const hasConflict = existingDayBookings.some(b =>
+            rangesOverlap(sessionStart, sessionEnd, b.start, b.end)
+          ) || dayBookings.some(b =>
+            rangesOverlap(sessionStart, sessionEnd, b.start, b.end)
+          );
+          
+          if (!hasConflict) {
+            dayBookings.push({
+              id: `booking-2026-${currentDate.getTime()}-${studentId}-${Math.random()}`,
+              start: sessionStart,
+              end: sessionEnd,
+              type: '1on1',
+              location: location,
+              createdBy: 'coach',
+              studentId: `student${studentId}`,
+              notes: `1-on-1 session with Student ${studentId}`
+            });
+            sessionCount++;
+          }
+        }
+        
+        // Update rotation index for next time
+        rotation.index = (rotation.index + sessionCount) % rotation.students.length;
+        
+        // Add all day bookings to the main bookings array
+        bookings.push(...dayBookings);
+        
+        // Update existing day bookings to include new ones for conflict checking
+        existingDayBookings = bookings.filter(b => isSameDay(b.start, currentDate));
+        
+        // Add monthly group classes (not on Sundays, about 1-2 per month)
+        const dayOfMonth = currentDate.getDate();
+        if (dayOfWeek !== 0 && (dayOfMonth === 15 || dayOfMonth === 25) && monthlyGroupCounter < 24) {
+          // Find an available hour that doesn't conflict
+          for (const hour of availableHours) {
+            const groupStart = new Date(currentDate);
+            groupStart.setHours(hour, 0, 0, 0);
+            const groupEnd = new Date(groupStart.getTime() + SESSION_DURATION_MS);
+            
+            // Check for conflicts with existing bookings
+            const hasConflict = existingDayBookings.some(b =>
+              rangesOverlap(groupStart, groupEnd, b.start, b.end)
+            );
+            
+            if (!hasConflict) {
+              bookings.push({
+                id: `group-monthly-${currentDate.getTime()}-${Math.random()}`,
+                start: groupStart,
+                end: groupEnd,
+                type: 'group',
+                location: location,
+                createdBy: 'coach',
+                notes: 'Group Class - Community Session'
+              });
+              monthlyGroupCounter++;
+              break;
+            }
+          }
+        }
+        
+        currentDate = addDays(currentDate, 1);
+      }
+    }
+
+    // --- Validation functions ---
+    function validateTravelBuffer(newStart, newEnd, newLocation) {
+      // Get all bookings for the same day, sorted by start time
+      const dayBookings = bookings
+        .filter(b => isSameDay(b.start, newStart))
+        .sort((a, b) => a.start - b.start);
+
+      for (const existing of dayBookings) {
+        // If different locations, need 1.5h buffer
+        if (existing.location !== newLocation) {
+          // Check if new session is before existing
+          if (newEnd <= existing.start) {
+            const gap = existing.start - newEnd;
+            if (gap < TRAVEL_BUFFER_MS) {
+              return {
+                valid: false,
+                message: `Need 1.5 hours travel time between ${LOCATIONS[newLocation].name} and ${LOCATIONS[existing.location].name}. Gap is only ${Math.round(gap / (60 * 1000))} minutes.`
+              };
+            }
+          }
+          // Check if new session is after existing
+          else if (existing.end <= newStart) {
+            const gap = newStart - existing.end;
+            if (gap < TRAVEL_BUFFER_MS) {
+              return {
+                valid: false,
+                message: `Need 1.5 hours travel time between ${LOCATIONS[existing.location].name} and ${LOCATIONS[newLocation].name}. Gap is only ${Math.round(gap / (60 * 1000))} minutes.`
+              };
+            }
+          }
+        }
+      }
+      return { valid: true };
+    }
+
+    function validateSessionLimit(date) {
+      const dayBookings = bookings.filter(b => isSameDay(b.start, date));
+      const count = dayBookings.length;
+      if (count >= MAX_SESSIONS_PER_DAY) {
+        return {
+          valid: false,
+          message: `Maximum ${MAX_SESSIONS_PER_DAY} sessions per day. Already have ${count}.`
+        };
+      }
+      return { valid: true };
+    }
+
+    function validateLocationSchedule(date, location) {
+      const dayOfWeek = date.getDay();
+      const expectedLocation = getLocationForDay(dayOfWeek);
+      if (location !== expectedLocation) {
+        return {
+          valid: false,
+          message: `Coach is scheduled at ${LOCATIONS[expectedLocation].name} on ${formatDayOfWeek(date)}. Cannot book at ${LOCATIONS[location].name}.`
+        };
+      }
+      return { valid: true };
+    }
+
+    // --- Rendering Calendar ---
+    function renderCalendar() {
+      const headerEl = document.getElementById('calendarHeader');
+      const bodyEl = document.getElementById('calendarBody');
+      headerEl.innerHTML = '';
+      bodyEl.innerHTML = '';
+
+      if (view === 'monthly') {
+        renderMonthlyView(headerEl, bodyEl);
+      } else {
+        renderWeeklyHeader(headerEl);
+        renderWeeklyBody(bodyEl);
+      }
+    }
+
+    function renderWeeklyHeader(container) {
+      const timeCol = document.createElement('div');
+      timeCol.textContent = '';
+      container.appendChild(timeCol);
+
+      for (let i = 0; i < 7; i++) {
+        const dayDate = addDays(currentWeekStart, i);
+        const cell = document.createElement('div');
+        const stats = getDayStats(dayDate);
+        const holidayName = isHoliday(dayDate) ? getHolidayName(dayDate) : null;
+        const location = getLocationForDay(dayDate.getDay());
+        const locName = LOCATIONS[location].name;
+        
+        if (holidayName) {
+          cell.classList.add('holiday');
+        }
+        
+        cell.innerHTML = `
+          ${formatDayOfWeek(dayDate)}<br />
+          <span class="text-muted">${formatDate(dayDate)}</span><br />
+          <small style="font-size: 9px; color: #666;">${locName}</small><br />
+          ${holidayName ? `<div class="holiday-label">${holidayName}</div>` : ''}
+          <div class="daily-bar">
+            <div class="daily-bar-fill ${stats.ratio < 0.34 ? 'low' : stats.ratio < 0.67 ? 'medium' : 'high'}" 
+                 style="width: ${Math.round(stats.ratio * 100)}%"></div>
+          </div>
+          <small style="font-size: 9px;">${stats.count}/${MAX_SESSIONS_PER_DAY}</small>
+        `;
+        container.appendChild(cell);
+      }
+    }
+
+    function getDayStats(date) {
+      const dayBookings = bookings.filter(b => isSameDay(b.start, date));
+      const count = dayBookings.length;
+      const ratio = count / MAX_SESSIONS_PER_DAY;
+      return { dayBookings, count, ratio };
+    }
+
+    function renderMonthlyView(headerEl, bodyEl) {
+      headerEl.style.display = 'grid';
+      headerEl.style.gridTemplateColumns = 'repeat(7, 1fr)';
+      const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      weekdays.forEach(w => {
+        const cell = document.createElement('div');
+        cell.textContent = w;
+        headerEl.appendChild(cell);
+      });
+
+      const monthStart = startOfMonth(currentMonth);
+      const offset = (monthStart.getDay() + 6) % 7;
+      const startDate = new Date(monthStart);
+      startDate.setDate(monthStart.getDate() - offset);
+
+      for (let week = 0; week < 6; week++) {
+        const row = document.createElement('div');
+        row.className = 'calendar-row';
+        row.style.display = 'grid';
+        row.style.gridTemplateColumns = 'repeat(7, 1fr)';
+
+        for (let d = 0; d < 7; d++) {
+          const cellDate = new Date(startDate);
+          cellDate.setDate(startDate.getDate() + week * 7 + d);
+
+          const cell = document.createElement('div');
+          cell.className = 'slot-cell';
+          cell.style.minHeight = '80px';
+          cell.style.padding = '4px';
+
+          const inMonth = cellDate.getMonth() === currentMonth.getMonth();
+          cell.style.opacity = inMonth ? '1' : '0.4';
+
+          const holidayName = isHoliday(cellDate) ? getHolidayName(cellDate) : null;
+          if (holidayName) {
+            cell.classList.add('holiday-cell');
+          }
+
+          const dayLabel = document.createElement('div');
+          dayLabel.style.fontWeight = 'bold';
+          dayLabel.textContent = cellDate.getDate();
+          if (holidayName) {
+            dayLabel.style.color = '#856404';
+          }
+          cell.appendChild(dayLabel);
+
+          if (holidayName) {
+            const holidayLabel = document.createElement('div');
+            holidayLabel.className = 'holiday-label';
+            holidayLabel.textContent = holidayName;
+            holidayLabel.style.marginTop = '2px';
+            cell.appendChild(holidayLabel);
+          }
+
+          const location = getLocationForDay(cellDate.getDay());
+          const locName = LOCATIONS[location].name;
+          const locLabel = document.createElement('div');
+          locLabel.style.fontSize = '9px';
+          locLabel.style.color = '#666';
+          locLabel.textContent = locName;
+          cell.appendChild(locLabel);
+
+          const stats = getDayStats(cellDate);
+          const barWrapper = document.createElement('div');
+          barWrapper.style.marginTop = '4px';
+          barWrapper.style.height = '6px';
+          barWrapper.style.background = '#eee';
+          barWrapper.style.borderRadius = '3px';
+
+          const bar = document.createElement('div');
+          bar.style.height = '100%';
+          bar.style.borderRadius = '3px';
+          bar.style.width = `${Math.round(stats.ratio * 100)}%`;
+          if (stats.ratio < 0.34) {
+            bar.style.background = '#4caf50';
+          } else if (stats.ratio < 0.67) {
+            bar.style.background = '#ffc107';
+          } else {
+            bar.style.background = '#f44336';
+          }
+          barWrapper.appendChild(bar);
+          cell.appendChild(barWrapper);
+
+          const dots = document.createElement('div');
+          dots.style.display = 'flex';
+          dots.style.gap = '3px';
+          dots.style.marginTop = '4px';
+
+          ['HC', 'TP', 'YL'].forEach(locKey => {
+            const hasLoc = bookings.some(
+              b => b.location === locKey && isSameDay(b.start, cellDate)
+            );
+            if (hasLoc) {
+              const dot = document.createElement('span');
+              dot.style.display = 'inline-block';
+              dot.style.width = '8px';
+              dot.style.height = '8px';
+              dot.style.borderRadius = '50%';
+              dot.style.border = '1px solid #999';
+              if (locKey === 'HC') dot.style.background = 'var(--hc)';
+              if (locKey === 'TP') dot.style.background = 'var(--tp)';
+              if (locKey === 'YL') dot.style.background = 'var(--yl)';
+              dots.appendChild(dot);
+            }
+          });
+
+          cell.appendChild(dots);
+          row.appendChild(cell);
+        }
+
+        bodyEl.appendChild(row);
+      }
+    }
+
+    function renderWeeklyBody(container) {
+      for (let hour = 8; hour <= 20; hour++) {
+        const row = document.createElement('div');
+        row.className = 'calendar-row';
+
+        const timeCell = document.createElement('div');
+        timeCell.className = 'time-cell';
+        timeCell.textContent = `${hour.toString().padStart(2, '0')}:00`;
+        row.appendChild(timeCell);
+
+        for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+          const dayDate = addDays(currentWeekStart, dayOffset);
+          const slotStart = new Date(dayDate);
+          slotStart.setHours(hour, 0, 0, 0);
+
+          const cell = document.createElement('div');
+          cell.className = 'slot-cell';
+
+          // Mark holidays
+          if (isHoliday(dayDate)) {
+            cell.classList.add('holiday');
+            cell.style.cursor = 'not-allowed';
+            cell.title = getHolidayName(dayDate) + ' - No bookings available';
+          }
+
+          const slotBookings = bookings.filter(b =>
+            rangesOverlap(
+              slotStart,
+              new Date(slotStart.getTime() + 60 * 60 * 1000),
+              b.start,
+              b.end
+            )
+          );
+
+          if (slotBookings.length > 0) {
+            cell.classList.add('busy');
+            slotBookings.forEach(b => {
+              const loc = LOCATIONS[b.location];
+              const tag = document.createElement('div');
+              tag.className =
+                'slot-tag ' +
+                (b.type === 'group' ? 'slot-group' : 'slot-oneonone');
+              const locSpan = document.createElement('span');
+              locSpan.className =
+                'slot-location ' + (loc ? loc.className : '');
+              locSpan.textContent = loc ? loc.name : b.location;
+
+              const typeSpan = document.createElement('span');
+              typeSpan.className = 'slot-type';
+              typeSpan.textContent =
+                b.type === 'group' ? 'Group' : '1 on 1';
+
+              const label = document.createElement('div');
+              label.className = 'slot-label';
+              label.appendChild(locSpan);
+              label.appendChild(typeSpan);
+
+              tag.appendChild(label);
+              cell.appendChild(tag);
+            });
+
+            if (
+              currentUser &&
+              currentUser.role === 'coach' &&
+              slotBookings.length === 1 &&
+              slotBookings[0].type === '1on1'
+            ) {
+              cell.style.cursor = 'pointer';
+              cell.addEventListener('click', () => {
+                openSessionDetails(slotBookings[0]);
+              });
+            }
+          } else {
+            if (isHoliday(dayDate)) {
+              cell.style.cursor = 'not-allowed';
+              cell.title = getHolidayName(dayDate) + ' - No bookings available';
+            } else {
+              cell.addEventListener('click', () =>
+                tryOpenBooking(slotStart)
+              );
+            }
+          }
+
+          row.appendChild(cell);
+        }
+
+        container.appendChild(row);
+      }
+    }
+
+    // --- Login / Logout ---
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const loginModalBackdrop = document.getElementById('loginModalBackdrop');
+    const loginCancelBtn = document.getElementById('loginCancelBtn');
+    const loginConfirmBtn = document.getElementById('loginConfirmBtn');
+    const loginRole = document.getElementById('loginRole');
+    const loginStudentId = document.getElementById('loginStudentId');
+    const loginStudentIdLabel = document.getElementById('loginStudentIdLabel');
+    const userInfoEl = document.getElementById('userInfo');
+    const roleLabelEl = document.getElementById('roleLabel');
+
+    loginRole.addEventListener('change', () => {
+      const isStudent = loginRole.value === 'student';
+      loginStudentId.classList.toggle('hidden', !isStudent);
+      loginStudentIdLabel.classList.toggle('hidden', !isStudent);
+      if (isStudent) {
+        loginStudentId.innerHTML = '<option value="">Select student</option>';
+        Object.keys(passcodes).filter(k => k.startsWith('student')).forEach(id => {
+          const opt = document.createElement('option');
+          opt.value = id;
+          opt.textContent = id.charAt(0).toUpperCase() + id.slice(1).replace(/(\d+)/, ' $1');
+          loginStudentId.appendChild(opt);
+        });
+      }
+    });
+
+    loginBtn.addEventListener('click', () => {
+      document.getElementById('loginPasscode').value = '';
+      loginRole.value = 'student';
+      loginRole.dispatchEvent(new Event('change'));
+      loginModalBackdrop.classList.remove('hidden');
+    });
+
+    loginCancelBtn.addEventListener('click', () => {
+      loginModalBackdrop.classList.add('hidden');
+    });
+
+    loginConfirmBtn.addEventListener('click', () => {
+      const role = loginRole.value;
+      const passcode = document.getElementById('loginPasscode').value.trim();
+
+      if (!passcode) {
+        alert('Please enter a passcode.');
+        return;
+      }
+
+      let userId = '';
+      let isValid = false;
+
+      if (role === 'coach') {
+        userId = 'coach';
+        isValid = passcodes.coach === passcode;
+      } else if (role === 'student') {
+        userId = loginStudentId.value;
+        if (!userId) {
+          alert('Please select a student.');
+          return;
+        }
+        isValid = passcodes[userId] === passcode;
+      }
+
+      if (!isValid) {
+        alert('Invalid passcode. Please try again.');
+        return;
+      }
+
+      currentUser = { role, userId };
+      loginModalBackdrop.classList.add('hidden');
+      updateUserUI();
+
+      // Show schedule summary pop-up for students upon login
+      if (role === 'student') {
+        setTimeout(() => {
+          showScheduleSummary();
+        }, 500);
+      }
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      currentUser = null;
+      updateUserUI();
+    });
+
+    function updateUserUI() {
+      const notifBtn = document.getElementById('notificationBtn');
+      
+      if (currentUser) {
+        const name = currentUser.userId === 'coach' ? 'Coach' : 
+          currentUser.userId.charAt(0).toUpperCase() + currentUser.userId.slice(1).replace(/(\d+)/, ' $1');
+        userInfoEl.innerHTML = `${name} - logged in`;
+        
+        // Show notification button only for students
+        if (currentUser.role === 'student') {
+          notifBtn.classList.remove('hidden');
+          updateNotificationBadge();
+        } else {
+          notifBtn.classList.add('hidden');
+        }
+        
+        loginBtn.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
+        roleLabelEl.textContent = '';
+        
+        if (currentUser.role === 'coach') {
+          document.getElementById('coachPanel').classList.remove('hidden');
+          renderCoachPanel();
+        } else {
+          document.getElementById('coachPanel').classList.add('hidden');
+        }
+      } else {
+        // Logged out state
+        userInfoEl.innerHTML = 'Not logged in';
+        notifBtn.classList.add('hidden');
+        loginBtn.classList.remove('hidden');
+        logoutBtn.classList.add('hidden');
+        roleLabelEl.textContent = '';
+        document.getElementById('coachPanel').classList.add('hidden');
+      }
+      renderCalendar();
+    }
+
+    function renderCoachPanel() {
+      const list = document.getElementById('studentList');
+      list.innerHTML = '';
+      
+      // Sort students by number
+      const studentIds = Object.keys(passcodes)
+        .filter(k => k.startsWith('student'))
+        .sort((a, b) => {
+          const numA = parseInt(a.replace('student', ''));
+          const numB = parseInt(b.replace('student', ''));
+          return numA - numB;
+        });
+      
+      studentIds.forEach(studentId => {
+        const card = document.createElement('div');
+        card.className = 'student-card';
+        const name = studentId.charAt(0).toUpperCase() + studentId.slice(1).replace(/(\d+)/, ' $1');
+        const studentNum = studentId.replace('student', '');
+        card.innerHTML = `
+          <h4>${name}</h4>
+          <div style="margin: 4px 0; font-size: 11px; color: #666;">Current Passcode:</div>
+          <div style="background: #f5f5f5; padding: 4px; border-radius: 3px; margin-bottom: 6px;">
+            <code style="font-size: 12px; font-weight: bold;">${passcodes[studentId]}</code>
+          </div>
+          <input type="text" id="newPwd_${studentId}" placeholder="Enter new passcode" style="margin-top: 4px;" />
+          <button onclick="resetStudentPasscode('${studentId}')" style="margin-top: 6px; width: 100%; padding: 6px; background: #3f51b5; color: white; border: none; border-radius: 4px; cursor: pointer;">Update Passcode</button>
+          <div id="status_${studentId}" style="margin-top: 4px; font-size: 11px; color: #4caf50; display: none;">✓ Updated successfully</div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    window.resetStudentPasscode = function(studentId) {
+      const input = document.getElementById(`newPwd_${studentId}`);
+      const statusDiv = document.getElementById(`status_${studentId}`);
+      const newPwd = input.value.trim();
+      
+      if (!newPwd) {
+        alert('Please enter a new passcode.');
+        input.focus();
+        return;
+      }
+      
+      if (newPwd.length < 4) {
+        alert('Passcode must be at least 4 characters long.');
+        input.focus();
+        return;
+      }
+      
+      // Update passcode
+      passcodes[studentId] = newPwd;
+      savePasscodes();
+      
+      // Show success message
+      statusDiv.style.display = 'block';
+      statusDiv.style.color = '#4caf50';
+      statusDiv.textContent = '✓ Passcode updated successfully';
+      
+      // Clear input
+      input.value = '';
+      
+      // Hide status after 3 seconds
+      setTimeout(() => {
+        statusDiv.style.display = 'none';
+      }, 3000);
+      
+      // Refresh the panel to show updated passcode
+      setTimeout(() => {
+        renderCoachPanel();
+      }, 100);
+    };
+
+    function showScheduleSummary() {
+      if (!currentUser || currentUser.role !== 'student') return;
+      const studentBookings = bookings
+        .filter(b => b.type === '1on1' && b.studentId === currentUser.userId)
+        .sort((a, b) => a.start - b.start);
+      
+      const content = document.getElementById('scheduleSummaryContent');
+      if (studentBookings.length === 0) {
+        content.innerHTML = '<p style="padding: 15px; text-align: center; color: #666;">You have no scheduled 1-on-1 sessions yet.<br /><br />Click on any available time slot in the calendar to book a session.</p>';
+      } else {
+        // Show upcoming sessions (next 10)
+        const upcoming = studentBookings.filter(b => b.start >= new Date()).slice(0, 10);
+        const past = studentBookings.filter(b => b.start < new Date());
+        
+        let html = '';
+        if (upcoming.length > 0) {
+          html += '<div style="margin-bottom: 15px;"><strong style="color: #3f51b5;">Upcoming Sessions:</strong></div>';
+          html += upcoming.map(b => {
+            const loc = LOCATIONS[b.location];
+            return `
+              <div class="schedule-item">
+                <strong>${formatDateTime(b.start)}</strong><br />
+                Location: ${loc ? loc.name : b.location}<br />
+                Duration: 100 minutes
+              </div>
+            `;
+          }).join('');
+        }
+        
+        if (past.length > 0 && upcoming.length > 0) {
+          html += '<div style="margin-top: 20px; margin-bottom: 10px;"><strong style="color: #999;">Past Sessions:</strong> ' + past.length + '</div>';
+        }
+        
+        if (upcoming.length === 0 && past.length > 0) {
+          html = '<p style="padding: 15px; text-align: center; color: #666;">You have ' + past.length + ' past session(s).<br /><br />Click on any available time slot to book a new session.</p>';
+        }
+        
+        content.innerHTML = html;
+      }
+      document.getElementById('scheduleSummaryModalBackdrop').classList.remove('hidden');
+    }
+
+    document.getElementById('scheduleSummaryCloseBtn').addEventListener('click', () => {
+      document.getElementById('scheduleSummaryModalBackdrop').classList.add('hidden');
+    });
+
+    // --- Notification Inbox ---
+    document.getElementById('notificationBtn').addEventListener('click', () => {
+      if (!currentUser || currentUser.role !== 'student') return;
+      const studentNotifs = notifications[currentUser.userId] || [];
+      const content = document.getElementById('inboxContent');
+      if (studentNotifs.length === 0) {
+        content.innerHTML = '<p>No notifications.</p>';
+      } else {
+        content.innerHTML = studentNotifs.map(n => {
+          const date = new Date(n.date);
+          return `
+            <div class="inbox-item ${n.read ? '' : 'unread'}">
+              <strong>${n.type}</strong><br />
+              ${n.message}<br />
+              <small>${formatDateTime(date)}</small>
+            </div>
+          `;
+        }).join('');
+        // Mark all as read
+        studentNotifs.forEach(n => n.read = true);
+        saveNotifications();
+        updateNotificationBadge();
+      }
+      document.getElementById('inboxModalBackdrop').classList.remove('hidden');
+    });
+
+    document.getElementById('inboxCloseBtn').addEventListener('click', () => {
+      document.getElementById('inboxModalBackdrop').classList.add('hidden');
+    });
+
+    function updateNotificationBadge() {
+      if (!currentUser || currentUser.role !== 'student') return;
+      const studentNotifs = notifications[currentUser.userId] || [];
+      const unreadCount = studentNotifs.filter(n => !n.read).length;
+      const badge = document.getElementById('notificationBadge');
+      badge.setAttribute('data-count', unreadCount);
+    }
+
+    // --- Booking Modal Logic ---
+    const bookingModalBackdrop = document.getElementById('bookingModalBackdrop');
+    const bookingTimeLabel = document.getElementById('bookingTimeLabel');
+    const bookingLocationSel = document.getElementById('bookingLocation');
+    const bookingTypeSel = document.getElementById('bookingType');
+    const bookingNotes = document.getElementById('bookingNotes');
+    const bookingCancelBtn = document.getElementById('bookingCancelBtn');
+    const bookingSaveBtn = document.getElementById('bookingSaveBtn');
+    const bookingTitle = document.getElementById('bookingTitle');
+
+    let bookingSlotStart = null;
+
+    function tryOpenBooking(slotStart) {
+      if (!currentUser) {
+        alert('Please login first.');
+        return;
+      }
+
+      // Check if it's a holiday
+      if (isHoliday(slotStart)) {
+        const holidayName = getHolidayName(slotStart);
+        alert(`${holidayName} - No bookings available on holidays.`);
+        return;
+      }
+
+      bookingTypeSel.value = '1on1';
+      bookingTypeSel.disabled = currentUser.role !== 'coach';
+
+      bookingSlotStart = cloneDate(slotStart);
+      const end = new Date(bookingSlotStart.getTime() + SESSION_DURATION_MS);
+      bookingTimeLabel.textContent =
+        formatDate(bookingSlotStart) +
+        ' ' +
+        formatTime(bookingSlotStart) +
+        ' ~ ' +
+        formatTime(end) +
+        ' (100 minutes)';
+
+      // Auto-set location based on day of week
+      const dayOfWeek = bookingSlotStart.getDay();
+      const expectedLocation = getLocationForDay(dayOfWeek);
+      bookingLocationSel.value = expectedLocation;
+
+      bookingNotes.value = '';
+      bookingTitle.textContent =
+        currentUser.role === 'coach'
+          ? 'Create Session'
+          : 'Reserve 1 on 1 Session';
+
+      bookingModalBackdrop.classList.remove('hidden');
+    }
+
+    bookingCancelBtn.addEventListener('click', () => {
+      bookingModalBackdrop.classList.add('hidden');
+    });
+
+    bookingSaveBtn.addEventListener('click', () => {
+      if (!bookingSlotStart || !currentUser) {
+        bookingModalBackdrop.classList.add('hidden');
+        return;
+      }
+
+      const type = bookingTypeSel.value;
+      if (type === 'group' && currentUser.role !== 'coach') {
+        alert('Only coach can create group classes.');
+        return;
+      }
+
+      const location = bookingLocationSel.value;
+      const start = cloneDate(bookingSlotStart);
+      const end = new Date(start.getTime() + SESSION_DURATION_MS);
+
+      // Check if it's a holiday
+      if (isHoliday(start)) {
+        const holidayName = getHolidayName(start);
+        alert(`${holidayName} - No bookings available on holidays.`);
+        return;
+      }
+
+      // Validate location schedule
+      const locationCheck = validateLocationSchedule(start, location);
+      if (!locationCheck.valid) {
+        alert(locationCheck.message);
+        return;
+      }
+
+      // Validate travel buffer
+      const travelCheck = validateTravelBuffer(start, end, location);
+      if (!travelCheck.valid) {
+        alert(travelCheck.message);
+        return;
+      }
+
+      // Validate session limit
+      const limitCheck = validateSessionLimit(start);
+      if (!limitCheck.valid) {
+        alert(limitCheck.message);
+        return;
+      }
+
+      // Check conflicts
+      const hasConflict = bookings.some(b =>
+        rangesOverlap(start, end, b.start, b.end)
+      );
+
+      if (hasConflict) {
+        alert('This time is already occupied. Please choose another slot.');
+        return;
+      }
+
+      const newBooking = {
+        id: Date.now() + Math.random(),
+        start,
+        end,
+        type,
+        location,
+        createdBy: currentUser.role,
+        studentId: currentUser.role === 'student' ? currentUser.userId : undefined,
+        notes: bookingNotes.value.trim()
+      };
+
+      bookings.push(newBooking);
+      saveBookingsToStorage();
+      bookingModalBackdrop.classList.add('hidden');
+      renderCalendar();
+
+      // Show schedule summary for students
+      if (currentUser.role === 'student') {
+        setTimeout(() => showScheduleSummary(), 300);
+      }
+    });
+
+    // --- Session Details / Cancel (coach only, 1 on 1 only) ---
+    const sessionModalBackdrop = document.getElementById('sessionModalBackdrop');
+    const sessionTimeLabel = document.getElementById('sessionTimeLabel');
+    const sessionLocationLabel = document.getElementById('sessionLocationLabel');
+    const sessionTypeLabel = document.getElementById('sessionTypeLabel');
+    const sessionNotesLabel = document.getElementById('sessionNotesLabel');
+    const sessionCloseBtn = document.getElementById('sessionCloseBtn');
+    const sessionCancelBtn = document.getElementById('sessionCancelBtn');
+
+    let selectedSessionId = null;
+
+    function openSessionDetails(booking) {
+      if (!currentUser || currentUser.role !== 'coach') return;
+
+      selectedSessionId = booking.id;
+      sessionTimeLabel.textContent =
+        formatDate(booking.start) +
+        ' ' +
+        formatTime(booking.start) +
+        ' ~ ' +
+        formatTime(booking.end);
+
+      const loc = LOCATIONS[booking.location];
+      sessionLocationLabel.textContent = loc ? loc.name : booking.location;
+
+      sessionTypeLabel.textContent = booking.type === 'group' ? 'Group' : '1 on 1';
+      sessionNotesLabel.textContent = booking.notes || '(no notes)';
+
+      // Show/hide cancel button only for 1-on-1 sessions
+      sessionCancelBtn.style.display = booking.type === '1on1' ? 'block' : 'none';
+
+      sessionModalBackdrop.classList.remove('hidden');
+    }
+
+    sessionCloseBtn.addEventListener('click', () => {
+      sessionModalBackdrop.classList.add('hidden');
+      selectedSessionId = null;
+    });
+
+    sessionCancelBtn.addEventListener('click', () => {
+      if (!currentUser || currentUser.role !== 'coach' || !selectedSessionId) {
+        sessionModalBackdrop.classList.add('hidden');
+        selectedSessionId = null;
+        return;
+      }
+
+      const booking = bookings.find(b => b.id === selectedSessionId);
+      if (!booking) {
+        sessionModalBackdrop.classList.add('hidden');
+        selectedSessionId = null;
+        return;
+      }
+
+      if (booking.type !== '1on1') {
+        alert('Only 1 on 1 sessions can be cancelled.');
+        return;
+      }
+
+      const now = new Date();
+      const diffMs = booking.start - now;
+
+      if (diffMs < CANCELLATION_NOTICE_MS) {
+        alert('This session starts in less than 2 hours. Cannot cancel within 2 hours.');
+        return;
+      }
+
+      if (!confirm('Cancel this session? Student will be notified.')) {
+        return;
+      }
+
+      // Notify student
+      if (booking.studentId) {
+        const loc = LOCATIONS[booking.location];
+        addNotification(
+          booking.studentId,
+          'Cancellation',
+          `Your 1-on-1 session on ${formatDateTime(booking.start)} at ${loc ? loc.name : booking.location} has been cancelled by the coach.`
+        );
+      }
+
+      bookings = bookings.filter(b => b.id !== selectedSessionId);
+      saveBookingsToStorage();
+      sessionModalBackdrop.classList.add('hidden');
+      selectedSessionId = null;
+      renderCalendar();
+
+      alert('Session cancelled. Student has been notified.');
+    });
+
+    // --- Navigation / View Switch ---
+    document.getElementById('weeklyViewBtn').addEventListener('click', () => {
+      view = 'weekly';
+      document.getElementById('weeklyViewBtn').classList.add('active');
+      document.getElementById('monthlyViewBtn').classList.remove('active');
+      renderCalendar();
+    });
+
+    document.getElementById('monthlyViewBtn').addEventListener('click', () => {
+      view = 'monthly';
+      document.getElementById('monthlyViewBtn').classList.add('active');
+      document.getElementById('weeklyViewBtn').classList.remove('active');
+      renderCalendar();
+    });
+
+    document.getElementById('todayBtn').addEventListener('click', () => {
+      if (view === 'weekly') {
+        currentWeekStart = startOfWeek(new Date());
+      } else {
+        currentMonth = new Date();
+      }
+      renderCalendar();
+    });
+
+    document.getElementById('prevBtn').addEventListener('click', () => {
+      if (view === 'weekly') {
+        currentWeekStart = addDays(currentWeekStart, -7);
+      } else {
+        currentMonth = addMonths(currentMonth, -1);
+      }
+      renderCalendar();
+    });
+
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      if (view === 'weekly') {
+        currentWeekStart = addDays(currentWeekStart, 7);
+      } else {
+        currentMonth = addMonths(currentMonth, 1);
+      }
+      renderCalendar();
+    });
+
+    // --- Initial load ---
+    loadPasscodes();
+    loadNotifications();
+    loadBookingsFromStorage();
+    renderCalendar();
+  </script>
+</body>
+</html>
