@@ -431,7 +431,7 @@
     <div class="user-info" id="userInfo">
       Not logged in
       <button id="notificationBtn" class="hidden" style="margin-left: 10px; padding: 4px 8px;">
-        ?“§ Inbox <span class="notification-badge" id="notificationBadge" data-count="0"></span>
+        ??? Inbox <span class="notification-badge" id="notificationBadge" data-count="0"></span>
       </button>
     </div>
   </header>
@@ -800,6 +800,12 @@
         const raw = localStorage.getItem(STORAGE_KEY_PASSCODES);
         if (raw) {
           passcodes = JSON.parse(raw);
+          // Merge with DEFAULT_PASSCODES to ensure all 25 students are present
+          // This handles migration from old versions with fewer students
+          passcodes = { ...DEFAULT_PASSCODES, ...passcodes };
+          // Ensure coach passcode is always correct
+          passcodes.coach = DEFAULT_PASSCODES.coach;
+          savePasscodes();
         } else {
           passcodes = { ...DEFAULT_PASSCODES };
           savePasscodes();
@@ -1302,15 +1308,29 @@
     function renderCoachPanel() {
       const list = document.getElementById('studentList');
       list.innerHTML = '';
-      Object.keys(passcodes).filter(k => k.startsWith('student')).forEach(studentId => {
+      
+      // Sort students by number to ensure proper order (student1, student2, ..., student25)
+      const studentIds = Object.keys(passcodes)
+        .filter(k => k.startsWith('student'))
+        .sort((a, b) => {
+          const numA = parseInt(a.replace('student', ''));
+          const numB = parseInt(b.replace('student', ''));
+          return numA - numB;
+        });
+      
+      studentIds.forEach(studentId => {
         const card = document.createElement('div');
         card.className = 'student-card';
         const name = studentId.charAt(0).toUpperCase() + studentId.slice(1).replace(/(\d+)/, ' $1');
         card.innerHTML = `
           <h4>${name}</h4>
-          <div>Current: <code>${passcodes[studentId]}</code></div>
-          <input type="text" id="newPwd_${studentId}" placeholder="New passcode" />
-          <button onclick="resetStudentPasscode('${studentId}')" style="margin-top: 4px; width: 100%;">Reset</button>
+          <div style="margin: 4px 0; font-size: 11px; color: #666;">Current Passcode:</div>
+          <div style="background: #f5f5f5; padding: 4px; border-radius: 3px; margin-bottom: 6px;">
+            <code style="font-size: 12px; font-weight: bold;">${passcodes[studentId]}</code>
+          </div>
+          <input type="text" id="newPwd_${studentId}" placeholder="Enter new passcode" style="margin-top: 4px; width: 100%; padding: 4px;" />
+          <button onclick="resetStudentPasscode('${studentId}')" style="margin-top: 6px; width: 100%; padding: 6px; background: #3f51b5; color: white; border: none; border-radius: 4px; cursor: pointer;">Update Passcode</button>
+          <div id="status_${studentId}" style="margin-top: 4px; font-size: 11px; color: #4caf50; display: none;">? Updated successfully</div>
         `;
         list.appendChild(card);
       });
@@ -1318,15 +1338,33 @@
 
     window.resetStudentPasscode = function(studentId) {
       const input = document.getElementById(`newPwd_${studentId}`);
+      const statusDiv = document.getElementById(`status_${studentId}`);
       const newPwd = input.value.trim();
+      
       if (!newPwd) {
         alert('Please enter a new passcode.');
+        input.focus();
         return;
       }
+      
       passcodes[studentId] = newPwd;
       savePasscodes();
+      
+      // Show success message
+      statusDiv.style.display = 'block';
+      statusDiv.style.color = '#4caf50';
+      statusDiv.textContent = '? Passcode updated successfully';
+      
+      // Clear input
+      input.value = '';
+      
+      // Hide status after 3 seconds
+      setTimeout(() => {
+        statusDiv.style.display = 'none';
+      }, 3000);
+      
+      // Refresh the panel to show updated passcode
       renderCoachPanel();
-      alert(`Passcode reset for ${studentId}.`);
     };
 
     function showScheduleSummary() {
