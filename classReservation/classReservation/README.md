@@ -2,11 +2,11 @@
 
 A web-based scheduling platform for a single coach managing **25 students** across three locations: **Taipei** (Mon-Tue), **Yi-Lan** (Wed-Thu), and **Hsin-Chu** (Fri-Sun).
 
-## ?? Access
+## Access
 
 **Website:** https://egg4lab.github.io/gitgiggle/classReservation/
 
-## ?? Passcodes
+## Passcodes
 
 ### Coach
 | Role | User ID | Passcode |
@@ -26,7 +26,7 @@ A web-based scheduling platform for a single coach managing **25 students** acro
 | Student 8 | `stu0008` | Student 17 | `stu0017` | | |
 | Student 9 | `stu0009` | Student 18 | `stu0018` | | |
 
-## ??Core Features
+## Core Features
 
 - **Location-Based Scheduling:** Taipei (Mon-Tue), Yi-Lan (Wed-Thu), Hsin-Chu (Fri-Sun)
 - **1-on-1 Sessions:** 100-minute sessions (3-6 per day)
@@ -37,7 +37,7 @@ A web-based scheduling platform for a single coach managing **25 students** acro
 - **Notifications:** 2-hour advance notice for cancellations
 - **Passcode Management:** Coach can reset student passcodes
 
-## ?? Coach Schedule
+## Coach Schedule
 
 | Day | Location | Students | Sessions/Day |
 |-----|----------|----------|--------------|
@@ -46,7 +46,7 @@ A web-based scheduling platform for a single coach managing **25 students** acro
 | Fri-Sat | Hsin-Chu | 13-18, 24 | 4 |
 | Sunday | Hsin-Chu | 19-20, 25 | 3 + Group |
 
-## ?? Quick Start
+## Quick Start
 
 1. Visit the website
 2. Click **"Login"**
@@ -54,7 +54,7 @@ A web-based scheduling platform for a single coach managing **25 students** acro
 4. If Student, select **Student ID** and enter **Passcode**
 5. Click **"Login"**
 
-## ?™ï? Key Rules
+## Key Rules
 
 - **Session Duration:** 100 minutes (1 hour 40 minutes)
 - **Daily Capacity:** 3-6 sessions per day
@@ -63,7 +63,7 @@ A web-based scheduling platform for a single coach managing **25 students** acro
 - **Data Storage:** Browser localStorage (per device)
 - **Holidays:** Taiwan public holidays (2025-2026) are automatically blocked
 
-## ?Ž¯ User Roles
+## User Roles
 
 ### Coach
 - Create/cancel 1-on-1 and group sessions
@@ -80,4 +80,4 @@ A web-based scheduling platform for a single coach managing **25 students** acro
 
 ---
 
-*Last Updated: January 2025 - Succinct Format - 25 Students System*
+*Last Updated: January 2025 - 25 Students System*
