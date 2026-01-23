@@ -1092,6 +1092,21 @@
           });
 
           cell.appendChild(dots);
+          
+          // Make monthly view cells clickable for coach to see booking details
+          if (currentUser && currentUser.role === 'coach' && stats.count > 0) {
+            cell.style.cursor = 'pointer';
+            cell.title = `${stats.count} session(s) - Click to view details`;
+            cell.addEventListener('click', () => {
+              const dayBookings = bookings.filter(b => isSameDay(b.start, cellDate));
+              const bookingInfo = dayBookings.map(b => {
+                const loc = LOCATIONS[b.location];
+                const timeStr = formatTime(b.start) + ' - ' + formatTime(b.end);
+                return `${b.type === 'group' ? 'Group' : '1 on 1'} - ${loc ? loc.name : b.location} (${timeStr})`;
+              }).join('\n');
+              alert(`Bookings on ${formatDate(cellDate)}:\n\n${bookingInfo}`);
+            });
+          }
           row.appendChild(cell);
         }
 
@@ -1160,22 +1175,35 @@
               cell.appendChild(tag);
             });
 
-            if (
-              currentUser &&
-              currentUser.role === 'coach' &&
-              slotBookings.length === 1 &&
-              slotBookings[0].type === '1on1'
-            ) {
+            // Coach can click on any booking to see details
+            // For 1-on-1 bookings, show session details modal
+            // For group bookings, show basic info
+            if (currentUser && currentUser.role === 'coach') {
               cell.style.cursor = 'pointer';
               cell.addEventListener('click', () => {
-                openSessionDetails(slotBookings[0]);
+                // If there's exactly one 1-on-1 booking, show session details
+                if (slotBookings.length === 1 && slotBookings[0].type === '1on1') {
+                  openSessionDetails(slotBookings[0]);
+                } else {
+                  // For multiple bookings or group classes, show a summary
+                  const bookingInfo = slotBookings.map(b => {
+                    const loc = LOCATIONS[b.location];
+                    const timeStr = formatTime(b.start) + ' - ' + formatTime(b.end);
+                    return `${b.type === 'group' ? 'Group' : '1 on 1'} - ${loc ? loc.name : b.location} (${timeStr})`;
+                  }).join('\n');
+                  alert(`Bookings in this slot:\n\n${bookingInfo}`);
+                }
               });
             }
           } else {
+            // Empty slot - available for booking
             if (isHoliday(dayDate)) {
               cell.style.cursor = 'not-allowed';
               cell.title = getHolidayName(dayDate) + ' - No bookings available';
             } else {
+              // Both coach and students can click empty slots to book
+              cell.style.cursor = 'pointer';
+              cell.title = 'Click to book a session';
               cell.addEventListener('click', () =>
                 tryOpenBooking(slotStart)
               );
