@@ -29,6 +29,14 @@ tools/
   Enable-GitHubPages.ps1 # Optional: enable Pages via API (needs PAT)
 ```
 
+### Canonical published structure
+
+- Keep publishable apps under `apps/`
+- Keep project demos under `projects/`
+- Keep root-level app folders (`fastingApp/`, `classReservation/`, `workHoursApp/`) as redirect-only entry points
+- Keep scripts/utilities under `tools/`
+- Keep local experiments out of publish paths and git tracking
+
 ## Git LFS
 
 Practice videos under `apps/ashtangaApp/videos/*.mp4` are tracked with **Git LFS** (see `.gitattributes`). Install [Git LFS](https://git-lfs.com/) before cloning or pushing large videos.
