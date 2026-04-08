@@ -1,0 +1,37 @@
+# Deploy static site from branch ashtanga-media-archive (tracker + media).
+# After first push: Repo → Settings → Pages → Build: GitHub Actions (select this workflow if prompted).
+name: Deploy Ashtanga tracker to GitHub Pages
+
+on:
+  push:
+    branches: [ashtanga-media-archive]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-ashtanga
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with Git LFS for *.mp4)
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Configure Pages
+        uses: actions/configure-pages@v4
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
