@@ -10,7 +10,7 @@ Tools and static apps for personal use, published with **GitHub Pages** from the
 | **Mysore Practice Tracker (Ashtanga)** | […/apps/ashtangaApp/](https://egg4lab.github.io/gitgiggle/apps/ashtangaApp/) |
 | **Office Leave Time Calculator** | […/apps/workHoursApp/](https://egg4lab.github.io/gitgiggle/apps/workHoursApp/) |
 
-Legacy paths redirect: `/fastingApp/` → `/apps/fastingApp/`, `/classReservation/` → `/projects/classReservation/`.
+Legacy paths redirect: `/fastingApp/` → `/apps/fastingApp/`, `/classReservation/` → `/projects/classReservation/`, `/workHoursApp/` → `/apps/workHoursApp/`.
 
 ## Repository layout
 
@@ -24,6 +24,7 @@ projects/
   classReservation/      # Standalone class-reservation demo (static)
 fastingApp/              # Tiny HTML redirect → apps/fastingApp
 classReservation/        # tiny HTML redirect → projects/classReservation
+workHoursApp/            # tiny HTML redirect → apps/workHoursApp
 tools/
   Enable-GitHubPages.ps1 # Optional: enable Pages via API (needs PAT)
 ```
