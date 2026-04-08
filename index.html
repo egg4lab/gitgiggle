@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mysore Practice Tracker · For Thomas</title>
+<!-- GitHub Pages: Settings → Pages → Deploy from branch "ashtanga-media-archive" / (root). Then open https://egg4lab.github.io/gitgiggle/ — keep index.html and media at repo root on that branch. -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Shippori+Mincho:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --ink:#1c1814;--shadow:#2d2118;--stone:#6b5f54;
+  --mist:#9a8f84;--drift:#b8956a;--teak:#8a6340;
+  --gold:#c9a96e;--cream:#f6f0e6;--parchment:#ede5d3;--paper:#faf7f1;
+  --dark:#161210;--darker:#0e0b08;
+  --border:rgba(184,149,106,.22);--r:4px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Cormorant Garamond',Georgia,serif;background:var(--parchment);color:var(--ink);min-height:100vh;overflow-x:hidden}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9900;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.028'/%3E%3C/svg%3E");opacity:.7}
+img,video{display:block;max-width:100%}
+button{font-family:inherit;cursor:pointer}
+
+/* ── SIDEBAR ── */
+.sidebar{width:224px;flex-shrink:0;background:var(--dark);position:fixed;top:0;left:0;bottom:0;z-index:500;border-right:1px solid rgba(201,169,110,.1);display:flex;flex-direction:column;transition:transform .3s ease}
+.logo-wrap{padding:2rem 1.4rem 1.4rem;border-bottom:1px solid rgba(201,169,110,.1);text-align:center}
+.logo-spin{font-size:2rem;opacity:.38;display:block;margin-bottom:.4rem;animation:spin 90s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.logo-name{font-size:.95rem;font-weight:300;color:var(--cream);letter-spacing:.1em;line-height:1.3}
+.logo-jp{font-family:'Shippori Mincho',serif;font-size:.58rem;letter-spacing:.32em;text-transform:uppercase;color:var(--drift);margin-top:.28rem}
+.nav-list{flex:1;padding:.8rem 0;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:.75rem;padding:.68rem 1.4rem;color:var(--mist);font-size:.84rem;letter-spacing:.06em;cursor:pointer;border-left:2px solid transparent;transition:all .2s;user-select:none}
+.nav-item:hover{color:var(--cream);background:rgba(255,255,255,.04)}
+.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:rgba(201,169,110,.08)}
+.ni{font-size:.95rem;width:20px;text-align:center;flex-shrink:0}
+.sidebar-ft{padding:.9rem 1.4rem;border-top:1px solid rgba(201,169,110,.1);font-family:'Shippori Mincho',serif;font-size:.57rem;letter-spacing:.22em;text-transform:uppercase;color:rgba(154,143,132,.4);text-align:center;line-height:1.9}
+.ham{display:none;position:fixed;top:.9rem;left:.9rem;z-index:600;background:var(--dark);border:1px solid rgba(201,169,110,.25);border-radius:3px;padding:.48rem .6rem;color:var(--gold);font-size:1.1rem}
+.ovl{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:490}
+.main{margin-left:224px;min-height:100vh}
+
+/* ── PANELS ── */
+.panel{display:none;animation:up .35s ease both}
+.panel.active{display:block}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── HERO ── */
+.hero{background:linear-gradient(155deg,#161210 0%,#241a0e 55%,#1a1208 100%);padding:3rem 2.5rem 2.4rem;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 80% at 25% 0%,rgba(201,169,110,.14),transparent 65%)}
+.hero-eye{font-family:'Shippori Mincho',serif;font-size:.62rem;letter-spacing:.42em;text-transform:uppercase;color:var(--drift);margin-bottom:.65rem;position:relative}
+.hero h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:300;color:var(--cream);letter-spacing:.1em;line-height:1.2;position:relative}
+.hero h1 em{font-style:italic;color:var(--gold)}
+.hero-sub{margin-top:.7rem;font-size:.97rem;color:rgba(246,240,230,.48);max-width:500px;line-height:1.65;position:relative}
+.hero-rule{width:48px;height:1px;background:linear-gradient(to right,var(--gold),transparent);margin:1.3rem 0 0;position:relative}
+
+/* ── WRAP / LABEL ── */
+.wrap{padding:2rem 2.5rem 4rem}
+.sl{font-family:'Shippori Mincho',serif;font-size:.62rem;letter-spacing:.38em;text-transform:uppercase;color:var(--drift);margin-bottom:1.5rem;display:flex;align-items:center;gap:.8rem}
+.sl::after{content:'';flex:1;height:1px;background:linear-gradient(to right,rgba(184,149,106,.28),transparent)}
+
+/* ── CARD / BTN / FORM ── */
+.card{background:var(--paper);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 2px 18px rgba(28,24,20,.07);transition:box-shadow .3s}
+.card:hover{box-shadow:0 5px 28px rgba(28,24,20,.12)}
+.cp{padding:1.6rem}
+.btn{display:inline-flex;align-items:center;gap:.45rem;padding:.52rem 1.35rem;border-radius:2px;font-family:'Cormorant Garamond',Georgia,serif;font-size:.88rem;letter-spacing:.1em;border:none;transition:all .2s;cursor:pointer}
+.btn:active{transform:scale(.97)}
+.bpri{background:linear-gradient(135deg,var(--teak),var(--drift));color:#fff}
+.bpri:hover{opacity:.88}
+.bgho{background:none;border:1px solid rgba(184,149,106,.38);color:var(--stone)}
+.bgho:hover{border-color:var(--teak);color:var(--teak)}
+.bsm{padding:.3rem .8rem;font-size:.78rem}
+.fg{margin-bottom:.95rem}
+.fl{display:block;font-family:'Shippori Mincho',serif;font-size:.6rem;letter-spacing:.26em;text-transform:uppercase;color:var(--drift);margin-bottom:.32rem}
+.fc{width:100%;background:rgba(246,240,230,.5);border:1px solid rgba(184,149,106,.28);border-radius:2px;padding:.52rem .82rem;font-size:.95rem;color:var(--ink);outline:none;transition:border-color .2s;font-family:'Cormorant Garamond',Georgia,serif}
+.fc:focus{border-color:var(--teak)}
+textarea.fc{resize:vertical;min-height:70px}
+
+/* ── TRIBUTE ── */
+.memorial{background:linear-gradient(148deg,#1a1208,#261808,#161208);border:1px solid rgba(201,169,110,.28);border-radius:var(--r);padding:2.5rem 2rem;text-align:center;position:relative;overflow:hidden;margin-bottom:2rem}
+.memorial::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(201,169,110,.14),transparent 70%)}
+.mem-icon{font-size:2.2rem;opacity:.35;display:block;margin-bottom:.9rem;position:relative;animation:pulse 5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:.55;transform:scale(1.04)}}
+.memorial h2{font-size:clamp(1.4rem,3vw,2rem);font-weight:300;font-style:italic;color:var(--cream);margin-bottom:.65rem;position:relative}
+.memorial h2 em{color:var(--gold);font-style:normal}
+.memorial p{color:rgba(246,240,230,.52);font-size:.95rem;line-height:1.78;max-width:500px;margin:0 auto;position:relative}
+.mem-badge{display:inline-block;margin-top:1rem;font-family:'Shippori Mincho',serif;font-size:.6rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(201,169,110,.3);padding:.28rem 1rem;border-radius:1px;position:relative}
+
+/* photo grid */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:.9rem}
+.pitem{position:relative;border-radius:2px;overflow:hidden;aspect-ratio:3/4;background:var(--shadow);border:1px solid rgba(184,149,106,.18);cursor:pointer;transition:all .25s}
+.pitem:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(28,24,20,.22)}
+.pitem img{width:100%;height:100%;object-fit:cover;transition:transform .35s}
+.pitem:hover img{transform:scale(1.06)}
+.pcap{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(22,18,16,.85),transparent);padding:.6rem .7rem .5rem;font-family:'Shippori Mincho',serif;font-size:.57rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(246,240,230,.75);opacity:0;transition:opacity .25s}
+.pitem:hover .pcap{opacity:1}
+/* map image spans 2 cols on wide screens */
+.pwide{grid-column:span 2}
+
+/* ── MASTER VIDEOS ── */
+.mtabs{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.4rem}
+.mtab{background:none;border:1px solid rgba(184,149,106,.3);color:var(--stone);padding:.38rem 1rem;border-radius:2px;font-size:.78rem;letter-spacing:.1em;transition:all .2s}
+.mtab:hover{border-color:var(--teak);color:var(--teak)}
+.mtab.active{background:linear-gradient(135deg,var(--teak),var(--drift));border-color:transparent;color:#fff}
+.mpanel{display:none}
+.mpanel.active{display:block;animation:up .3s ease}
+.mhdr{display:flex;align-items:center;gap:1.1rem;padding:1.1rem 1.3rem;margin-bottom:1.1rem}
+.mavt{width:52px;height:52px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--teak),#1e1008);display:flex;align-items:center;justify-content:center;font-size:1.5rem;border:2px solid rgba(201,169,110,.28)}
+.mname{font-size:1.05rem;color:var(--shadow)}
+.mstyle{font-size:.76rem;color:var(--mist);letter-spacing:.05em;margin-top:.1rem}
+.mdesc{font-size:.84rem;color:var(--stone);font-style:italic;line-height:1.55;margin-top:.3rem}
+
+/* video cards */
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.vcard{background:var(--paper);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:all .25s}
+.vcard:hover{transform:translateY(-3px);border-color:var(--drift);box-shadow:0 8px 28px rgba(28,24,20,.14)}
+.vthumb{width:100%;aspect-ratio:16/9;background:var(--darker);position:relative;overflow:hidden;cursor:pointer}
+.vthumb video{width:100%;height:100%;object-fit:cover}
+.vov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(14,11,8,.38);opacity:0;transition:opacity .2s}
+.vcard:hover .vov{opacity:1}
+.pring{width:50px;height:50px;border:2px solid rgba(246,240,230,.88);border-radius:50%;display:flex;align-items:center;justify-content:center;color:rgba(246,240,230,.9);font-size:1.1rem;padding-left:3px}
+.vinfo{padding:.85rem 1rem}
+.vname{font-size:.9rem;color:var(--shadow);line-height:1.35;margin-bottom:.35rem}
+.vtags{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.vtag{font-family:'Shippori Mincho',serif;font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:var(--drift);background:rgba(184,149,106,.1);padding:.16rem .48rem;border-radius:1px}
+.vdur{font-size:.7rem;color:var(--mist);margin-left:auto}
+.vact{padding:0 1rem .85rem;display:flex;gap:.5rem}
+
+/* ── VIDEO MODAL ── */
+.vmodal{display:none;position:fixed;inset:0;z-index:800;background:rgba(12,9,6,.95);align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(8px)}
+.vmodal.open{display:flex}
+.vbox{background:var(--shadow);border:1px solid rgba(201,169,110,.18);border-radius:var(--r);width:100%;max-width:820px;overflow:hidden;animation:up .3s ease}
+.vhd{padding:.95rem 1.2rem;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid rgba(201,169,110,.13)}
+.vtitle{color:var(--cream);font-size:1rem;font-weight:300;line-height:1.3}
+.vsub{font-style:italic;color:var(--gold);font-size:.8rem;margin-top:.1rem}
+.vx{background:none;border:none;color:var(--mist);font-size:1.5rem;cursor:pointer;line-height:1;transition:color .2s;flex-shrink:0;margin-left:1rem}
+.vx:hover{color:var(--cream)}
+#modalVid{width:100%;background:#000;max-height:62vh;display:block}
+#modalFrame{width:100%;max-height:62vh;aspect-ratio:16/9;border:0;background:#000;display:none}
+.vft{padding:.75rem 1.2rem;font-style:italic;font-size:.82rem;color:rgba(246,240,230,.4);border-top:1px solid rgba(201,169,110,.1)}
+
+/* ── DAILY LOG ── */
+.llay{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+@media(max-width:820px){.llay{grid-template-columns:1fr}}
+.srow{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin-bottom:1.4rem}
+.sbox{background:var(--paper);border:1px solid var(--border);border-radius:var(--r);padding:.9rem;text-align:center}
+.sn{font-size:1.9rem;font-weight:300;color:var(--teak);line-height:1}
+.sl2{font-family:'Shippori Mincho',serif;font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--mist);margin-top:.18rem}
+.asw{position:relative;margin-bottom:.9rem}
+.asw input{padding-right:2.3rem}
+.sico{position:absolute;right:.8rem;top:50%;transform:translateY(-50%);color:var(--mist);pointer-events:none}
+.alw{max-height:430px;overflow-y:auto;border:1px solid rgba(184,149,106,.18);border-radius:var(--r)}
+.alw::-webkit-scrollbar{width:4px}
+.alw::-webkit-scrollbar-thumb{background:rgba(184,149,106,.3);border-radius:2px}
+.ghdr{padding:.45rem .9rem;background:rgba(28,24,20,.04);font-family:'Shippori Mincho',serif;font-size:.58rem;letter-spacing:.28em;text-transform:uppercase;color:var(--teak);border-bottom:1px solid rgba(184,149,106,.1);position:sticky;top:0;z-index:1}
+.arow{display:flex;align-items:center;gap:.8rem;padding:.58rem .9rem;border-bottom:1px solid rgba(184,149,106,.1);cursor:pointer;transition:background .15s;user-select:none}
+.arow:last-child{border-bottom:none}
+.arow:hover{background:rgba(184,149,106,.05)}
+.arow.ck{background:rgba(184,149,106,.08)}
+.ach{width:18px;height:18px;border-radius:2px;flex-shrink:0;border:1.5px solid rgba(184,149,106,.4);display:flex;align-items:center;justify-content:center;transition:all .2s}
+.arow.ck .ach{background:linear-gradient(135deg,var(--teak),var(--drift));border-color:transparent}
+.acm{color:#fff;font-size:.62rem;opacity:0}
+.arow.ck .acm{opacity:1}
+.askt{font-size:.88rem;color:var(--shadow);font-style:italic;flex:1}
+.agrp{font-family:'Shippori Mincho',serif;font-size:.54rem;letter-spacing:.15em;text-transform:uppercase;color:var(--drift);background:rgba(184,149,106,.1);padding:.14rem .4rem;border-radius:1px;flex-shrink:0}
+.lvd{border:1.5px dashed rgba(184,149,106,.35);border-radius:var(--r);padding:1.3rem;text-align:center;cursor:pointer;position:relative;transition:all .25s;margin-bottom:1rem}
+.lvd:hover{border-color:var(--teak);background:rgba(184,149,106,.05)}
+.lvd input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.upi{font-size:1.5rem;opacity:.28;display:block;margin-bottom:.35rem}
+.upt{font-size:.82rem;color:var(--stone);letter-spacing:.08em}
+.uph{font-size:.7rem;color:var(--mist);margin-top:.2rem}
+.litem{display:flex;align-items:flex-start;gap:.9rem;padding:.85rem;background:var(--paper);border:1px solid var(--border);border-radius:var(--r);margin-bottom:.7rem;transition:border-color .2s}
+.litem:hover{border-color:var(--drift)}
+.ldot{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-top:5px;background:linear-gradient(135deg,var(--teak),var(--drift))}
+.lmain{flex:1}
+.ldate{font-family:'Shippori Mincho',serif;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--drift);margin-bottom:.18rem}
+.lposes{font-size:.84rem;color:var(--shadow);font-style:italic;line-height:1.5}
+.lnote{font-size:.78rem;color:var(--stone);margin-top:.25rem;line-height:1.5}
+.lvthumb{flex-shrink:0;cursor:pointer;width:68px;height:42px;border-radius:2px;background:var(--darker);overflow:hidden;position:relative;border:1px solid rgba(184,149,106,.2)}
+.lvthumb video{width:100%;height:100%;object-fit:cover}
+.lvthumb::after{content:'▶';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(246,240,230,.8);font-size:.75rem;background:rgba(14,11,8,.4)}
+
+/* ── INSPIRATION ── */
+.ihero{text-align:center;padding:3rem 1.5rem 2rem;border-bottom:1px solid rgba(184,149,106,.14);margin-bottom:2rem}
+.isym{font-size:3rem;opacity:.18;display:block;margin-bottom:1.1rem;animation:pulse 7s ease-in-out infinite}
+.qbig{font-size:clamp(1.2rem,2.8vw,1.75rem);font-weight:300;font-style:italic;color:var(--shadow);line-height:1.72;max-width:640px;margin:0 auto .8rem;transition:opacity .4s,transform .4s}
+.qbig.fade{opacity:0;transform:translateY(8px)}
+.qattr{font-family:'Shippori Mincho',serif;font-size:.65rem;letter-spacing:.28em;text-transform:uppercase;color:var(--mist);margin-bottom:1.5rem}
+.qrule{width:28px;height:1px;background:var(--drift);margin:1rem auto}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:1rem}
+.qcard{background:var(--paper);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem 1.1rem 1rem;position:relative;overflow:hidden;transition:all .2s}
+.qcard:hover{border-color:var(--drift);transform:translateY(-1px)}
+.qcard::before{content:'\201C';position:absolute;top:-.2rem;left:.65rem;font-size:4rem;color:rgba(184,149,106,.13);font-family:Georgia,serif;line-height:1;pointer-events:none}
+.qt{font-style:italic;font-size:.88rem;color:var(--stone);line-height:1.7;padding-top:.9rem}
+.qs{font-family:'Shippori Mincho',serif;font-size:.57rem;letter-spacing:.2em;text-transform:uppercase;color:var(--drift);margin-top:.65rem}
+
+/* ── PROGRESS ── */
+.pgbox{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:1rem;margin-bottom:2rem}
+.pbox{background:var(--paper);border:1px solid var(--border);border-radius:var(--r);padding:1.3rem;text-align:center}
+.pnum{font-size:2.7rem;font-weight:300;color:var(--teak);line-height:1}
+.plbl{font-family:'Shippori Mincho',serif;font-size:.58rem;letter-spacing:.24em;text-transform:uppercase;color:var(--mist);margin-top:.25rem}
+.psub{font-size:.76rem;color:var(--stone);margin-top:.15rem;font-style:italic}
+.wstrip{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:2rem}
+.wday{flex:1;min-width:40px;background:var(--paper);border:1px solid var(--border);border-radius:var(--r);padding:.65rem .4rem;text-align:center;cursor:pointer;transition:all .2s}
+.wday.done{background:linear-gradient(135deg,var(--teak),var(--drift));border-color:transparent}
+.wdn{font-family:'Shippori Mincho',serif;font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mist);margin-bottom:.3rem}
+.wday.done .wdn{color:rgba(246,240,230,.8)}
+.wdd{width:9px;height:9px;border-radius:50%;border:1.5px solid rgba(184,149,106,.35);margin:0 auto;transition:all .2s}
+.wday.done .wdd{background:#fff;border-color:rgba(255,255,255,.6)}
+.rrow{display:flex;gap:2rem;align-items:center;flex-wrap:wrap;margin-bottom:2rem}
+.rsvg{position:relative;width:116px;height:116px;flex-shrink:0}
+.rsvg svg{width:116px;height:116px;transform:rotate(-90deg)}
+.rbg{fill:none;stroke:rgba(184,149,106,.14);stroke-width:8}
+.rfill{fill:none;stroke:url(#rg);stroke-width:8;stroke-linecap:round;stroke-dasharray:327;stroke-dashoffset:327;transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1)}
+.rctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.rpct{font-size:1.55rem;font-weight:300;color:var(--shadow);line-height:1}
+.rsym{font-size:.75rem;color:var(--mist)}
+.rlbl{font-family:'Shippori Mincho',serif;font-size:.53rem;letter-spacing:.16em;text-transform:uppercase;color:var(--mist);margin-top:2px}
+
+/* ── LIGHTBOX ── */
+.lb{display:none;position:fixed;inset:0;z-index:900;background:rgba(10,7,4,.96);align-items:center;justify-content:center;backdrop-filter:blur(10px);cursor:zoom-out}
+.lb.open{display:flex}
+.lb img{max-width:92vw;max-height:90vh;object-fit:contain;border-radius:2px;border:1px solid rgba(201,169,110,.15);animation:up .25s ease}
+.lbx{position:absolute;top:1rem;right:1.3rem;background:none;border:none;color:rgba(246,240,230,.55);font-size:2rem;cursor:pointer;line-height:1;transition:color .2s}
+.lbx:hover{color:var(--cream)}
+.lbc{position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);font-family:'Shippori Mincho',serif;font-size:.65rem;letter-spacing:.28em;text-transform:uppercase;color:rgba(246,240,230,.45);white-space:nowrap}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .ovl.open{display:block}
+  .main{margin-left:0}
+  .ham{display:flex;align-items:center;justify-content:center}
+  .wrap{padding:1.4rem 1rem 3rem}
+  .hero{padding:3.5rem 1.2rem 1.8rem}
+}
+@media(max-width:500px){
+  .mtabs{gap:.3rem}
+  .mtab{padding:.32rem .65rem;font-size:.7rem}
+  .pwide{grid-column:span 1}
+}
+</style>
+</head>
+<body>
+
+<button class="ham" id="ham" onclick="toggleSB()">☰</button>
+<div class="ovl" id="ovl" onclick="toggleSB()"></div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="logo-wrap">
+    <span class="logo-spin">❁</span>
+    <div class="logo-name">Mysore Practice<br/>Tracker</div>
+    <div class="logo-jp">アシュタンガ · 自主練習</div>
+  </div>
+  <ul class="nav-list">
+    <li class="nav-item active" onclick="go('tribute',this)"><span class="ni">🪷</span>Tribute to Thomas</li>
+    <li class="nav-item"        onclick="go('masters',this)"><span class="ni">🎬</span>Master Videos</li>
+    <li class="nav-item"        onclick="go('log',this)">    <span class="ni">📖</span>Daily Practice Log</li>
+    <li class="nav-item"        onclick="go('insp',this)">   <span class="ni">☸</span>Inspiration</li>
+    <li class="nav-item"        onclick="go('prog',this)">   <span class="ni">🌱</span>Progress</li>
+  </ul>
+  <div class="sidebar-ft">Samastitihi · Return to Stillness<br/><span style="opacity:.4;font-size:.52rem">Mysore Home Practice</span></div>
+</nav>
+
+<main class="main">
+
+<!-- ━━━ ① TRIBUTE ━━━ -->
+<div class="panel active" id="panel-tribute">
+  <div class="hero">
+    <p class="hero-eye">A Tribute · 致敬</p>
+    <h1>Thank You,<br/><em>Thomas</em></h1>
+    <p class="hero-sub">Nine years of Mysore teaching. The adjustments live on in the body. The practice continues.</p>
+    <div class="hero-rule"></div>
+  </div>
+  <div class="wrap">
+    <div class="memorial">
+      <span class="mem-icon">🙏</span>
+      <h2>Guru · <em>गुरु</em></h2>
+      <p>You did not just teach me poses. You taught me how to show up — for the practice, for myself, on every kind of day. Nine years of your adjustments, your silence, your encouragement. This practice is yours, now carried forward alone.</p>
+      <span class="mem-badge">2015 – 2024 · Nine Years · Mysore Tradition</span>
+    </div>
+
+    <p class="sl">Āsana Gallery · 14 Photographs</p>
+    <div class="pgrid">
+
+      <!-- Series map spans 2 columns -->
+      <div class="pitem pwide" onclick="openLB('Ashtanga-Primary-Series-map.jpeg','Primary Series Map')">
+        <img src="Ashtanga-Primary-Series-map.jpeg" alt="Ashtanga Primary Series Map" loading="lazy"/>
+        <div class="pcap">Primary Series Map</div>
+      </div>
+
+      <div class="pitem" onclick="openLB('Padmasana.jpeg','Padmāsana')">
+        <img src="Padmasana.jpeg" alt="Padmasana" loading="lazy"/>
+        <div class="pcap">Padmāsana</div>
+      </div>
+
+      <div class="pitem" onclick="openLB('Padmasana-2.jpeg','Padmāsana II')">
+        <img src="Padmasana-2.jpeg" alt="Padmasana 2" loading="lazy"/>
+        <div class="pcap">Padmāsana II</div>
+      </div>
+
+      <div class="pitem" onclick="openLB('Natarajasana.jpeg','Naṭarājāsana · Lord of the Dance')">
+        <img src="Natarajasana.jpeg" alt="Natarajasana" loading="lazy"/>
+        <div class="pcap">Naṭarājāsana</div>
+      </div>
+
+      <div class="pitem" onclick="openLB('Kapotasana.jpeg','Kāpotāsana · King Pigeon')">
+        <img src="Kapotasana.jpeg" alt="Kapotasana" loading="lazy"/>
+        <div class="pcap">Kāpotāsana</div>
+      </div>
+
+      <div class="pitem" onclick="openLB('Bakasana.jpeg','Bākāsana · Crow Pose')">
+        <img src="Bakasana.jpeg" alt="Bakasana" loading="lazy"/>
+        <div class="pcap">Bākāsana</div>
+      </div>
+
+      <div class="pitem" onclick="openLB('Tittibhasana.jpeg','Tittibhāsana · Firefly')">
+        <img src="Tittibhasana.jpeg" alt="Tittibhasana" loading="lazy"/>
+        <div class="pcap">Tittibhāsana</div>
+      </div>
+
+      <div class="pitem" onclick="openLB('Janu-Sirsasana-A.jpeg','Jānu Śīrṣāsana A')">
+        <img src="Janu-Sirsasana-A.jpeg" alt="Janu Sirsasana A" loading="lazy"/>
+        <div class="pcap">Jānu Śīrṣāsana A</div>
+      </div>
+
+      <div class="pitem" onclick="openLB('Eka-Pada-Koundinyasana-II.jpeg','Eka Pāda Kauṇḍinyāsana II')">
+        <img src="Eka-Pada-Koundinyasana-II.jpeg" alt="Eka Pada Koundinyasana II" loading="lazy"/>
+        <div class="pcap">Eka Pāda Kauṇḍinyāsana II</div>
+      </div>
+
+      <div class="pitem" onclick="openLB('Eka-Pada-Rajakapotasana.jpeg','Eka Pāda Rājakapotāsana')">
+        <img src="Eka-Pada-Rajakapotasana.jpeg" alt="Eka Pada Rajakapotasana" loading="lazy"/>
+        <div class="pcap">Eka Pāda Rājakapotāsana</div>
+      </div>
+
+      <div class="pitem" onclick="openLB('Dvi-Pada-Sirsasana.jpeg','Dvi Pāda Śīrṣāsana')">
+        <img src="Dvi-Pada-Sirsasana.jpeg" alt="Dvi Pada Sirsasana" loading="lazy"/>
+        <div class="pcap">Dvi Pāda Śīrṣāsana</div>
+      </div>
+
+      <div class="pitem" onclick="openLB('Dwi-Hasta-Bhujasana.jpeg','Dwi Hasta Bhujāsana')">
+        <img src="Dwi-Hasta-Bhujasana.jpeg" alt="Dwi Hasta Bhujasana" loading="lazy"/>
+        <div class="pcap">Dwi Hasta Bhujāsana</div>
+      </div>
+
+      <div class="pitem" onclick="openLB('Ganda-Bherundasana.jpeg','Gaṇḍa Bheruṇḍāsana')">
+        <img src="Ganda-Bherundasana.jpeg" alt="Ganda Bherundasana" loading="lazy"/>
+        <div class="pcap">Gaṇḍa Bheruṇḍāsana</div>
+      </div>
+
+      <div class="pitem" onclick="openLB('Ganda-Bherundasana-2.jpeg','Gaṇḍa Bheruṇḍāsana II')">
+        <img src="Ganda-Bherundasana-2.jpeg" alt="Ganda Bherundasana 2" loading="lazy"/>
+        <div class="pcap">Gaṇḍa Bheruṇḍāsana II</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ━━━ ② MASTER VIDEOS ━━━ -->
+<div class="panel" id="panel-masters">
+  <div class="hero">
+    <p class="hero-eye">Follow &amp; Learn · 跟練</p>
+    <h1>The <em>Masters</em></h1>
+    <p class="hero-sub">Six practice films. Click any tab, press play, and follow.</p>
+    <div class="hero-rule"></div>
+  </div>
+  <div class="wrap">
+    <div class="mtabs">
+      <button class="mtab active" onclick="switchM('david',this)">David &amp; Jelena</button>
+      <button class="mtab"        onclick="switchM('laruga',this)">Laruga</button>
+      <button class="mtab"        onclick="switchM('ty',this)">Ty Landrum</button>
+      <button class="mtab"        onclick="switchM('fast',this)">Fast Pace</button>
+      <button class="mtab"        onclick="switchM('doron',this)">Doron</button>
+      <button class="mtab"        onclick="switchM('vishesh',this)">Vishesh</button>
+    </div>
+
+    <!-- David & Jelena -->
+    <div class="mpanel active" id="mp-david">
+      <div class="card mhdr cp">
+        <div class="mavt">🎓</div>
+        <div><div class="mname">David Swenson &amp; Jelena Vesić</div><div class="mstyle">Ashtanga Vinyasa · Led Primary Series</div><div class="mdesc">A joint guided Primary from two beloved Western teachers. David's warmth and Jelena's precision — an ideal daily companion.</div></div>
+      </div>
+      <div class="vgrid">
+        <div class="vcard">
+          <div class="vthumb" onclick="openV('Ashtanga Led Primary Series _ David &amp; Jelena Yoga.mp4','Ashtanga Led Primary Series','David &amp; Jelena Yoga','')">
+            <video src="Ashtanga Led Primary Series _ David &amp; Jelena Yoga.mp4" preload="metadata" muted></video>
+            <div class="vov"><div class="pring">▶</div></div>
+          </div>
+          <div class="vinfo">
+            <div class="vname">Ashtanga Led Primary Series</div>
+            <div class="vtags"><span class="vtag">David &amp; Jelena</span><span class="vtag">Primary</span><span class="vdur">Full Length</span></div>
+          </div>
+          <div class="vact"><button class="btn bpri bsm" onclick="openV('Ashtanga Led Primary Series _ David &amp; Jelena Yoga.mp4','Ashtanga Led Primary Series','David &amp; Jelena Yoga','')">▶ Play</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Laruga -->
+    <div class="mpanel" id="mp-laruga">
+      <div class="card mhdr cp">
+        <div class="mavt">🦅</div>
+        <div><div class="mname">Laruga Glaser</div><div class="mstyle">Ashtanga · Stockholm · Advanced Practitioner</div><div class="mdesc">One of the most advanced Ashtanga practitioners globally. Elegant, powerful, deeply meditative. Follow her breath.</div></div>
+      </div>
+      <div class="vgrid">
+        <div class="vcard">
+          <div class="vthumb" onclick="openV('Ashtanga Yoga Full Primary Series with Laruga Glaser.mp4','Full Primary Series','Laruga Glaser','')">
+            <video src="Ashtanga Yoga Full Primary Series with Laruga Glaser.mp4" preload="metadata" muted></video>
+            <div class="vov"><div class="pring">▶</div></div>
+          </div>
+          <div class="vinfo">
+            <div class="vname">Ashtanga Yoga Full Primary Series</div>
+            <div class="vtags"><span class="vtag">Laruga Glaser</span><span class="vtag">Primary</span><span class="vdur">Full Length</span></div>
+          </div>
+          <div class="vact"><button class="btn bpri bsm" onclick="openV('Ashtanga Yoga Full Primary Series with Laruga Glaser.mp4','Full Primary Series','Laruga Glaser','')">▶ Play</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ty Landrum -->
+    <div class="mpanel" id="mp-ty">
+      <div class="card mhdr cp">
+        <div class="mavt">📿</div>
+        <div><div class="mname">Ty Landrum</div><div class="mstyle">Ashtanga · Philosophy &amp; Breath</div><div class="mdesc">Deeply philosophical — rich cueing on breath, drishti, and the inner practice. Poetic and grounding.</div></div>
+      </div>
+      <div class="vgrid">
+        <div class="vcard">
+          <div class="vthumb" onclick="openV('Ashtanga Yoga Full Primary Series with Ty Landrum.mp4','Full Primary Series','Ty Landrum','')">
+            <video src="Ashtanga Yoga Full Primary Series with Ty Landrum.mp4" preload="metadata" muted></video>
+            <div class="vov"><div class="pring">▶</div></div>
+          </div>
+          <div class="vinfo">
+            <div class="vname">Ashtanga Yoga Full Primary Series</div>
+            <div class="vtags"><span class="vtag">Ty Landrum</span><span class="vtag">Primary</span><span class="vdur">Full Length</span></div>
+          </div>
+          <div class="vact"><button class="btn bpri bsm" onclick="openV('Ashtanga Yoga Full Primary Series with Ty Landrum.mp4','Full Primary Series','Ty Landrum','')">▶ Play</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fast Pace — em dash preserved exactly -->
+    <div class="mpanel" id="mp-fast">
+      <div class="card mhdr cp">
+        <div class="mavt">⚡</div>
+        <div><div class="mname">One Hour Guided · Fast Pace</div><div class="mstyle">Primary Series · Condensed</div><div class="mdesc">Full sequence in one hour. For days when time is short — the full series, a faster count.</div></div>
+      </div>
+      <div class="vgrid">
+        <div class="vcard">
+          <div class="vthumb" onclick="openV('Ashtanga Yoga Full Primary Series \u2014 One Hour Guided Class (Fast Pace).mp4','One Hour Guided Class (Fast Pace)','Primary Series','')">
+            <video src="Ashtanga Yoga Full Primary Series — One Hour Guided Class (Fast Pace).mp4" preload="metadata" muted></video>
+            <div class="vov"><div class="pring">▶</div></div>
+          </div>
+          <div class="vinfo">
+            <div class="vname">Full Primary Series — One Hour Guided (Fast Pace)</div>
+            <div class="vtags"><span class="vtag">Fast Pace</span><span class="vtag">1 Hour</span><span class="vdur">~60 min</span></div>
+          </div>
+          <div class="vact"><button class="btn bpri bsm" onclick="openV('Ashtanga Yoga Full Primary Series \u2014 One Hour Guided Class (Fast Pace).mp4','One Hour Guided (Fast Pace)','Primary Series','')">▶ Play</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Doron -->
+    <div class="mpanel" id="mp-doron">
+      <div class="card mhdr cp">
+        <div class="mavt">🌊</div>
+        <div><div class="mname">Doron Hanoch</div><div class="mstyle">Ashtanga Vinyasa · Led Primary</div><div class="mdesc">Steady, welcoming pace with clear Sanskrit counting. A grounding practice to return to for consistency.</div></div>
+      </div>
+      <div class="vgrid">
+        <div class="vcard">
+          <div class="vthumb" onclick="openV('Primary Series Ashtanga Vinyasa Led Class _  Practice Ashtanga with Doron!.mp4','Led Primary Series','Doron Hanoch','')">
+            <video src="Primary Series Ashtanga Vinyasa Led Class _  Practice Ashtanga with Doron!.mp4" preload="metadata" muted></video>
+            <div class="vov"><div class="pring">▶</div></div>
+          </div>
+          <div class="vinfo">
+            <div class="vname">Primary Series Ashtanga Vinyasa Led Class</div>
+            <div class="vtags"><span class="vtag">Doron Hanoch</span><span class="vtag">Primary</span><span class="vdur">Full Length</span></div>
+          </div>
+          <div class="vact"><button class="btn bpri bsm" onclick="openV('Primary Series Ashtanga Vinyasa Led Class _  Practice Ashtanga with Doron!.mp4','Led Primary Series','Doron Hanoch','')">▶ Play</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vishesh -->
+    <div class="mpanel" id="mp-vishesh">
+      <div class="card mhdr cp">
+        <div class="mavt">🔬</div>
+        <div><div class="mname">Vishesh Arora</div><div class="mstyle">Yoga · Anatomy &amp; Alignment</div><div class="mdesc">The Power of Anatomy in Yoga — an epic flow focused on the body's mechanics. Deepen your anatomical awareness.</div></div>
+      </div>
+      <div class="vgrid">
+        <div class="vcard">
+          <div class="vthumb" onclick="openV(`The Power of Anatomy in Yoga _ Vishesh Arora's Epic Flow.mp4`,'The Power of Anatomy in Yoga','Vishesh Arora','')">
+            <video src="The Power of Anatomy in Yoga _ Vishesh Arora's Epic Flow.mp4" preload="metadata" muted></video>
+            <div class="vov"><div class="pring">▶</div></div>
+          </div>
+          <div class="vinfo">
+            <div class="vname">The Power of Anatomy in Yoga — Epic Flow</div>
+            <div class="vtags"><span class="vtag">Vishesh Arora</span><span class="vtag">Anatomy</span><span class="vdur">Full Length</span></div>
+          </div>
+          <div class="vact"><button class="btn bpri bsm" onclick="openV(`The Power of Anatomy in Yoga _ Vishesh Arora's Epic Flow.mp4`,'The Power of Anatomy in Yoga','Vishesh Arora','')">▶ Play</button></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ━━━ ③ DAILY LOG ━━━ -->
+<div class="panel" id="panel-log">
+  <div class="hero">
+    <p class="hero-eye">Sādhana · साधना</p>
+    <h1>Daily <em>Practice Log</em></h1>
+    <p class="hero-sub">Check each āsana, choose your film, upload your recording. One breath at a time.</p>
+    <div class="hero-rule"></div>
+  </div>
+  <div class="wrap">
+    <div class="srow">
+      <div class="sbox"><div class="sn" id="sSess">0</div><div class="sl2">Total Sessions</div></div>
+      <div class="sbox"><div class="sn" id="sAsan">0</div><div class="sl2">Āsanas Today</div></div>
+      <div class="sbox"><div class="sn" id="sStrk">0</div><div class="sl2">Day Streak</div></div>
+    </div>
+    <div class="llay">
+      <!-- Asana checklist -->
+      <div>
+        <p class="sl">Primary Series Āsanas</p>
+        <div class="asw">
+          <input type="text" class="fc" id="asearch" placeholder="Search āsanas…" oninput="filterA()"/>
+          <span class="sico">🔍</span>
+        </div>
+        <div class="alw" id="alist"></div>
+        <div style="margin-top:.9rem;display:flex;gap:.7rem;align-items:center;flex-wrap:wrap">
+          <button class="btn bgho bsm" onclick="clearA()">Clear All</button>
+          <span style="font-size:.78rem;color:var(--mist)"><span id="ckC">0</span> / <span id="ckT">0</span> checked</span>
+        </div>
+      </div>
+      <!-- Log form -->
+      <div>
+        <p class="sl">Log This Practice</p>
+        <div class="card cp" style="margin-bottom:1.1rem">
+          <div class="fg"><label class="fl">Date</label><input type="date" class="fc" id="lDate"/></div>
+          <div class="fg">
+            <label class="fl">Teacher / Film Followed</label>
+            <select class="fc" id="lTeach">
+              <option value="">— Select —</option>
+              <option>David Swenson &amp; Jelena Vesić</option>
+              <option>Laruga Glaser</option>
+              <option>Ty Landrum</option>
+              <option>One Hour Fast Pace</option>
+              <option>Doron Hanoch</option>
+              <option>Vishesh Arora</option>
+              <option>Self Practice</option>
+            </select>
+          </div>
+          <div class="fg"><label class="fl">Duration (minutes)</label><input type="number" class="fc" id="lDur" placeholder="e.g. 90"/></div>
+          <div class="fg"><label class="fl">Notes · Observations</label><textarea class="fc" id="lNotes" placeholder="Breath, bandha, drishti, insights…"></textarea></div>
+          <label class="fl" style="margin-bottom:.4rem">Upload Your Practice Video (optional)</label>
+          <div class="lvd" id="lvdrop">
+            <input type="file" accept="video/*" id="lVidIn" onchange="handleLV(this)"/>
+            <span class="upi">📹</span>
+            <span class="upt" id="lvTxt">Click to upload your recording</span>
+            <p class="uph">MP4 · MOV · stored locally in your browser</p>
+          </div>
+          <button class="btn bpri" style="width:100%" onclick="saveLog()">Save Practice &nbsp;✦</button>
+        </div>
+        <p class="sl">Practice History</p>
+        <div id="logHist"><p style="font-size:.84rem;color:var(--mist);font-style:italic">No sessions yet.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ━━━ ④ INSPIRATION ━━━ -->
+<div class="panel" id="panel-insp">
+  <div class="hero">
+    <p class="hero-eye">Dharma · धर्म</p>
+    <h1><em>Inspiration</em><br/>&amp; Wisdom</h1>
+    <div class="hero-rule"></div>
+  </div>
+  <div class="wrap">
+    <div class="ihero">
+      <span class="isym">☸</span>
+      <p class="qbig" id="qbig">"Your only goal is to get on the mat."</p>
+      <div class="qrule"></div>
+      <p class="qattr" id="qattr">— Daily Practice</p>
+      <button class="btn bgho" onclick="nextQ()">Next Message &nbsp;✦</button>
+    </div>
+    <p class="sl">All Wisdom</p>
+    <div class="qgrid" id="qgrid"></div>
+  </div>
+</div>
+
+<!-- ━━━ ⑤ PROGRESS ━━━ -->
+<div class="panel" id="panel-prog">
+  <div class="hero">
+    <p class="hero-eye">Abhyāsa · अभ्यास</p>
+    <h1>Your <em>Journey</em></h1>
+    <p class="hero-sub">The practice is not about perfection. It is about showing up.</p>
+    <div class="hero-rule"></div>
+  </div>
+  <div class="wrap">
+    <div class="pgbox">
+      <div class="pbox"><div class="pnum" id="pg1">0</div><div class="plbl">Total Sessions</div><div class="psub">since you began</div></div>
+      <div class="pbox"><div class="pnum" id="pg2">0</div><div class="plbl">Day Streak</div><div class="psub">consecutive days</div></div>
+      <div class="pbox"><div class="pnum">6</div><div class="plbl">Master Films</div><div class="psub">ready to follow</div></div>
+      <div class="pbox"><div class="pnum">76</div><div class="plbl">Āsanas</div><div class="psub">Primary Series total</div></div>
+    </div>
+    <p class="sl">This Week</p>
+    <div class="wstrip" id="wstrip"></div>
+    <div class="rrow card cp">
+      <div class="rsvg">
+        <svg viewBox="0 0 116 116">
+          <defs>
+            <linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#8a6340"/>
+              <stop offset="100%" style="stop-color:#c9a96e"/>
+            </linearGradient>
+          </defs>
+          <circle class="rbg" cx="58" cy="58" r="52"/>
+          <circle class="rfill" id="rfill" cx="58" cy="58" r="52"/>
+        </svg>
+        <div class="rctr">
+          <div class="rpct"><span id="rpct">0</span><span class="rsym">%</span></div>
+          <div class="rlbl">weekly</div>
+        </div>
+      </div>
+      <div>
+        <p style="font-size:1rem;color:var(--shadow);margin-bottom:.4rem">Weekly Goal Progress</p>
+        <p style="font-size:.84rem;color:var(--stone);font-style:italic;line-height:1.7">
+          Target: <strong style="color:var(--teak)">6 sessions / week</strong><br/>
+          Completed: <strong style="color:var(--teak)" id="wdone">0</strong> this week
+        </p>
+        <div style="margin-top:1rem;display:flex;gap:.6rem;flex-wrap:wrap">
+          <button class="btn bpri bsm" onclick="markToday()">✓ Mark Today Done</button>
+          <button class="btn bgho bsm" onclick="resetWeek()">Reset Week</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- LIGHTBOX -->
+<div class="lb" id="lb" onclick="closeLBifBg(event)">
+  <button class="lbx" onclick="closeLB()">✕</button>
+  <img id="lbImg" src="" alt=""/>
+  <div class="lbc" id="lbCap"></div>
+</div>
+
+<!-- VIDEO MODAL -->
+<div class="vmodal" id="vmodal" onclick="closeVifBg(event)">
+  <div class="vbox">
+    <div class="vhd">
+      <div><div class="vtitle" id="vmT">Video</div><div class="vsub" id="vmS"></div></div>
+      <button class="vx" onclick="closeV()">✕</button>
+    </div>
+    <video id="modalVid" controls playsinline></video>
+    <iframe id="modalFrame" title="Video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+    <div class="vft" id="vmF"></div>
+  </div>
+</div>
+
+<script>
+/* ── DATA ── */
+const ASANAS=[
+  {g:'Opening',  s:'Sūrya Namaskāra A',id:'sna'},{g:'Opening',s:'Sūrya Namaskāra B',id:'snb'},
+  {g:'Standing', s:'Pādāṅguṣṭhāsana',id:'pa'},{g:'Standing',s:'Pāda Hastāsana',id:'ph'},
+  {g:'Standing', s:'Utthita Trikoṇāsana A',id:'uta'},{g:'Standing',s:'Utthita Trikoṇāsana B',id:'utb'},
+  {g:'Standing', s:'Utthita Pārśvakoṇāsana A',id:'upka'},{g:'Standing',s:'Utthita Pārśvakoṇāsana B',id:'upkb'},
+  {g:'Standing', s:'Prasārita Pādottānāsana A',id:'ppa'},{g:'Standing',s:'Prasārita Pādottānāsana B',id:'ppb'},
+  {g:'Standing', s:'Prasārita Pādottānāsana C',id:'ppc'},{g:'Standing',s:'Prasārita Pādottānāsana D',id:'ppd'},
+  {g:'Standing', s:'Pārśvottānāsana',id:'pvo'},
+  {g:'Standing', s:'Utthita Hasta Pādāṅguṣṭhāsana A',id:'uhpa'},{g:'Standing',s:'Utthita Hasta Pādāṅguṣṭhāsana B',id:'uhpb'},
+  {g:'Standing', s:'Utthita Hasta Pādāṅguṣṭhāsana C',id:'uhpc'},{g:'Standing',s:'Utthita Hasta Pādāṅguṣṭhāsana D',id:'uhpd'},
+  {g:'Standing', s:'Ardha Baddha Padmottānāsana',id:'abp'},
+  {g:'Standing', s:'Utkṭāsana',id:'utk'},{g:'Standing',s:'Vīrabhadrāsana A',id:'via'},{g:'Standing',s:'Vīrabhadrāsana B',id:'vib'},
+  {g:'Seated',   s:'Paśchimottānāsana A',id:'psa'},{g:'Seated',s:'Paśchimottānāsana B',id:'psb'},{g:'Seated',s:'Paśchimottānāsana C',id:'psc'},
+  {g:'Seated',   s:'Pūrvottānāsana',id:'pur'},{g:'Seated',s:'Ardha Baddha Padma Paśchimottānāsana',id:'abpp'},
+  {g:'Seated',   s:'Tiraṅg Mukha Eka Pāda Paśchimottānāsana',id:'tmep'},
+  {g:'Seated',   s:'Jānu Śīrṣāsana A',id:'jsa'},{g:'Seated',s:'Jānu Śīrṣāsana B',id:'jsb'},{g:'Seated',s:'Jānu Śīrṣāsana C',id:'jsc'},
+  {g:'Seated',   s:'Marīchyāsana A',id:'mra'},{g:'Seated',s:'Marīchyāsana B',id:'mrb'},
+  {g:'Seated',   s:'Marīchyāsana C',id:'mrc'},{g:'Seated',s:'Marīchyāsana D',id:'mrd'},
+  {g:'Seated',   s:'Nāvāsana (×5)',id:'nav'},{g:'Seated',s:'Bhujapiḍāsana',id:'bhuj'},
+  {g:'Seated',   s:'Kūrmāsana',id:'kurm'},{g:'Seated',s:'Supta Kūrmāsana',id:'skurm'},
+  {g:'Seated',   s:'Garbha Piṇḍāsana',id:'garb'},{g:'Seated',s:'Kukkuṭāsana',id:'kuk'},
+  {g:'Seated',   s:'Baddha Koṇāsana A',id:'bka'},{g:'Seated',s:'Baddha Koṇāsana B',id:'bkb'},
+  {g:'Seated',   s:'Upaviṣṭha Koṇāsana A',id:'uka'},{g:'Seated',s:'Upaviṣṭha Koṇāsana B',id:'ukb'},
+  {g:'Seated',   s:'Supta Koṇāsana A',id:'ska'},{g:'Seated',s:'Supta Koṇāsana B',id:'skb'},
+  {g:'Seated',   s:'Supta Pādāṅguṣṭhāsana A',id:'spaa'},{g:'Seated',s:'Supta Pādāṅguṣṭhāsana B',id:'spab'},
+  {g:'Seated',   s:'Ubhaya Pādāṅguṣṭhāsana',id:'upa'},{g:'Seated',s:'Ūrdhva Mukha Paśchimottānāsana',id:'ump'},
+  {g:'Seated',   s:'Setu Bandhasana',id:'setu'},
+  {g:'Backbends',s:'Ūrdhva Dhanurāsana (×3)',id:'udh'},{g:'Backbends',s:'Paśchimottānāsana (counter)',id:'psc2'},
+  {g:'Finishing',s:'Sarvāṅgāsana',id:'sarv'},{g:'Finishing',s:'Halāsana',id:'hal'},
+  {g:'Finishing',s:'Karṇapīḍāsana',id:'karn'},{g:'Finishing',s:'Ūrdhva Padmāsana',id:'upad'},
+  {g:'Finishing',s:'Piṇḍāsana',id:'pind'},{g:'Finishing',s:'Matsyāsana',id:'mats'},
+  {g:'Finishing',s:'Uttāna Pādāsana',id:'utanp'},{g:'Finishing',s:'Śīrṣāsana A',id:'shira'},
+  {g:'Finishing',s:'Śīrṣāsana B',id:'shirb'},{g:'Finishing',s:'Bālāsana',id:'bala'},
+  {g:'Finishing',s:'Yoga Mudrā',id:'ymu'},{g:'Finishing',s:'Padmāsana',id:'padm'},
+  {g:'Finishing',s:'Tolāsana',id:'tola'},{g:'Finishing',s:'Śavāsana',id:'shav'},
+];
+const QUOTES=[
+  {t:'Your only goal is to get on the mat.',a:'Daily Practice'},
+  {t:'The pause between breaths is where the magic happens.',a:'Mysore Tradition'},
+  {t:'Consistency, not intensity.',a:'Ashtanga Wisdom'},
+  {t:'This practice is a gift to yourself.',a:'Daily Practice'},
+  {t:'Some days are soft. That is still practice.',a:'Thomas'},
+  {t:'Breathe until you feel present.',a:'Mysore Tradition'},
+  {t:'One Sun Salutation is better than none.',a:'David Swenson'},
+  {t:'Do your practice and all is coming.',a:'Sri K. Pattabhi Jois'},
+  {t:'The practice does not care how you feel. Get on the mat anyway.',a:'Ashtanga Wisdom'},
+  {t:'Tristhānam — breath, bandha, drishti. Everything else follows.',a:'Mysore Method'},
+  {t:'Your mat is your teacher now. Trust what it shows you.',a:'Home Practitioner'},
+  {t:'Nine years of adjustments live in your body. They are still with you.',a:"For Thomas's Students"},
+  {t:'The teacher retires. The teaching does not.',a:'Lineage'},
+  {t:'Inhale: lift. Exhale: release. This is all you need to know.',a:'First Principle'},
+  {t:'When you practice alone, you practice with everyone who has ever unrolled a mat.',a:'Mysore Tradition'},
+  {t:'Vinyāsa is the thread. Follow it and you will not get lost.',a:'Ashtanga Philosophy'},
+  {t:'The body knows the sequence. Trust it.',a:'Home Practitioner'},
+  {t:'Samastitihi — return to stillness. Always.',a:'Closing Practice'},
+];
+
+/* Optional: paste YouTube watch or embed URLs here so the site works on GitHub Pages without hosting large MP4s.
+   Keys must match the exact filename used in the page (same folder as index.html). Leave empty to use those local MP4s. */
+const VIDEO_REMOTE = {
+  'Ashtanga Led Primary Series _ David & Jelena Yoga.mp4': '',
+  'Ashtanga Yoga Full Primary Series with Laruga Glaser.mp4': '',
+  'Ashtanga Yoga Full Primary Series with Ty Landrum.mp4': '',
+  'Ashtanga Yoga Full Primary Series — One Hour Guided Class (Fast Pace).mp4': '',
+  'Primary Series Ashtanga Vinyasa Led Class _  Practice Ashtanga with Doron!.mp4': '',
+  "The Power of Anatomy in Yoga _ Vishesh Arora's Epic Flow.mp4": '',
+};
+function encodePathSegments(p){
+  if (!p || p.startsWith('http') || p.startsWith('data:') || p.startsWith('blob:')) return p;
+  return p.split('/').map(encodeURIComponent).join('/');
+}
+function toYouTubeEmbed(url){
+  if (!url || !/youtube\.com|youtu\.be/i.test(url)) return null;
+  let id = null;
+  const a = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+  if (a) id = a[1];
+  const b = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+  if (b) id = b[1];
+  const c = url.match(/embed\/([a-zA-Z0-9_-]{11})/);
+  if (c) id = c[1];
+  return id ? 'https://www.youtube.com/embed/' + id + '?rel=0' : null;
+}
+function resolveVideoSrc(path){
+  const o = VIDEO_REMOTE[path];
+  if (o !== undefined && o !== '') return o;
+  return path;
+}
+function applyVideoThumbs(){
+  document.querySelectorAll('.vthumb video').forEach(v=>{
+    const raw = v.getAttribute('src');
+    if (!raw) return;
+    const resolved = resolveVideoSrc(raw);
+    const emb = toYouTubeEmbed(resolved);
+    const th = v.closest('.vthumb');
+    if (emb){
+      const vid = emb.match(/embed\/([a-zA-Z0-9_-]{11})/);
+      if (vid){
+        v.removeAttribute('src'); v.style.display = 'none';
+        th.style.background = '#0e0b08 url(https://img.youtube.com/vi/' + vid[1] + '/hqdefault.jpg) center/cover no-repeat';
+      }
+    } else {
+      v.src = encodePathSegments(resolved);
+    }
+  });
+}
+
+/* ── STATE ── */
+let S={
+  logs:  JSON.parse(localStorage.getItem('ms4_logs') ||'[]'),
+  ck:    JSON.parse(localStorage.getItem('ms4_ck')   ||'{}'),
+  week:  JSON.parse(localStorage.getItem('ms4_week') ||'[false,false,false,false,false,false,false]'),
+  streak:parseInt(localStorage.getItem('ms4_streak') ||'0'),
+};
+const sv=()=>{
+  localStorage.setItem('ms4_logs',  JSON.stringify(S.logs));
+  localStorage.setItem('ms4_ck',    JSON.stringify(S.ck));
+  localStorage.setItem('ms4_week',  JSON.stringify(S.week));
+  localStorage.setItem('ms4_streak',S.streak.toString());
+};
+
+/* ── NAV ── */
+function go(id,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  el.classList.add('active');
+  if(window.innerWidth<=768)toggleSB();
+}
+function toggleSB(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('ovl').classList.toggle('open');
+}
+
+/* ── MASTER TABS ── */
+function switchM(id,btn){
+  document.querySelectorAll('.mtab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.mpanel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('mp-'+id).classList.add('active');
+}
+
+/* ── LIGHTBOX ── */
+function openLB(src,cap){
+  document.getElementById('lbImg').src=src;
+  document.getElementById('lbCap').textContent=cap||'';
+  document.getElementById('lb').classList.add('open');
+}
+function closeLB(){document.getElementById('lb').classList.remove('open')}
+function closeLBifBg(e){if(e.target===document.getElementById('lb'))closeLB()}
+
+/* ── VIDEO MODAL ── */
+function openV(src,title,sub,foot){
+  const vid = document.getElementById('modalVid');
+  const frame = document.getElementById('modalFrame');
+  document.getElementById('vmT').textContent = title||'Video';
+  document.getElementById('vmS').textContent = sub||'';
+  document.getElementById('vmF').textContent = foot||'';
+  const resolved = resolveVideoSrc(src);
+  if (src.startsWith('data:') || src.startsWith('blob:')){
+    frame.style.display = 'none'; frame.removeAttribute('src');
+    vid.style.display = 'block';
+    vid.src = src;
+    document.getElementById('vmodal').classList.add('open');
+    vid.play().catch(()=>{});
+    return;
+  }
+  const emb = toYouTubeEmbed(resolved);
+  if (emb){
+    vid.pause(); vid.removeAttribute('src'); vid.style.display = 'none';
+    frame.style.display = 'block';
+    frame.src = emb;
+  } else {
+    frame.style.display = 'none'; frame.removeAttribute('src');
+    vid.style.display = 'block';
+    vid.src = resolved.startsWith('http') ? resolved : encodePathSegments(resolved);
+    vid.play().catch(()=>{});
+  }
+  document.getElementById('vmodal').classList.add('open');
+}
+function closeV(){
+  document.getElementById('vmodal').classList.remove('open');
+  const v = document.getElementById('modalVid');
+  v.pause(); v.removeAttribute('src');
+  const f = document.getElementById('modalFrame');
+  f.removeAttribute('src'); f.style.display = 'none';
+  v.style.display = 'block';
+}
+function closeVifBg(e){if(e.target===document.getElementById('vmodal'))closeV()}
+
+/* ── ASANA LIST ── */
+function renderA(f){
+  f=(f||'').toLowerCase();
+  const grps={};
+  ASANAS.forEach(a=>{
+    if(f&&!a.s.toLowerCase().includes(f))return;
+    (grps[a.g]=grps[a.g]||[]).push(a);
+  });
+  let h='';
+  Object.entries(grps).forEach(([g,arr])=>{
+    h+=`<div class="ghdr">${g}</div>`;
+    arr.forEach(a=>{
+      const c=!!S.ck[a.id];
+      h+=`<div class="arow${c?' ck':''}" onclick="togA('${a.id}')">
+        <div class="ach"><span class="acm">✓</span></div>
+        <div class="askt">${a.s}</div>
+        <span class="agrp">${a.g}</span>
+      </div>`;
+    });
+  });
+  document.getElementById('alist').innerHTML=h||'<p style="padding:.9rem;font-size:.82rem;color:var(--mist)">No results.</p>';
+  updCk();
+}
+function togA(id){S.ck[id]=!S.ck[id];sv();renderA(document.getElementById('asearch').value);document.getElementById('sAsan').textContent=Object.values(S.ck).filter(Boolean).length}
+function filterA(){renderA(document.getElementById('asearch').value)}
+function clearA(){S.ck={};sv();renderA();document.getElementById('sAsan').textContent=0}
+function updCk(){
+  const c=Object.values(S.ck).filter(Boolean).length;
+  document.getElementById('ckC').textContent=c;
+  document.getElementById('ckT').textContent=ASANAS.length;
+  document.getElementById('sAsan').textContent=c;
+}
+
+/* ── LOG ── */
+let lvData=null;
+document.getElementById('lDate').value=new Date().toISOString().split('T')[0];
+function handleLV(inp){
+  if(!inp.files[0])return;
+  const r=new FileReader();
+  r.onload=e=>{lvData=e.target.result;document.getElementById('lvTxt').textContent='✓ '+inp.files[0].name};
+  r.readAsDataURL(inp.files[0]);
+}
+function saveLog(){
+  const poses=ASANAS.filter(a=>S.ck[a.id]).map(a=>a.s);
+  const d=document.getElementById('lDate').value||new Date().toISOString().split('T')[0];
+  const e={
+    id:Date.now(),date:d,
+    teach:document.getElementById('lTeach').value,
+    dur:document.getElementById('lDur').value,
+    notes:document.getElementById('lNotes').value.trim(),
+    poses,vid:lvData||null,
+    disp:new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'})
+  };
+  S.logs.unshift(e);S.streak++;sv();
+  renderLog();updProg();
+  lvData=null;
+  document.getElementById('lNotes').value='';
+  document.getElementById('lDur').value='';
+  document.getElementById('lvTxt').textContent='Click to upload your recording';
+  S.ck={};sv();renderA();
+  document.getElementById('sAsan').textContent=0;
+  document.getElementById('sSess').textContent=S.logs.length;
+  document.getElementById('sStrk').textContent=S.streak;
+  alert('Practice saved 🙏');
+}
+function renderLog(){
+  const h=document.getElementById('logHist');
+  if(!S.logs.length){h.innerHTML='<p style="font-size:.84rem;color:var(--mist);font-style:italic">No sessions yet.</p>';return}
+  h.innerHTML=S.logs.slice(0,25).map(e=>`
+    <div class="litem">
+      <div class="ldot"></div>
+      <div class="lmain">
+        <div class="ldate">${e.disp||e.date}${e.teach?' · '+e.teach:''}${e.dur?' · '+e.dur+'min':''}</div>
+        <div class="lposes">${e.poses.length?e.poses.slice(0,5).join(' · ')+(e.poses.length>5?' +'+(e.poses.length-5)+' more':''):'Open practice'}</div>
+        ${e.notes?`<div class="lnote">${e.notes}</div>`:''}
+      </div>
+      ${e.vid?`<div class="lvthumb" onclick="openV('${e.vid}','${e.disp||e.date}','${e.teach||''}','')"><video src="${e.vid}" preload="metadata" muted></video></div>`:''}
+    </div>`).join('');
+}
+
+/* ── QUOTES ── */
+let qi=0;
+function renderQG(){
+  document.getElementById('qgrid').innerHTML=QUOTES.map(q=>`
+    <div class="qcard"><p class="qt">${q.t}</p><div class="qs">— ${q.a}</div></div>`).join('');
+}
+function nextQ(){
+  const el=document.getElementById('qbig'),at=document.getElementById('qattr');
+  el.classList.add('fade');
+  setTimeout(()=>{qi=(qi+1)%QUOTES.length;el.textContent=`"${QUOTES[qi].t}"`;at.textContent=`— ${QUOTES[qi].a}`;el.classList.remove('fade')},380);
+}
+setInterval(nextQ,28000);
+
+/* ── PROGRESS ── */
+const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const CIRC=2*Math.PI*52; // r=52 → ≈ 326.7
+function renderWeek(){
+  document.getElementById('wstrip').innerHTML=DAYS.map((d,i)=>`
+    <div class="wday${S.week[i]?' done':''}" onclick="togDay(${i})">
+      <div class="wdn">${d}</div><div class="wdd"></div>
+    </div>`).join('');
+  const done=S.week.filter(Boolean).length;
+  const pct=Math.min(Math.round((done/6)*100),100);
+  document.getElementById('wdone').textContent=done;
+  document.getElementById('rpct').textContent=pct;
+  document.getElementById('rfill').style.strokeDasharray=CIRC;
+  document.getElementById('rfill').style.strokeDashoffset=CIRC*(1-done/6);
+}
+function togDay(i){S.week[i]=!S.week[i];if(S.week[i])S.streak++;else if(S.streak>0)S.streak--;sv();renderWeek();updProg()}
+function markToday(){S.week[new Date().getDay()]=true;S.streak++;sv();renderWeek();updProg()}
+function resetWeek(){if(!confirm('Reset this week?'))return;S.week=[false,false,false,false,false,false,false];sv();renderWeek()}
+function updProg(){
+  document.getElementById('pg1').textContent=S.logs.length;
+  document.getElementById('pg2').textContent=S.streak;
+  document.getElementById('sSess').textContent=S.logs.length;
+  document.getElementById('sStrk').textContent=S.streak;
+}
+
+/* ── INIT ── */
+applyVideoThumbs();
+renderA();renderLog();renderQG();renderWeek();updProg();
+document.getElementById('sAsan').textContent=Object.values(S.ck).filter(Boolean).length;
+document.getElementById('sSess').textContent=S.logs.length;
+document.getElementById('sStrk').textContent=S.streak;
+</script>
+</body>
+</html>
