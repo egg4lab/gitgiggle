@@ -19,7 +19,7 @@ Legacy paths redirect: `/fastingApp/` → `/apps/fastingApp/`, `/classReservatio
 apps/
   fastingApp/            # Fasting timer & motivation (static HTML)
   ashtangaApp/           # Mysore tracker: index.html, photos/, videos/ (MP4 via Git LFS)
-  workHoursApp/          # Office leave-time calculator (static React via CDN)
+  workHoursApp/          # Office leave-time calculator (static HTML)
 projects/
   classReservation/      # Standalone class-reservation demo (static)
 fastingApp/              # Tiny HTML redirect → apps/fastingApp
