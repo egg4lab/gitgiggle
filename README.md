@@ -8,6 +8,7 @@ Tools and static apps for personal use, published with **GitHub Pages** from the
 |-----|-----|
 | **100 Hour Fasting Journey** | […/apps/fastingApp/](https://egg4lab.github.io/gitgiggle/apps/fastingApp/) |
 | **Mysore Practice Tracker (Ashtanga)** | […/apps/ashtangaApp/](https://egg4lab.github.io/gitgiggle/apps/ashtangaApp/) |
+| **Office Leave Time Calculator** | […/apps/workHoursApp/](https://egg4lab.github.io/gitgiggle/apps/workHoursApp/) |
 
 Legacy paths redirect: `/fastingApp/` → `/apps/fastingApp/`, `/classReservation/` → `/projects/classReservation/`.
 
@@ -18,6 +19,7 @@ Legacy paths redirect: `/fastingApp/` → `/apps/fastingApp/`, `/classReservatio
 apps/
   fastingApp/            # Fasting timer & motivation (static HTML)
   ashtangaApp/           # Mysore tracker: index.html, photos/, videos/ (MP4 via Git LFS)
+  workHoursApp/          # Office leave-time calculator (static React via CDN)
 projects/
   classReservation/      # Standalone class-reservation demo (static)
 fastingApp/              # Tiny HTML redirect → apps/fastingApp
