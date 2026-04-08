@@ -5,7 +5,7 @@ A comprehensive coaching management system for scheduling 1-on-1 and group sessi
 ## Access Information
 
 ### Website URL
-**https://egg4lab.github.io/gitgiggle/classReservation/**
+**https://egg4lab.github.io/gitgiggle/projects/classReservation/**
 
 ## Passcode Table
 
@@ -45,7 +45,7 @@ A comprehensive coaching management system for scheduling 1-on-1 and group sessi
 
 ## How to Login
 
-1. Open the website: https://egg4lab.github.io/gitgiggle/classReservation/
+1. Open the website: https://egg4lab.github.io/gitgiggle/projects/classReservation/
 2. Click the **"Login"** button
 3. Select your **Role** (Coach or Student)
 4. If Student, select your **Student ID** from the dropdown
