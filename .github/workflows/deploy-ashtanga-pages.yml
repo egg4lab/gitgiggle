@@ -1,0 +1,39 @@
+# Lives on default branch so GitHub Pages can list this workflow when you choose "GitHub Actions" as the source.
+# Deploys branch ashtanga-media-archive (tracker + Git LFS media).
+name: Deploy Ashtanga tracker to GitHub Pages
+
+on:
+  push:
+    branches: [ashtanga-media-archive]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-ashtanga
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout ashtanga-media-archive (with Git LFS for *.mp4)
+        uses: actions/checkout@v4
+        with:
+          ref: ashtanga-media-archive
+          lfs: true
+      - name: Configure Pages
+        uses: actions/configure-pages@v4
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
