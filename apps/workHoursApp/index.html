@@ -4,341 +4,378 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Office Leave Time Calculator</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-  <div id="root"></div>
-
-  <script type="module">
-    import React, { useMemo, useState } from "https://esm.sh/react@18.3.1";
-    import { createRoot } from "https://esm.sh/react-dom@18.3.1/client";
-    import { Clock, Calendar, LogOut, Target } from "https://esm.sh/lucide-react@0.468.0";
-
-    function WorkHoursCalculator() {
-      const [arrivalTime, setArrivalTime] = useState("06:55");
-      const [targetLeaveTime, setTargetLeaveTime] = useState("15:45");
-
-      const calculateTimes = (arrival, targetLeave) => {
-        const [arrHours, arrMinutes] = arrival.split(":").map(Number);
-        const [targetHours, targetMinutes] = targetLeave.split(":").map(Number);
-
-        const arrivalDate = new Date();
-        arrivalDate.setHours(arrHours, arrMinutes, 0, 0);
-
-        const targetLeaveDate = new Date();
-        targetLeaveDate.setHours(targetHours, targetMinutes, 0, 0);
-
-        // Regular: 7.5 working hours + 1 hour lunch = 8.5 hours total
-        const regularLeave = new Date(arrivalDate.getTime() + 8.5 * 60 * 60 * 1000);
-
-        // If regular schedule is enough, no leave is needed.
-        if (regularLeave <= targetLeaveDate) {
-          return {
-            regular: regularLeave,
-            needsLeave: false,
-            targetLeave: targetLeaveDate
-          };
-        }
-
-        // Leave options in 15-minute increments.
-        const leaveOptions = [15, 30, 45, 60, 75].map((leaveMins) => {
-          const hoursToWork = 7.75 - (leaveMins - 15) / 60;
-          const canLeaveAt = new Date(arrivalDate.getTime() + hoursToWork * 60 * 60 * 1000);
-
-          const leaveEnd = new Date(arrivalDate.getTime() + 8.5 * 60 * 60 * 1000);
-          const leaveStart = new Date(leaveEnd.getTime() - leaveMins * 60 * 1000);
-
-          return {
-            leaveMins,
-            canLeaveAt,
-            leaveStart,
-            leaveEnd,
-            meetsTarget: canLeaveAt <= targetLeaveDate
-          };
-        });
-
-        const minLeaveNeeded = leaveOptions.find((opt) => opt.meetsTarget);
-
-        return {
-          regular: regularLeave,
-          needsLeave: true,
-          leaveOptions,
-          minLeaveNeeded,
-          targetLeave: targetLeaveDate
-        };
-      };
-
-      const formatTime = (date) =>
-        date.toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false
-        });
-
-      const formatTime12 = (date) =>
-        date.toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true
-        });
-
-      const times = useMemo(
-        () => calculateTimes(arrivalTime, targetLeaveTime),
-        [arrivalTime, targetLeaveTime]
-      );
-
-      return React.createElement(
-        "div",
-        { className: "max-w-3xl mx-auto" },
-        React.createElement(
-          "div",
-          { className: "bg-white rounded-lg shadow-lg p-8" },
-          React.createElement(
-            "div",
-            { className: "flex items-center gap-3 mb-6" },
-            React.createElement(Clock, { className: "w-8 h-8 text-indigo-600" }),
-            React.createElement(
-              "h1",
-              { className: "text-3xl font-bold text-gray-800" },
-              "Office Leave Time Calculator"
-            )
-          ),
-
-          React.createElement(
-            "div",
-            { className: "grid grid-cols-1 md:grid-cols-2 gap-4 mb-8" },
-            React.createElement(
-              "div",
-              null,
-              React.createElement(
-                "label",
-                { className: "block text-sm font-medium text-gray-700 mb-2" },
-                "Arrival Time"
-              ),
-              React.createElement("input", {
-                type: "time",
-                value: arrivalTime,
-                onChange: (e) => setArrivalTime(e.target.value),
-                className:
-                  "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-lg"
-              })
-            ),
-            React.createElement(
-              "div",
-              null,
-              React.createElement(
-                "label",
-                { className: "block text-sm font-medium text-gray-700 mb-2" },
-                "Target Leave Time"
-              ),
-              React.createElement("input", {
-                type: "time",
-                value: targetLeaveTime,
-                onChange: (e) => setTargetLeaveTime(e.target.value),
-                className:
-                  "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-lg"
-              })
-            )
-          ),
-
-          React.createElement(
-            "div",
-            { className: "space-y-4" },
-            React.createElement(
-              "div",
-              { className: "bg-green-50 border-l-4 border-green-500 p-6 rounded-r-lg" },
-              React.createElement(
-                "div",
-                { className: "flex items-start gap-3" },
-                React.createElement(LogOut, { className: "w-6 h-6 text-green-600 mt-1" }),
-                React.createElement(
-                  "div",
-                  { className: "flex-1" },
-                  React.createElement(
-                    "h3",
-                    { className: "text-lg font-semibold text-gray-800 mb-2" },
-                    "Regular Work Schedule"
-                  ),
-                  React.createElement(
-                    "p",
-                    { className: "text-sm text-gray-600 mb-3" },
-                    "7.5 working hours + 1 hour lunch + 30 min buffer"
-                  ),
-                  React.createElement(
-                    "div",
-                    { className: "bg-white p-4 rounded-lg" },
-                    React.createElement(
-                      "p",
-                      { className: "text-sm text-gray-600" },
-                      "Leave office at:"
-                    ),
-                    React.createElement(
-                      "p",
-                      { className: "text-3xl font-bold text-green-600" },
-                      formatTime12(times.regular)
-                    ),
-                    React.createElement(
-                      "p",
-                      { className: "text-xs text-gray-500 mt-1" },
-                      "(",
-                      formatTime(times.regular),
-                      ")"
-                    )
-                  )
-                )
-              )
-            ),
-
-            !times.needsLeave
-              ? React.createElement(
-                  "div",
-                  { className: "bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg" },
-                  React.createElement(
-                    "div",
-                    { className: "flex items-center gap-3" },
-                    React.createElement(Target, { className: "w-6 h-6 text-blue-600" }),
-                    React.createElement(
-                      "div",
-                      null,
-                      React.createElement(
-                        "p",
-                        { className: "text-lg font-semibold text-gray-800" },
-                        "✓ No leave needed!"
-                      ),
-                      React.createElement(
-                        "p",
-                        { className: "text-sm text-gray-600 mt-1" },
-                        "Regular schedule already allows leaving at ",
-                        formatTime(times.targetLeave)
-                      )
-                    )
-                  )
-                )
-              : React.createElement(
-                  "div",
-                  { className: "bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg" },
-                  React.createElement(
-                    "div",
-                    { className: "flex items-start gap-3" },
-                    React.createElement(Calendar, { className: "w-6 h-6 text-blue-600 mt-1" }),
-                    React.createElement(
-                      "div",
-                      { className: "flex-1" },
-                      React.createElement(
-                        "h3",
-                        { className: "text-lg font-semibold text-gray-800 mb-4" },
-                        "Leave Options to Reach Target (",
-                        formatTime(times.targetLeave),
-                        ")"
-                      ),
-                      times.minLeaveNeeded &&
-                        React.createElement(
-                          "div",
-                          { className: "bg-green-100 border border-green-300 p-3 rounded-lg mb-4" },
-                          React.createElement(
-                            "p",
-                            { className: "text-sm font-semibold text-green-800" },
-                            "✓ Minimum leave needed: ",
-                            times.minLeaveNeeded.leaveMins,
-                            " minutes"
-                          )
-                        ),
-                      React.createElement(
-                        "div",
-                        { className: "space-y-3" },
-                        times.leaveOptions.map((option) =>
-                          React.createElement(
-                            "div",
-                            {
-                              key: option.leaveMins,
-                              className: `bg-white p-4 rounded-lg border-2 ${
-                                option.meetsTarget ? "border-green-300" : "border-gray-200"
-                              }`
-                            },
-                            React.createElement(
-                              "div",
-                              { className: "flex justify-between items-start" },
-                              React.createElement(
-                                "div",
-                                null,
-                                React.createElement(
-                                  "p",
-                                  { className: "font-semibold text-gray-800" },
-                                  option.leaveMins,
-                                  " minutes leave"
-                                ),
-                                React.createElement(
-                                  "p",
-                                  { className: "text-xs text-gray-500 mt-1" },
-                                  "Leave period: ",
-                                  formatTime(option.leaveStart),
-                                  " - ",
-                                  formatTime(option.leaveEnd)
-                                )
-                              ),
-                              React.createElement(
-                                "div",
-                                { className: "text-right" },
-                                React.createElement(
-                                  "p",
-                                  { className: "text-sm text-gray-600" },
-                                  "Leave at:"
-                                ),
-                                React.createElement(
-                                  "p",
-                                  {
-                                    className: `text-xl font-bold ${
-                                      option.meetsTarget ? "text-green-600" : "text-gray-600"
-                                    }`
-                                  },
-                                  formatTime(option.canLeaveAt)
-                                ),
-                                option.meetsTarget &&
-                                  React.createElement(
-                                    "p",
-                                    { className: "text-xs text-green-600 mt-1" },
-                                    "✓ Meets target"
-                                  )
-                              )
-                            )
-                          )
-                        )
-                      )
-                    )
-                  )
-                )
-          ),
-
-          React.createElement(
-            "div",
-            { className: "mt-6 p-4 bg-gray-50 rounded-lg" },
-            React.createElement(
-              "h4",
-              { className: "font-semibold text-gray-700 mb-2" },
-              "Notes:"
-            ),
-            React.createElement(
-              "ul",
-              { className: "text-sm text-gray-600 space-y-1" },
-              React.createElement(
-                "li",
-                null,
-                "• Regular schedule: 30-minute clock-out buffer (7.5 hours acceptable)"
-              ),
-              React.createElement(
-                "li",
-                null,
-                "• Leave options: Each has 30-min buffer before and after leave period"
-              ),
-              React.createElement("li", null, "• All calculations include 1-hour lunch break"),
-              React.createElement("li", null, "• Leave periods are scheduled at end of workday")
-            )
-          )
-        )
-      );
+  <style>
+    :root {
+      --bg1: #eff6ff;
+      --bg2: #e0e7ff;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --shadow: 0 10px 25px rgba(17, 24, 39, 0.10);
+      --indigo: #4f46e5;
+      --blue: #2563eb;
+      --green: #16a34a;
+      --greenBg: #ecfdf5;
+      --blueBg: #eff6ff;
+      --grayBg: #f9fafb;
+      --danger: #b91c1c;
+      --radius: 14px;
     }
 
-    createRoot(document.getElementById("root")).render(React.createElement(WorkHoursCalculator));
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; }
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+
+    .header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: rgba(79, 70, 229, 0.12);
+      display: grid;
+      place-items: center;
+    }
+    .icon svg { width: 22px; height: 22px; color: var(--indigo); }
+    h1 { font-size: 28px; margin: 0; font-weight: 800; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin: 18px 0 22px;
+    }
+    @media (min-width: 760px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    label { display: block; font-size: 13px; font-weight: 700; color: #374151; margin-bottom: 8px; }
+    input[type="time"] {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      outline: none;
+      transition: box-shadow 0.15s ease, border-color 0.15s ease;
+      background: #fff;
+    }
+    input[type="time"]:focus {
+      border-color: rgba(79, 70, 229, 0.55);
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
+    }
+
+    .section { margin-top: 14px; }
+    .panel {
+      border-radius: 14px;
+      padding: 18px;
+      border-left: 6px solid transparent;
+      background: var(--grayBg);
+    }
+    .panel.green { background: var(--greenBg); border-left-color: var(--green); }
+    .panel.blue { background: var(--blueBg); border-left-color: var(--blue); }
+
+    .panelHeader { display: flex; gap: 12px; align-items: flex-start; }
+    .panelHeader svg { width: 22px; height: 22px; margin-top: 2px; flex: 0 0 auto; }
+    .panelHeader .grow { flex: 1 1 auto; }
+    .panelTitle { margin: 0 0 6px; font-size: 18px; font-weight: 800; }
+    .panelSub { margin: 0 0 12px; font-size: 13px; color: var(--muted); }
+
+    .resultBox {
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+    }
+    .resultLabel { font-size: 13px; color: var(--muted); margin: 0; }
+    .resultTime { font-size: 34px; font-weight: 900; margin: 4px 0 0; color: var(--green); letter-spacing: -0.02em; }
+    .resultTimeSmall { font-size: 12px; color: var(--muted); margin: 2px 0 0; }
+
+    .pill {
+      display: inline-block;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(22, 163, 74, 0.25);
+      background: rgba(22, 163, 74, 0.12);
+      color: #14532d;
+      font-weight: 800;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    .options { display: grid; gap: 10px; }
+    .option {
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px 14px;
+      border: 2px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .option.good { border-color: rgba(22, 163, 74, 0.35); }
+    .optionTitle { font-weight: 900; margin: 0; }
+    .optionSub { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+    .optionRight { text-align: right; }
+    .optionRight .lbl { font-size: 12px; color: var(--muted); margin: 0; }
+    .optionRight .time { font-size: 18px; font-weight: 900; margin: 2px 0 0; color: #4b5563; }
+    .option.good .optionRight .time { color: var(--green); }
+    .check { font-size: 12px; color: var(--green); font-weight: 800; margin: 4px 0 0; }
+
+    .notes { margin-top: 18px; background: var(--grayBg); border-radius: 14px; padding: 14px 16px; border: 1px solid var(--border); }
+    .notes h4 { margin: 0 0 8px; font-size: 14px; font-weight: 900; color: #374151; }
+    .notes ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13px; display: grid; gap: 6px; }
+
+    .error {
+      margin-top: 12px;
+      border-radius: 14px;
+      padding: 12px 14px;
+      border: 1px solid rgba(185, 28, 28, 0.25);
+      background: rgba(185, 28, 28, 0.06);
+      color: var(--danger);
+      font-weight: 700;
+      font-size: 13px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="header">
+        <div class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M12 7v6l4 2"></path>
+          </svg>
+        </div>
+        <h1>Office Leave Time Calculator</h1>
+      </div>
+
+      <div class="grid">
+        <div>
+          <label for="arrivalTime">Arrival Time</label>
+          <input id="arrivalTime" type="time" value="06:55" />
+        </div>
+        <div>
+          <label for="targetLeaveTime">Target Leave Time</label>
+          <input id="targetLeaveTime" type="time" value="15:45" />
+        </div>
+      </div>
+
+      <div id="error" class="error"></div>
+
+      <div class="section">
+        <div class="panel green">
+          <div class="panelHeader">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color: var(--green);">
+              <path d="M6 2h12"></path>
+              <path d="M7 2v6"></path>
+              <path d="M17 2v6"></path>
+              <path d="M6 8h12"></path>
+              <path d="M7 12h10"></path>
+              <path d="M7 16h7"></path>
+              <path d="M6 22h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2Z"></path>
+            </svg>
+            <div class="grow">
+              <p class="panelTitle">Regular Work Schedule</p>
+              <p class="panelSub">7.5 working hours + 1 hour lunch + 30 min buffer</p>
+              <div class="resultBox">
+                <p class="resultLabel">Leave office at:</p>
+                <p id="regularTime" class="resultTime">--:--</p>
+                <p id="regularTime24" class="resultTimeSmall">(--:--)</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section" id="targetSection"></div>
+
+      <div class="notes">
+        <h4>Notes:</h4>
+        <ul>
+          <li>Regular schedule: 30-minute clock-out buffer (7.5 hours acceptable)</li>
+          <li>Leave options: Each has 30-min buffer before and after leave period</li>
+          <li>All calculations include 1-hour lunch break</li>
+          <li>Leave periods are scheduled at end of workday</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const els = {
+      arrivalTime: document.getElementById("arrivalTime"),
+      targetLeaveTime: document.getElementById("targetLeaveTime"),
+      error: document.getElementById("error"),
+      regularTime: document.getElementById("regularTime"),
+      regularTime24: document.getElementById("regularTime24"),
+      targetSection: document.getElementById("targetSection")
+    };
+
+    function parseTime(value) {
+      const m = /^(\d{2}):(\d{2})$/.exec(value || "");
+      if (!m) return null;
+      const hh = Number(m[1]);
+      const mm = Number(m[2]);
+      if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
+      if (hh < 0 || hh > 23 || mm < 0 || mm > 59) return null;
+      return { hh, mm };
+    }
+
+    function formatTime(date, hour12) {
+      return date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12
+      });
+    }
+
+    function calculateTimes(arrival, targetLeave) {
+      const arr = parseTime(arrival);
+      const tgt = parseTime(targetLeave);
+      if (!arr || !tgt) return { error: "Please enter valid HH:MM times." };
+
+      const arrivalDate = new Date();
+      arrivalDate.setHours(arr.hh, arr.mm, 0, 0);
+
+      const targetLeaveDate = new Date();
+      targetLeaveDate.setHours(tgt.hh, tgt.mm, 0, 0);
+
+      const regularLeave = new Date(arrivalDate.getTime() + 8.5 * 60 * 60 * 1000);
+      if (regularLeave <= targetLeaveDate) {
+        return {
+          regular: regularLeave,
+          needsLeave: false,
+          targetLeave: targetLeaveDate
+        };
+      }
+
+      const leaveOptions = [15, 30, 45, 60, 75].map((leaveMins) => {
+        const hoursToWork = 7.75 - (leaveMins - 15) / 60;
+        const canLeaveAt = new Date(arrivalDate.getTime() + hoursToWork * 60 * 60 * 1000);
+
+        const leaveEnd = new Date(arrivalDate.getTime() + 8.5 * 60 * 60 * 1000);
+        const leaveStart = new Date(leaveEnd.getTime() - leaveMins * 60 * 1000);
+
+        return {
+          leaveMins,
+          canLeaveAt,
+          leaveStart,
+          leaveEnd,
+          meetsTarget: canLeaveAt <= targetLeaveDate
+        };
+      });
+
+      const minLeaveNeeded = leaveOptions.find((opt) => opt.meetsTarget);
+      return {
+        regular: regularLeave,
+        needsLeave: true,
+        leaveOptions,
+        minLeaveNeeded,
+        targetLeave: targetLeaveDate
+      };
+    }
+
+    function render() {
+      const res = calculateTimes(els.arrivalTime.value, els.targetLeaveTime.value);
+      if (res.error) {
+        els.error.style.display = "block";
+        els.error.textContent = res.error;
+        els.regularTime.textContent = "--:--";
+        els.regularTime24.textContent = "(--:--)";
+        els.targetSection.innerHTML = "";
+        return;
+      }
+
+      els.error.style.display = "none";
+      els.error.textContent = "";
+
+      els.regularTime.textContent = formatTime(res.regular, true);
+      els.regularTime24.textContent = `(${formatTime(res.regular, false)})`;
+
+      if (!res.needsLeave) {
+        els.targetSection.innerHTML = `
+          <div class="panel blue">
+            <div class="panelHeader">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color: var(--blue);">
+                <path d="M12 2 2 7l10 5 10-5-10-5Z"></path>
+                <path d="M2 17l10 5 10-5"></path>
+                <path d="M2 12l10 5 10-5"></path>
+              </svg>
+              <div class="grow">
+                <p class="panelTitle">✓ No leave needed!</p>
+                <p class="panelSub">Regular schedule already allows leaving at ${formatTime(res.targetLeave, false)}.</p>
+              </div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const pill = res.minLeaveNeeded
+        ? `<span class="pill">✓ Minimum leave needed: ${res.minLeaveNeeded.leaveMins} minutes</span>`
+        : `<span class="pill" style="border-color: rgba(185,28,28,0.25); background: rgba(185,28,28,0.08); color: var(--danger);">No listed leave option meets the target.</span>`;
+
+      const optionsHtml = res.leaveOptions
+        .map((opt) => {
+          const goodClass = opt.meetsTarget ? "option good" : "option";
+          const check = opt.meetsTarget ? `<p class="check">✓ Meets target</p>` : "";
+          return `
+            <div class="${goodClass}">
+              <div>
+                <p class="optionTitle">${opt.leaveMins} minutes leave</p>
+                <p class="optionSub">Leave period: ${formatTime(opt.leaveStart, false)} - ${formatTime(opt.leaveEnd, false)}</p>
+              </div>
+              <div class="optionRight">
+                <p class="lbl">Leave at:</p>
+                <p class="time">${formatTime(opt.canLeaveAt, false)}</p>
+                ${check}
+              </div>
+            </div>
+          `;
+        })
+        .join("");
+
+      els.targetSection.innerHTML = `
+        <div class="panel blue">
+          <div class="panelHeader">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" style="color: var(--blue);">
+              <path d="M8 2v4"></path>
+              <path d="M16 2v4"></path>
+              <path d="M3 10h18"></path>
+              <path d="M5 6h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z"></path>
+              <path d="M7 14h4"></path>
+            </svg>
+            <div class="grow">
+              <p class="panelTitle">Leave Options to Reach Target (${formatTime(res.targetLeave, false)})</p>
+              ${pill}
+              <div class="options">${optionsHtml}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    els.arrivalTime.addEventListener("input", render);
+    els.targetLeaveTime.addEventListener("input", render);
+    render();
   </script>
 </body>
 </html>
