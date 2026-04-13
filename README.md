@@ -28,8 +28,11 @@ workHoursApp/            # tiny HTML redirect → apps/workHoursApp
 tools/
   Enable-GitHubPages.ps1 # Optional: enable Pages via API (needs PAT)
   virtuoso/
+    README.md              # Quick guide: workstation setup and usage
     virtuoso_launcher.tcl  # Tcl/Tk (wish): REF_BASE_LIB + Cadence env, launch Virtuoso (UNIX/Linux)
 ```
+
+See [tools/virtuoso/README.md](tools/virtuoso/README.md) for how to run the launcher on your workstation.
 
 ### Canonical published structure
 
