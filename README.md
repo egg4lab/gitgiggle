@@ -27,6 +27,8 @@ classReservation/        # tiny HTML redirect → projects/classReservation
 workHoursApp/            # tiny HTML redirect → apps/workHoursApp
 tools/
   Enable-GitHubPages.ps1 # Optional: enable Pages via API (needs PAT)
+  virtuoso/
+    virtuoso_launcher.tcl  # Tcl/Tk (wish): REF_BASE_LIB + Cadence env, launch Virtuoso (UNIX/Linux)
 ```
 
 ### Canonical published structure
@@ -34,7 +36,7 @@ tools/
 - Keep publishable apps under `apps/`
 - Keep project demos under `projects/`
 - Keep root-level app folders (`fastingApp/`, `classReservation/`, `workHoursApp/`) as redirect-only entry points
-- Keep scripts/utilities under `tools/`
+- Keep scripts/utilities under `tools/` (e.g. `tools/virtuoso/` for Cadence/Virtuoso helpers)
 - Keep local experiments out of publish paths and git tracking
 
 ## Git LFS
