@@ -112,7 +112,11 @@ jobs:
               headers={"Content-Type": "application/json"},
               method="POST"
           )
-          with urllib.request.urlopen(req) as r:
-              print(f"Email sent: {r.status} {r.read().decode()}")
+          try:
+              with urllib.request.urlopen(req) as r:
+                  print(f"Email sent: {r.status} {r.read().decode()}")
+          except urllib.error.HTTPError as e:
+              print(f"EmailJS error {e.code}: {e.read().decode()}")
+              raise
           PYEOF
           python3 /tmp/send_email.py
