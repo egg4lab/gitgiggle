@@ -13,21 +13,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Fetch AI/LLM news
-        id: news
-        env:
-          NEWS_KEY: ${{ secrets.NEWS_KEY }}
-        run: |
-          RESPONSE=$(curl -s "https://newsapi.org/v2/everything?q=AI+LLM+large+language+model&sortBy=publishedAt&pageSize=7&language=en&apiKey=${NEWS_KEY}")
-          echo "news_json<<EOF" >> $GITHUB_OUTPUT
-          echo "$RESPONSE" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Summarize with Claude Haiku
+      - name: Fetch news & summarize with Claude Haiku
         id: summary
         env:
+          NEWS_KEY: ${{ secrets.NEWS_KEY }}
           ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_KEY }}
-          NEWS_JSON: ${{ steps.news.outputs.news_json }}
         run: python3 .github/scripts/summarize.py
 
       - name: Send email via Brevo API
