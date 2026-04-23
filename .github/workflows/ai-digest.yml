@@ -80,10 +80,9 @@ jobs:
           PYEOF
           python3 /tmp/summarize.py
 
-      - name: Send email via Gmail SMTP
+      - name: Send email via Outlook SMTP
         env:
-          GMAIL_USER: ${{ secrets.GMAIL_USER }}
-          GMAIL_PASS: ${{ secrets.GMAIL_PASS }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
           DIGEST: ${{ steps.summary.outputs.digest }}
         run: |
           cat << 'PYEOF' > /tmp/send_email.py
@@ -94,19 +93,19 @@ jobs:
 
           today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
           digest = os.environ["DIGEST"]
-          gmail_user = os.environ["GMAIL_USER"]
-          gmail_pass = os.environ["GMAIL_PASS"]
+          smtp_pass = os.environ["SMTP_PASS"]
+          email = "susanho91@hotmail.com"
 
           msg = MIMEMultipart("alternative")
           msg["Subject"] = f"AI/LLM Daily Digest - {today}"
-          msg["From"] = gmail_user
-          msg["To"] = "susanho91@hotmail.com"
+          msg["From"] = email
+          msg["To"] = email
           msg.attach(MIMEText(digest, "html"))
 
-          with smtplib.SMTP("smtp.gmail.com", 587) as server:
+          with smtplib.SMTP("smtp-mail.outlook.com", 587) as server:
               server.starttls()
-              server.login(gmail_user, gmail_pass)
-              server.sendmail(gmail_user, "susanho91@hotmail.com", msg.as_string())
+              server.login(email, smtp_pass)
+              server.sendmail(email, email, msg.as_string())
               print("Email sent successfully")
           PYEOF
           python3 /tmp/send_email.py
