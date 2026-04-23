@@ -30,8 +30,9 @@ jobs:
           NEWS_JSON: ${{ steps.news.outputs.news_json }}
         run: python3 .github/scripts/summarize.py
 
-      - name: Send email via Resend
+      - name: Send email via Brevo SMTP
         env:
-          RESEND_KEY: ${{ secrets.RESEND_KEY }}
+          BREVO_USER: ${{ secrets.BREVO_USER }}
+          BREVO_KEY: ${{ secrets.BREVO_KEY }}
           DIGEST: ${{ steps.summary.outputs.digest }}
         run: python3 .github/scripts/send_email.py
