@@ -1201,6 +1201,19 @@ document.getElementById('modal-overlay').addEventListener('click', function(e){
 });
 
 /* ══════════════════════════════════════════
+   HASH TOKEN INIT — visit page with #TOKEN
+   to pre-load PAT into localStorage so
+   TEST IT NOW works in one click.
+══════════════════════════════════════════ */
+(function initHashToken() {
+  const h = location.hash.slice(1);
+  if (h && (h.startsWith('ghp_') || h.startsWith('gho_') || h.startsWith('github_pat_'))) {
+    localStorage.setItem(TOKEN_KEY, h);
+    history.replaceState(null, '', location.pathname + location.search); // strip hash
+  }
+})();
+
+/* ══════════════════════════════════════════
    AUTO-PLAY after 1s delay
 ══════════════════════════════════════════ */
 window.addEventListener('load', () => {

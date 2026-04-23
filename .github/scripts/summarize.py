@@ -1,29 +1,55 @@
-import os, json, urllib.request
+import os, json, urllib.request, urllib.parse
 
-news_json = os.environ["NEWS_JSON"]
+news_key      = os.environ["NEWS_KEY"]
 anthropic_key = os.environ["ANTHROPIC_KEY"]
 
-data = json.loads(news_json)
-articles = data.get("articles", [])[:7]
+# Fetch 7 articles across diverse AI topics using OR query
+query = (
+    "ChatGPT OR \"large language model\" OR \"AI agent\" OR \"generative AI\" "
+    "OR \"machine learning\" OR \"Claude AI\" OR \"Gemini AI\" OR \"OpenAI\" "
+    "OR \"AI regulation\" OR \"AI chip\""
+)
+url = (
+    "https://newsapi.org/v2/everything"
+    f"?q={urllib.parse.quote(query)}"
+    "&sortBy=publishedAt&pageSize=20&language=en"
+    f"&apiKey={news_key}"
+)
+with urllib.request.urlopen(url) as r:
+    data = json.loads(r.read())
+
+# De-duplicate by topic: pick articles with distinct titles
+seen, articles = set(), []
+for a in data.get("articles", []):
+    title = (a.get("title") or "").lower()
+    first3 = " ".join(title.split()[:3])
+    if first3 not in seen and a.get("description"):
+        seen.add(first3)
+        articles.append(a)
+    if len(articles) == 7:
+        break
 
 lines = []
 for i, a in enumerate(articles, 1):
     title = a.get("title") or "No title"
-    desc = a.get("description") or "No description"
-    url = a.get("url") or ""
-    lines.append(f"{i}. {title}\n   {desc}\n   URL: {url}")
+    desc  = a.get("description") or "No description"
+    url_a = a.get("url") or ""
+    src   = (a.get("source") or {}).get("name", "")
+    lines.append(f"{i}. [{src}] {title}\n   {desc}\n   URL: {url_a}")
 articles_text = "\n\n".join(lines)
 
 prompt = (
-    "Summarize these 7 AI/LLM news articles into an HTML email digest. "
-    "Use <h2> for the title 'AI/LLM Daily Digest', <ol> for the list, and for each <li> "
-    "include the article title as a hyperlink and a 1-2 sentence summary.\n\n"
+    "You are Beeper, a friendly AI digest robot. "
+    "Summarize these 7 AI/tech news articles into a polished HTML email digest. "
+    "Format: <h2>🤖 Beeper's AI Digest</h2> then <ol> with 7 <li> items. "
+    "Each <li>: bold the article title as a hyperlink, then 2 sentences of insight — "
+    "what it means and why it matters. Keep it punchy and smart. No fluff.\n\n"
     "Articles:\n" + articles_text
 )
 
 payload = json.dumps({
     "model": "claude-haiku-4-5-20251001",
-    "max_tokens": 1500,
+    "max_tokens": 1800,
     "messages": [{"role": "user", "content": prompt}]
 }).encode()
 
@@ -47,4 +73,4 @@ with open(os.environ["GITHUB_OUTPUT"], "a") as f:
     f.write(digest + "\n")
     f.write("DIGESTEOF\n")
 
-print("Digest generated successfully")
+print(f"Digest generated — {len(articles)} articles, {result['usage']['output_tokens']} tokens")
