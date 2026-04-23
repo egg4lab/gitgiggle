@@ -15,7 +15,7 @@ jobs:
         env:
           NEWS_KEY: ${{ secrets.NEWS_KEY }}
         run: |
-          RESPONSE=$(curl -s "https://newsapi.org/v2/everything?q=AI+LLM+artificial+intelligence+large+language+model&sortBy=publishedAt&pageSize=7&language=en&apiKey=${NEWS_KEY}")
+          RESPONSE=$(curl -s "https://newsapi.org/v2/everything?q=AI+LLM+large+language+model&sortBy=publishedAt&pageSize=7&language=en&apiKey=${NEWS_KEY}")
           echo "news_json<<EOF" >> $GITHUB_OUTPUT
           echo "$RESPONSE" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -24,87 +24,95 @@ jobs:
         id: summary
         env:
           ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_KEY }}
+          NEWS_JSON: ${{ steps.news.outputs.news_json }}
         run: |
-          NEWS_JSON='${{ steps.news.outputs.news_json }}'
+          cat << 'PYEOF' > /tmp/summarize.py
+          import os, json, urllib.request
 
-          ARTICLES=$(echo "$NEWS_JSON" | python3 -c "
-          import json, sys
-          data = json.load(sys.stdin)
-          articles = data.get('articles', [])[:7]
+          news_json = os.environ["NEWS_JSON"]
+          anthropic_key = os.environ["ANTHROPIC_KEY"]
+
+          data = json.loads(news_json)
+          articles = data.get("articles", [])[:7]
+
           lines = []
           for i, a in enumerate(articles, 1):
-              title = a.get('title', 'No title')
-              desc = a.get('description', 'No description') or 'No description'
-              url = a.get('url', '')
-              lines.append(f'{i}. {title}\n   {desc}\n   URL: {url}')
-          print('\n\n'.join(lines))
-          ")
+              title = a.get("title") or "No title"
+              desc = a.get("description") or "No description"
+              url = a.get("url") or ""
+              lines.append(f"{i}. {title}\n   {desc}\n   URL: {url}")
+          articles_text = "\n\n".join(lines)
 
-          PAYLOAD=$(python3 -c "
-          import json
-          articles_text = '''$ARTICLES'''
-          prompt = f'''You are an AI news digest assistant. Summarize the following 7 AI/LLM news articles into a concise, engaging daily digest. For each article, provide a 1-2 sentence summary highlighting the key insight. Format the output as HTML for an email digest, using <h2> for the main title, <ol> for the list, and <li> for each article with the title as a link and the summary below it.
+          prompt = f"""Summarize these 7 AI/LLM news articles into an HTML email digest.
+          Use <h2> for the title "AI/LLM Daily Digest", <ol> for the list, and for each <li>
+          include the article title as a hyperlink and a 1-2 sentence summary.
 
           Articles:
-          {articles_text}
+          {articles_text}"""
 
-          Generate the HTML digest now:'''
+          payload = json.dumps({
+              "model": "claude-haiku-4-5-20251001",
+              "max_tokens": 1500,
+              "messages": [{"role": "user", "content": prompt}]
+          }).encode()
 
-          payload = {
-              'model': 'claude-haiku-4-5-20251001',
-              'max_tokens': 1500,
-              'messages': [{'role': 'user', 'content': prompt}]
-          }
-          print(json.dumps(payload))
-          ")
+          req = urllib.request.Request(
+              "https://api.anthropic.com/v1/messages",
+              data=payload,
+              headers={
+                  "x-api-key": anthropic_key,
+                  "anthropic-version": "2023-06-01",
+                  "content-type": "application/json"
+              },
+              method="POST"
+          )
+          with urllib.request.urlopen(req) as r:
+              result = json.loads(r.read())
 
-          CLAUDE_RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
-            -H "x-api-key: ${ANTHROPIC_KEY}" \
-            -H "anthropic-version: 2023-06-01" \
-            -H "content-type: application/json" \
-            -d "$PAYLOAD")
+          digest = result["content"][0]["text"]
 
-          DIGEST=$(echo "$CLAUDE_RESPONSE" | python3 -c "
-          import json, sys
-          data = json.load(sys.stdin)
-          content = data.get('content', [])
-          if content:
-              print(content[0].get('text', 'Failed to generate digest'))
-          else:
-              print('No content in response')
-          ")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write("digest<<EOF\n")
+              f.write(digest + "\n")
+              f.write("EOF\n")
 
-          echo "digest<<EOF" >> $GITHUB_OUTPUT
-          echo "$DIGEST" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          print("Digest generated successfully")
+          PYEOF
+          python3 /tmp/summarize.py
 
       - name: Send email via EmailJS
         env:
           EJS_SERVICE: ${{ secrets.EJS_SERVICE }}
           EJS_TEMPLATE: ${{ secrets.EJS_TEMPLATE }}
           EJS_PUBLIC: ${{ secrets.EJS_PUBLIC }}
+          DIGEST: ${{ steps.summary.outputs.digest }}
         run: |
-          TODAY=$(date -u +"%Y-%m-%d")
-          DIGEST='${{ steps.summary.outputs.digest }}'
+          cat << 'PYEOF' > /tmp/send_email.py
+          import os, json, urllib.request
+          from datetime import datetime, timezone
 
-          PAYLOAD=$(python3 -c "
-          import json
-          digest = '''$DIGEST'''
-          today = '$TODAY'
-          payload = {
-              'service_id': '$EJS_SERVICE',
-              'template_id': '$EJS_TEMPLATE',
-              'user_id': '$EJS_PUBLIC',
-              'template_params': {
-                  'to_email': 'susanho91@hotmail.com',
-                  'subject': f'AI/LLM Daily Digest - {today}',
-                  'digest_html': digest,
-                  'date': today
+          today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+          digest = os.environ["DIGEST"]
+
+          payload = json.dumps({
+              "service_id": os.environ["EJS_SERVICE"],
+              "template_id": os.environ["EJS_TEMPLATE"],
+              "user_id": os.environ["EJS_PUBLIC"],
+              "template_params": {
+                  "to_email": "susanho91@hotmail.com",
+                  "subject": f"AI/LLM Daily Digest - {today}",
+                  "digest_html": digest,
+                  "date": today
               }
-          }
-          print(json.dumps(payload))
-          ")
+          }).encode()
 
-          curl -s -X POST https://api.emailjs.com/api/v1.0/email/send \
-            -H "Content-Type: application/json" \
-            -d "$PAYLOAD"
+          req = urllib.request.Request(
+              "https://api.emailjs.com/api/v1.0/email/send",
+              data=payload,
+              headers={"Content-Type": "application/json"},
+              method="POST"
+          )
+          with urllib.request.urlopen(req) as r:
+              print(f"Email sent: {r.status} {r.read().decode()}")
+          PYEOF
+          python3 /tmp/send_email.py
