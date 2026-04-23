@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beeper — Your AI Digest Robot</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan: #00f5ff;
+    --pink: #ff2d9b;
+    --yellow: #ffe600;
+    --bg: #050a1a;
+    --card: #0d1b33;
+  }
+
+  body {
+    background: var(--bg);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── STARFIELD ── */
+  #stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  .star {
+    position: absolute;
+    border-radius: 50%;
+    background: #fff;
+    animation: twinkle var(--d, 3s) infinite alternate;
+  }
+  @keyframes twinkle { from { opacity: .2; } to { opacity: 1; } }
+
+  /* ── LAYOUT ── */
+  .scene {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 80px;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .logo-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: 900;
+    background: linear-gradient(90deg, var(--cyan), var(--pink), var(--yellow));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 4px;
+    animation: shimmer 3s linear infinite;
+    background-size: 200%;
+  }
+  @keyframes shimmer { 0%{background-position:0%} 100%{background-position:200%} }
+
+  .tagline {
+    font-size: 1rem;
+    color: #8899bb;
+    letter-spacing: 2px;
+    margin-top: 6px;
+    text-transform: uppercase;
+  }
+
+  /* ── STAGE ── */
+  .stage {
+    width: 100%;
+    max-width: 900px;
+    background: var(--card);
+    border: 1px solid #1a2d55;
+    border-radius: 24px;
+    padding: 40px 30px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(0,245,255,.07), 0 0 120px rgba(255,45,155,.05);
+  }
+  .stage::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(0,245,255,.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ── ROBOT BEEPER ── */
+  .robot-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+    position: relative;
+  }
+
+  .robot {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50%      { transform: translateY(-12px); }
+  }
+
+  /* Antenna */
+  .antenna {
+    width: 4px; height: 28px;
+    background: var(--cyan);
+    border-radius: 2px;
+    position: relative;
+    margin-bottom: -2px;
+    box-shadow: 0 0 8px var(--cyan);
+  }
+  .antenna::before {
+    content: '';
+    position: absolute;
+    top: -8px; left: 50%;
+    transform: translateX(-50%);
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--pink);
+    box-shadow: 0 0 12px var(--pink);
+    animation: blink-ball 1.4s ease-in-out infinite;
+  }
+  @keyframes blink-ball { 0%,100%{opacity:1;transform:translateX(-50%) scale(1)} 50%{opacity:.3;transform:translateX(-50%) scale(.7)} }
+
+  /* Head */
+  .head {
+    width: 90px; height: 80px;
+    background: linear-gradient(135deg, #1a3a6e, #0d2347);
+    border: 2px solid var(--cyan);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    position: relative;
+    box-shadow: 0 0 20px rgba(0,245,255,.3), inset 0 0 20px rgba(0,245,255,.05);
+  }
+
+  /* Eyes */
+  .eye {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan);
+    position: relative;
+    animation: eyeblink 4s ease-in-out infinite;
+  }
+  .eye.right { animation-delay: .15s; }
+  @keyframes eyeblink {
+    0%,90%,100% { transform: scaleY(1); }
+    95% { transform: scaleY(.1); }
+  }
+  .eye::after {
+    content: '';
+    position: absolute;
+    top: 4px; left: 4px;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #fff;
+    opacity: .8;
+  }
+
+  /* Mouth LED strip */
+  .mouth {
+    position: absolute;
+    bottom: 10px;
+    width: 50px; height: 6px;
+    border-radius: 3px;
+    background: repeating-linear-gradient(90deg, var(--pink) 0 6px, transparent 6px 10px);
+    animation: mouthrun 0.4s linear infinite;
+  }
+  @keyframes mouthrun { to { background-position: 10px 0; } }
+
+  /* Neck */
+  .neck {
+    width: 30px; height: 10px;
+    background: #0d2347;
+    border-left: 2px solid #1a3a6e;
+    border-right: 2px solid #1a3a6e;
+  }
+
+  /* Body */
+  .body {
+    width: 110px; height: 100px;
+    background: linear-gradient(160deg, #1a3a6e, #0a1c3a);
+    border: 2px solid var(--cyan);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+    box-shadow: 0 0 20px rgba(0,245,255,.2);
+    overflow: hidden;
+  }
+
+  /* Screen on chest */
+  .chest-screen {
+    width: 70px; height: 40px;
+    background: #000;
+    border: 1px solid var(--cyan);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+  .screen-line {
+    position: absolute;
+    left: 0; right: 0;
+    height: 2px;
+    background: var(--cyan);
+    opacity: .7;
+    animation: scanline 2s linear infinite;
+  }
+  @keyframes scanline { from{top:-2px} to{top:100%} }
+  .screen-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 7px;
+    color: var(--cyan);
+    letter-spacing: 1px;
+    text-align: center;
+    padding: 4px;
+  }
+
+  /* Mail slot */
+  .mail-slot {
+    width: 60px; height: 8px;
+    background: #000;
+    border: 1px solid var(--yellow);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Arms */
+  .arms {
+    position: absolute;
+    top: 15px;
+    width: 150px;
+    display: flex;
+    justify-content: space-between;
+    pointer-events: none;
+  }
+  .arm {
+    width: 18px; height: 55px;
+    background: linear-gradient(180deg, #1a3a6e, #0d2347);
+    border: 2px solid var(--cyan);
+    border-radius: 9px;
+    position: relative;
+    box-shadow: 0 0 8px rgba(0,245,255,.2);
+  }
+  .arm.left  { transform-origin: top center; animation: armL 3s ease-in-out infinite; }
+  .arm.right { transform-origin: top center; animation: armR 3s ease-in-out infinite; }
+  @keyframes armL { 0%,100%{transform:rotate(-10deg)} 50%{transform:rotate(20deg)} }
+  @keyframes armR { 0%,100%{transform:rotate(10deg)}  50%{transform:rotate(-20deg)} }
+
+  /* Legs */
+  .legs {
+    display: flex;
+    gap: 16px;
+    margin-top: 4px;
+  }
+  .leg {
+    width: 20px; height: 30px;
+    background: linear-gradient(180deg, #1a3a6e, #0d2347);
+    border: 2px solid var(--cyan);
+    border-radius: 0 0 8px 8px;
+    animation: legwalk 1s ease-in-out infinite alternate;
+  }
+  .leg:nth-child(2) { animation-direction: alternate-reverse; }
+  @keyframes legwalk { from{transform:rotate(-8deg)} to{transform:rotate(8deg)} }
+
+  /* ── PHASE LABEL ── */
+  .phase-bar {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .phase-pill {
+    font-family: 'Orbitron', monospace;
+    font-size: .7rem;
+    letter-spacing: 1px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid #1a2d55;
+    color: #445577;
+    transition: all .5s;
+    cursor: default;
+  }
+  .phase-pill.active {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    background: rgba(0,245,255,.08);
+    box-shadow: 0 0 12px rgba(0,245,255,.2);
+  }
+  .phase-pill.done {
+    border-color: var(--pink);
+    color: var(--pink);
+    background: rgba(255,45,155,.06);
+  }
+
+  /* ── ACTION DISPLAY ── */
+  .action-display {
+    min-height: 120px;
+    position: relative;
+    margin-bottom: 28px;
+  }
+
+  /* Floating words */
+  .floating-words {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .fword {
+    position: absolute;
+    font-size: clamp(.65rem, 1.5vw, .9rem);
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 4px 10px;
+    opacity: 0;
+    animation: floatUp var(--dur, 2.5s) ease-out var(--delay, 0s) forwards;
+    white-space: nowrap;
+  }
+  @keyframes floatUp {
+    0%   { opacity:0; transform: translateY(30px) scale(.8); }
+    20%  { opacity:1; transform: translateY(0)    scale(1); }
+    80%  { opacity:1; transform: translateY(-10px) scale(1); }
+    100% { opacity:0; transform: translateY(-40px) scale(.9); }
+  }
+
+  /* Terminal log */
+  .terminal {
+    background: #000;
+    border: 1px solid #1a3a6e;
+    border-radius: 10px;
+    padding: 16px 18px;
+    font-family: 'Courier New', monospace;
+    font-size: .82rem;
+    color: #00ff88;
+    min-height: 90px;
+    position: relative;
+    overflow: hidden;
+  }
+  .terminal::before {
+    content: '● ● ●';
+    position: absolute;
+    top: 8px; left: 12px;
+    font-size: .6rem;
+    color: #334;
+    letter-spacing: 4px;
+  }
+  .terminal-body { padding-top: 14px; line-height: 1.7; }
+  .tline { display: block; opacity: 0; }
+  .tline.show { animation: fadein .3s forwards; }
+  @keyframes fadein { to { opacity:1; } }
+  .cursor { display: inline-block; animation: blink .7s step-end infinite; }
+  @keyframes blink { 50% { opacity:0; } }
+
+  /* ── STEP CARDS ── */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 32px;
+  }
+  @media(max-width:600px) { .steps { grid-template-columns: 1fr; } }
+
+  .step-card {
+    background: rgba(0,0,0,.3);
+    border: 1px solid #1a2d55;
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    transition: all .4s;
+    opacity: .4;
+  }
+  .step-card.lit {
+    border-color: var(--cyan);
+    opacity: 1;
+    box-shadow: 0 0 20px rgba(0,245,255,.15);
+    transform: translateY(-4px);
+  }
+  .step-card.lit.p2 { border-color: var(--pink); box-shadow: 0 0 20px rgba(255,45,155,.15); }
+  .step-card.lit.p3 { border-color: var(--yellow); box-shadow: 0 0 20px rgba(255,230,0,.15); }
+
+  .step-icon { font-size: 2.2rem; margin-bottom: 10px; }
+  .step-title {
+    font-family: 'Orbitron', monospace;
+    font-size: .72rem;
+    letter-spacing: 1px;
+    color: var(--cyan);
+    margin-bottom: 8px;
+  }
+  .step-card.p2 .step-title { color: var(--pink); }
+  .step-card.p3 .step-title { color: var(--yellow); }
+  .step-desc { font-size: .8rem; color: #8899bb; line-height: 1.5; }
+
+  /* ── EMAIL FLY ── */
+  .email-fly {
+    position: fixed;
+    font-size: 2.5rem;
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0;
+    transition: none;
+  }
+  .email-fly.go {
+    animation: flyEmail 1.8s ease-in-out forwards;
+  }
+  @keyframes flyEmail {
+    0%   { opacity:1; transform: scale(1)    translate(0,0); }
+    60%  { opacity:1; transform: scale(1.4)  translate(200px,-180px) rotate(15deg); }
+    100% { opacity:0; transform: scale(.4)   translate(400px,-400px) rotate(30deg); }
+  }
+
+  /* ── SUCCESS BADGE ── */
+  .success-badge {
+    display: none;
+    text-align: center;
+    padding: 20px;
+    margin-top: 24px;
+    border: 2px solid var(--yellow);
+    border-radius: 16px;
+    background: rgba(255,230,0,.06);
+    animation: popIn .5s cubic-bezier(.18,.89,.32,1.28) forwards;
+  }
+  .success-badge.show { display: block; }
+  @keyframes popIn { from{transform:scale(.5);opacity:0} to{transform:scale(1);opacity:1} }
+  .success-badge .big { font-size: 3rem; display: block; margin-bottom: 8px; }
+  .success-badge p { font-family: 'Orbitron', monospace; font-size: .9rem; color: var(--yellow); letter-spacing: 2px; }
+
+  /* ── CONTROL BUTTONS ── */
+  .controls {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    font-family: 'Orbitron', monospace;
+    font-size: .8rem;
+    letter-spacing: 2px;
+    padding: 12px 28px;
+    border-radius: 30px;
+    border: none;
+    cursor: pointer;
+    transition: all .2s;
+    font-weight: 700;
+  }
+  .btn-play {
+    background: linear-gradient(90deg, var(--cyan), #00aaff);
+    color: #000;
+    box-shadow: 0 0 20px rgba(0,245,255,.4);
+  }
+  .btn-play:hover { transform: scale(1.06); box-shadow: 0 0 30px rgba(0,245,255,.6); }
+  .btn-reset {
+    background: transparent;
+    color: #8899bb;
+    border: 1px solid #334;
+  }
+  .btn-reset:hover { border-color: var(--pink); color: var(--pink); }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ── TICKER ── */
+  .ticker-wrap {
+    width: 100%;
+    max-width: 900px;
+    overflow: hidden;
+    background: rgba(0,245,255,.04);
+    border: 1px solid #0d2347;
+    border-radius: 8px;
+    margin-top: 24px;
+    padding: 8px 0;
+  }
+  .ticker {
+    display: flex;
+    gap: 60px;
+    white-space: nowrap;
+    animation: ticker 25s linear infinite;
+    font-size: .75rem;
+    color: #445577;
+    font-family: 'Courier New', monospace;
+  }
+  @keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+  .ticker span { color: var(--cyan); }
+</style>
+</head>
+<body>
+
+<div id="stars"></div>
+<div id="email-fly" class="email-fly">📧</div>
+
+<div class="scene">
+
+  <header>
+    <div class="logo-title">⚡ BEEPER ⚡</div>
+    <div class="tagline">Your AI-Powered Daily Digest Robot</div>
+  </header>
+
+  <div class="stage">
+
+    <!-- Robot -->
+    <div class="robot-wrap">
+      <div class="robot">
+        <div class="antenna"></div>
+        <div class="head">
+          <div class="eye left"></div>
+          <div class="eye right"></div>
+          <div class="mouth"></div>
+        </div>
+        <div class="neck"></div>
+        <div style="position:relative">
+          <div class="arms">
+            <div class="arm left"></div>
+            <div class="arm right"></div>
+          </div>
+          <div class="body">
+            <div class="chest-screen">
+              <div class="screen-line"></div>
+              <div class="screen-text" id="chest-text">BEEPER<br>v2.0</div>
+            </div>
+            <div class="mail-slot"></div>
+          </div>
+        </div>
+        <div class="legs">
+          <div class="leg"></div>
+          <div class="leg"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase pills -->
+    <div class="phase-bar">
+      <div class="phase-pill" id="pill-0">① INITIALISE</div>
+      <div class="phase-pill" id="pill-1">② FETCH NEWS</div>
+      <div class="phase-pill" id="pill-2">③ AI SUMMARISE</div>
+      <div class="phase-pill" id="pill-3">④ SEND DIGEST</div>
+    </div>
+
+    <!-- Action display -->
+    <div class="action-display">
+      <div class="floating-words" id="float-zone"></div>
+      <div class="terminal">
+        <div class="terminal-body" id="term-body">
+          <span class="tline show" style="color:#445577">// Beeper is ready. Press LAUNCH to start the show.</span>
+          <span class="tline show"><span class="cursor">▋</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step cards -->
+    <div class="steps">
+      <div class="step-card p1" id="card-1">
+        <div class="step-icon">🌐</div>
+        <div class="step-title">COLLECT</div>
+        <div class="step-desc">Beeper scans the internet and grabs the 7 hottest AI &amp; LLM headlines — fresh every morning.</div>
+      </div>
+      <div class="step-card p2" id="card-2">
+        <div class="step-icon">🧠</div>
+        <div class="step-title">SUMMARISE</div>
+        <div class="step-desc">Claude Haiku reads each article and crafts a crisp, insightful summary — no fluff, just the good stuff.</div>
+      </div>
+      <div class="step-card p3" id="card-3">
+        <div class="step-icon">📬</div>
+        <div class="step-title">DELIVER</div>
+        <div class="step-desc">Beeper fires the HTML digest straight to your inbox every day at 7 AM Taipei time. Zero effort required.</div>
+      </div>
+    </div>
+
+    <!-- Success -->
+    <div class="success-badge" id="success">
+      <span class="big">🎉</span>
+      <p>DIGEST DELIVERED — BOSS IS IMPRESSED</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button class="btn btn-play" id="btn-play" onclick="startShow()">▶ LAUNCH BEEPER</button>
+      <button class="btn btn-reset" id="btn-reset" onclick="resetShow()">↺ RESET</button>
+    </div>
+
+  </div><!-- /stage -->
+
+  <!-- Ticker -->
+  <div class="ticker-wrap">
+    <div class="ticker" id="ticker">
+      <span>BEEPER STATUS:</span> ONLINE &nbsp;|&nbsp;
+      <span>AI ENGINE:</span> Claude Haiku (claude-haiku-4-5) &nbsp;|&nbsp;
+      <span>NEWS SOURCE:</span> NewsAPI &nbsp;|&nbsp;
+      <span>EMAIL:</span> Brevo SMTP &nbsp;|&nbsp;
+      <span>SCHEDULE:</span> Daily 23:00 UTC (07:00 Taipei) &nbsp;|&nbsp;
+      <span>REPO:</span> egg4lab/gitgiggle &nbsp;|&nbsp;
+      <span>BEEPER STATUS:</span> ONLINE &nbsp;|&nbsp;
+      <span>AI ENGINE:</span> Claude Haiku (claude-haiku-4-5) &nbsp;|&nbsp;
+      <span>NEWS SOURCE:</span> NewsAPI &nbsp;|&nbsp;
+      <span>EMAIL:</span> Brevo SMTP &nbsp;|&nbsp;
+      <span>SCHEDULE:</span> Daily 23:00 UTC (07:00 Taipei) &nbsp;|&nbsp;
+      <span>REPO:</span> egg4lab/gitgiggle &nbsp;|&nbsp;
+    </div>
+  </div>
+
+</div><!-- /scene -->
+
+<script>
+// ── STARFIELD ──
+const starEl = document.getElementById('stars');
+for (let i = 0; i < 120; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  const sz = Math.random() * 2.5 + .5;
+  s.style.cssText = `
+    left:${Math.random()*100}%;top:${Math.random()*100}%;
+    width:${sz}px;height:${sz}px;opacity:${Math.random()*.6+.2};
+    --d:${(Math.random()*4+2).toFixed(1)}s;
+    animation-delay:${(Math.random()*5).toFixed(1)}s;
+  `;
+  starEl.appendChild(s);
+}
+
+// ── SHOW DATA ──
+const phases = [
+  {
+    pill: 0,
+    chest: 'BOOT\nUP',
+    words: [
+      { t:'INITIALISING…', c:'#00f5ff' },
+      { t:'GITHUB ACTIONS', c:'#8899bb' },
+      { t:'WORKFLOW RUN', c:'#00f5ff' },
+      { t:'CRON: 23:00 UTC', c:'#8899bb' },
+    ],
+    logs: [
+      '$ GitHub Actions runner started',
+      '$ Loading workflow: ai-digest.yml',
+      '$ Secrets: ✓ loaded (NEWS_KEY, ANTHROPIC_KEY…)',
+      '$ Beeper is awake and ready! 🤖',
+    ],
+    card: null,
+    delay: 3200,
+  },
+  {
+    pill: 1,
+    chest: 'SCAN\nNEWS',
+    words: [
+      { t:'GPT-5 RELEASED', c:'#00f5ff' },
+      { t:'LLAMA 4 UPDATE', c:'#ff2d9b' },
+      { t:'AI SAFETY SUMMIT', c:'#ffe600' },
+      { t:'GEMINI 2.0', c:'#00f5ff' },
+      { t:'DEEPSEEK R2', c:'#ff2d9b' },
+      { t:'CLAUDE 4.6', c:'#ffe600' },
+      { t:'OPENAI AGI PLAN', c:'#00f5ff' },
+    ],
+    logs: [
+      '$ Calling NewsAPI…',
+      '$ Query: AI LLM large language model',
+      '$ Fetched 7 articles ✓',
+      '$ Top story: "OpenAI announces new milestone"',
+    ],
+    card: 'card-1',
+    delay: 3500,
+  },
+  {
+    pill: 2,
+    chest: 'AI\nBRAIN',
+    words: [
+      { t:'TOKENISING…', c:'#ff2d9b' },
+      { t:'PROMPT CRAFTED', c:'#ff2d9b' },
+      { t:'CLAUDE HAIKU', c:'#ff2d9b' },
+      { t:'SUMMARISING…', c:'#ff2d9b' },
+      { t:'MAX TOKENS: 1500', c:'#8899bb' },
+      { t:'HTML DIGEST ✓', c:'#ff2d9b' },
+    ],
+    logs: [
+      '$ Calling Anthropic API…',
+      '$ Model: claude-haiku-4-5-20251001',
+      '$ Prompt: "Summarise 7 AI articles into HTML digest"',
+      '$ Response received — 1,247 tokens used ✓',
+    ],
+    card: 'card-2',
+    delay: 3500,
+  },
+  {
+    pill: 3,
+    chest: 'SEND\nMAIL',
+    words: [
+      { t:'BUILDING EMAIL', c:'#ffe600' },
+      { t:'FROM: BEEPER', c:'#ffe600' },
+      { t:'TO: YOUR BOSS', c:'#ffe600' },
+      { t:'BREVO SMTP', c:'#8899bb' },
+      { t:'DELIVERED! ✓', c:'#ffe600' },
+    ],
+    logs: [
+      '$ Connecting to Brevo SMTP…',
+      '$ Sending to: susanho91@hotmail.com',
+      '$ Subject: AI/LLM Daily Digest — 2026-04-23',
+      '$ 250 OK — Message accepted for delivery ✓ 🎉',
+    ],
+    card: 'card-3',
+    delay: 3500,
+  },
+];
+
+let running = false;
+let phasesDone = [];
+
+function log(msg, color) {
+  const tb = document.getElementById('term-body');
+  const span = document.createElement('span');
+  span.className = 'tline';
+  span.style.color = color || '#00ff88';
+  span.textContent = msg;
+  tb.appendChild(span);
+  requestAnimationFrame(() => span.classList.add('show'));
+  tb.scrollTop = tb.scrollHeight;
+}
+
+function clearTerm() {
+  document.getElementById('term-body').innerHTML = '';
+}
+
+function spawnWords(words) {
+  const zone = document.getElementById('float-zone');
+  words.forEach((w, i) => {
+    const el = document.createElement('div');
+    el.className = 'fword';
+    el.textContent = w.t;
+    el.style.cssText = `
+      color: ${w.c};
+      background: ${w.c}18;
+      border: 1px solid ${w.c}44;
+      left: ${10 + Math.random() * 70}%;
+      top: ${10 + Math.random() * 60}%;
+      --delay: ${i * .35}s;
+      --dur: ${2.2 + Math.random() * .8}s;
+    `;
+    zone.appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+  });
+}
+
+function setPill(idx, state) {
+  const el = document.getElementById(`pill-${idx}`);
+  el.className = 'phase-pill ' + state;
+}
+
+function setCard(id) {
+  if (id) document.getElementById(id).classList.add('lit');
+}
+
+function flyEmail() {
+  const el = document.getElementById('email-fly');
+  const robot = document.querySelector('.robot');
+  const rect = robot.getBoundingClientRect();
+  el.style.left = rect.left + rect.width / 2 + 'px';
+  el.style.top = rect.top + rect.height / 2 + 'px';
+  el.classList.add('go');
+  setTimeout(() => { el.classList.remove('go'); }, 1900);
+}
+
+function setChest(txt) {
+  document.getElementById('chest-text').textContent = txt;
+}
+
+async function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+async function runPhase(phase, idx) {
+  // Activate pill
+  phasesDone.forEach(i => setPill(i, 'done'));
+  setPill(idx, 'active');
+
+  setChest(phase.chest);
+  spawnWords(phase.words);
+  setCard(phase.card);
+
+  for (let i = 0; i < phase.logs.length; i++) {
+    await sleep(450 * i);
+    log(phase.logs[i]);
+  }
+
+  if (idx === phases.length - 1) {
+    // Email fly animation
+    await sleep(600);
+    flyEmail();
+    await sleep(1800);
+    document.getElementById('success').classList.add('show');
+  }
+
+  phasesDone.push(idx);
+}
+
+async function startShow() {
+  if (running) return;
+  running = true;
+  document.getElementById('btn-play').disabled = true;
+  clearTerm();
+
+  for (let i = 0; i < phases.length; i++) {
+    await runPhase(phases[i], i);
+    await sleep(phases[i].delay);
+  }
+
+  // Mark all done
+  phasesDone.forEach(i => setPill(i, 'done'));
+  running = false;
+}
+
+function resetShow() {
+  if (running) return;
+  phasesDone = [];
+  document.querySelectorAll('.phase-pill').forEach(el => el.className = 'phase-pill');
+  document.querySelectorAll('.step-card').forEach(el => el.classList.remove('lit'));
+  document.getElementById('success').classList.remove('show');
+  document.getElementById('btn-play').disabled = false;
+  document.getElementById('float-zone').innerHTML = '';
+  setChest('BEEPER\nv2.0');
+  clearTerm();
+  log('// Beeper is ready. Press LAUNCH to start the show.', '#445577');
+}
+</script>
+</body>
+</html>
