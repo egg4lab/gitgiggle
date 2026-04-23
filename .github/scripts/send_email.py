@@ -7,7 +7,7 @@ brevo_key = os.environ["BREVO_KEY"]
 
 payload = json.dumps({
     "sender": {"name": "AI Digest", "email": "susanho91@hotmail.com"},
-    "to": [{"email": "susanho91@hotmail.com"}],
+    "to": [{"email": "susanho91@hotmail.com"}, {"email": "socletsd00@gmail.com"}],
     "subject": "AI/LLM Daily Digest - " + today,
     "htmlContent": digest
 }).encode()
