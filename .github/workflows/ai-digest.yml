@@ -85,32 +85,26 @@ jobs:
           RESEND_KEY: ${{ secrets.RESEND_KEY }}
           DIGEST: ${{ steps.summary.outputs.digest }}
         run: |
-          cat << 'PYEOF' > /tmp/send_email.py
-          import os, json, urllib.request
-          from datetime import datetime, timezone
-
-          today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-          digest = os.environ["DIGEST"]
-          resend_key = os.environ["RESEND_KEY"]
-
-          payload = json.dumps({
-              "from": "AI Digest <onboarding@resend.dev>",
-              "to": ["susanho91@hotmail.com"],
-              "subject": f"AI/LLM Daily Digest - {today}",
-              "html": digest
-          }).encode()
-
-          req = urllib.request.Request(
-              "https://api.resend.com/emails",
-              data=payload,
-              headers={"Authorization": f"Bearer {resend_key}", "Content-Type": "application/json"},
-              method="POST"
-          )
-          try:
-              with urllib.request.urlopen(req) as r:
-                  print(f"Email sent: {r.status} {r.read().decode()}")
-          except urllib.error.HTTPError as e:
-              print(f"Resend error {e.code}: {e.read().decode()}")
-              raise
-          PYEOF
-          python3 /tmp/send_email.py
+          TODAY=$(date -u +"%Y-%m-%d")
+          PAYLOAD=$(python3 -c "
+import os, json
+digest = os.environ['DIGEST']
+today = os.environ['TODAY']
+print(json.dumps({
+    'from': 'AI Digest <onboarding@resend.dev>',
+    'to': ['susanho91@hotmail.com'],
+    'subject': f'AI/LLM Daily Digest - {today}',
+    'html': digest
+}))
+")
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            --user-agent "Mozilla/5.0" \
+            -X POST https://api.resend.com/emails \
+            -H "Authorization: Bearer ${RESEND_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -1)
+          echo "Status: $HTTP_CODE"
+          echo "Response: $BODY"
+          [ "$HTTP_CODE" -eq 200 ] || [ "$HTTP_CODE" -eq 201 ] || exit 1
