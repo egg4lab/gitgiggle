@@ -1,0 +1,110 @@
+name: AI Digest
+
+on:
+  schedule:
+    - cron: '0 23 * * *'  # 23:00 UTC = 07:00 Asia/Taipei
+  workflow_dispatch:
+
+jobs:
+  send-digest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Fetch AI/LLM news
+        id: news
+        env:
+          NEWS_KEY: ${{ secrets.NEWS_KEY }}
+        run: |
+          RESPONSE=$(curl -s "https://newsapi.org/v2/everything?q=AI+LLM+artificial+intelligence+large+language+model&sortBy=publishedAt&pageSize=7&language=en&apiKey=${NEWS_KEY}")
+          echo "news_json<<EOF" >> $GITHUB_OUTPUT
+          echo "$RESPONSE" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Summarize with Claude Haiku
+        id: summary
+        env:
+          ANTHROPIC_KEY: ${{ secrets.ANTHROPIC_KEY }}
+        run: |
+          NEWS_JSON='${{ steps.news.outputs.news_json }}'
+
+          ARTICLES=$(echo "$NEWS_JSON" | python3 -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          articles = data.get('articles', [])[:7]
+          lines = []
+          for i, a in enumerate(articles, 1):
+              title = a.get('title', 'No title')
+              desc = a.get('description', 'No description') or 'No description'
+              url = a.get('url', '')
+              lines.append(f'{i}. {title}\n   {desc}\n   URL: {url}')
+          print('\n\n'.join(lines))
+          ")
+
+          PAYLOAD=$(python3 -c "
+          import json
+          articles_text = '''$ARTICLES'''
+          prompt = f'''You are an AI news digest assistant. Summarize the following 7 AI/LLM news articles into a concise, engaging daily digest. For each article, provide a 1-2 sentence summary highlighting the key insight. Format the output as HTML for an email digest, using <h2> for the main title, <ol> for the list, and <li> for each article with the title as a link and the summary below it.
+
+          Articles:
+          {articles_text}
+
+          Generate the HTML digest now:'''
+
+          payload = {
+              'model': 'claude-haiku-4-5-20251001',
+              'max_tokens': 1500,
+              'messages': [{'role': 'user', 'content': prompt}]
+          }
+          print(json.dumps(payload))
+          ")
+
+          CLAUDE_RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
+            -H "x-api-key: ${ANTHROPIC_KEY}" \
+            -H "anthropic-version: 2023-06-01" \
+            -H "content-type: application/json" \
+            -d "$PAYLOAD")
+
+          DIGEST=$(echo "$CLAUDE_RESPONSE" | python3 -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          content = data.get('content', [])
+          if content:
+              print(content[0].get('text', 'Failed to generate digest'))
+          else:
+              print('No content in response')
+          ")
+
+          echo "digest<<EOF" >> $GITHUB_OUTPUT
+          echo "$DIGEST" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Send email via EmailJS
+        env:
+          EJS_SERVICE: ${{ secrets.EJS_SERVICE }}
+          EJS_TEMPLATE: ${{ secrets.EJS_TEMPLATE }}
+          EJS_PUBLIC: ${{ secrets.EJS_PUBLIC }}
+        run: |
+          TODAY=$(date -u +"%Y-%m-%d")
+          DIGEST='${{ steps.summary.outputs.digest }}'
+
+          PAYLOAD=$(python3 -c "
+          import json
+          digest = '''$DIGEST'''
+          today = '$TODAY'
+          payload = {
+              'service_id': '$EJS_SERVICE',
+              'template_id': '$EJS_TEMPLATE',
+              'user_id': '$EJS_PUBLIC',
+              'template_params': {
+                  'to_email': 'susanho91@hotmail.com',
+                  'subject': f'AI/LLM Daily Digest - {today}',
+                  'digest_html': digest,
+                  'date': today
+              }
+          }
+          print(json.dumps(payload))
+          ")
+
+          curl -s -X POST https://api.emailjs.com/api/v1.0/email/send \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD"
