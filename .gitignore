@@ -115,9 +115,13 @@ dmypy.json
 Thumbs.db
 
 # Local workspace-only folders (not part of published site)
+.claude/
 ashtanga-media-repo/
 ashtangaMP4JPG/
 class-reservation-system/
 mysore-practice-tracker/
 paperAbstract/
 skills-introduction-to-git/
+
+# Stale root-level app copies (superseded by apps/)
+ashtangaPlanner/

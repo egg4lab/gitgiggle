@@ -1,0 +1,37 @@
+name: Yoga Planner — Daily Lesson Plan
+
+on:
+  schedule:
+    # 06:00 Taipei = 22:00 UTC previous day
+    - cron: '0 22 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install deps
+        run: pip install -r apps/prana/scripts/requirements.txt
+
+      - name: Generate daily plan
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TZ: Asia/Taipei
+        run: python apps/prana/scripts/daily_plan.py
+
+      - name: Commit log
+        run: |
+          git config user.name "yoga-agent"
+          git config user.email "agent@users.noreply.github.com"
+          git add apps/prana/logs/
+          git diff --staged --quiet || git commit -m "yoga daily plan $(TZ=Asia/Taipei date +%F)"
+          git push

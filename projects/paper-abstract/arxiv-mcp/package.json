@@ -1,0 +1,20 @@
+{
+  "name": "arxiv-mcp",
+  "version": "0.1.0",
+  "description": "MCP server that searches arXiv and downloads PDFs for use in MCP-aware clients like Cursor.",
+  "type": "module",
+  "main": "build/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "*",
+    "zod": "*",
+    "fast-xml-parser": "*"
+  },
+  "devDependencies": {
+    "typescript": "*",
+    "@types/node": "*"
+  }
+}
+

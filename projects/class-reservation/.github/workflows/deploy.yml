@@ -1,0 +1,178 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+
+env:
+  AWS_REGION: ap-northeast-1
+  NODE_VERSION: '20'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+      
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: npm ci
+      
+      - name: Run Frontend Tests
+        working-directory: ./frontend
+        run: npm test || true
+      
+      - name: Run Backend Tests
+        working-directory: ./backend
+        run: npm test || true
+
+  deploy-infrastructure:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Install Infrastructure Dependencies
+        working-directory: ./infrastructure
+        run: npm ci
+      
+      - name: Deploy Infrastructure
+        working-directory: ./infrastructure
+        run: |
+          npm run build
+          npx cdk deploy --all --require-approval never
+      
+      - name: Get API Endpoint
+        id: api-endpoint
+        run: |
+          API_URL=$(aws cloudformation describe-stacks \
+            --stack-name ClassReservationStack \
+            --query 'Stacks[0].Outputs[?OutputKey==`ApiEndpoint`].OutputValue' \
+            --output text)
+          echo "API_URL=$API_URL" >> $GITHUB_OUTPUT
+    
+    outputs:
+      api-url: ${{ steps.api-endpoint.outputs.API_URL }}
+
+  deploy-backend:
+    needs: deploy-infrastructure
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: npm ci --production
+      
+      - name: Deploy Lambda Functions
+        working-directory: ./backend
+        run: |
+          zip -r function.zip .
+          aws lambda update-function-code \
+            --function-name class-reservation-api \
+            --zip-file fileb://function.zip
+
+  deploy-frontend:
+    needs: [deploy-infrastructure, deploy-backend]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+      
+      - name: Build Frontend
+        working-directory: ./frontend
+        env:
+          REACT_APP_API_ENDPOINT: ${{ needs.deploy-infrastructure.outputs.api-url }}
+          REACT_APP_REGION: ${{ env.AWS_REGION }}
+        run: npm run build
+      
+      - name: Get S3 Bucket Name
+        id: s3-bucket
+        run: |
+          BUCKET_NAME=$(aws cloudformation describe-stacks \
+            --stack-name ClassReservationStack \
+            --query 'Stacks[0].Outputs[?OutputKey==`FrontendBucket`].OutputValue' \
+            --output text)
+          echo "BUCKET_NAME=$BUCKET_NAME" >> $GITHUB_OUTPUT
+      
+      - name: Deploy to S3
+        working-directory: ./frontend
+        run: |
+          aws s3 sync dist/ s3://${{ steps.s3-bucket.outputs.BUCKET_NAME }}/ --delete
+      
+      - name: Invalidate CloudFront Cache
+        run: |
+          DISTRIBUTION_ID=$(aws cloudformation describe-stacks \
+            --stack-name ClassReservationStack \
+            --query 'Stacks[0].Outputs[?OutputKey==`CloudFrontDistribution`].OutputValue' \
+            --output text)
+          
+          if [ ! -z "$DISTRIBUTION_ID" ]; then
+            aws cloudfront create-invalidation \
+              --distribution-id $DISTRIBUTION_ID \
+              --paths "/*"
+          fi
+      
+      - name: Output URLs
+        run: |
+          echo "🚀 Deployment Complete!"
+          echo "API Endpoint: ${{ needs.deploy-infrastructure.outputs.api-url }}"
+          echo "Frontend URL: https://${{ steps.s3-bucket.outputs.BUCKET_NAME }}.s3.${{ env.AWS_REGION }}.amazonaws.com"

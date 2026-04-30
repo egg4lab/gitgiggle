@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prana — Start the Workflow</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:#050e09;
+    display:flex; flex-direction:column; align-items:center;
+    justify-content:center; min-height:100vh;
+    font-family:'Segoe UI',Arial,sans-serif; color:#fff; padding:20px;
+  }
+  .title {
+    font-size:1.5em; font-weight:800; letter-spacing:2px; margin-bottom:16px;
+    background:linear-gradient(90deg,#52b788,#e77d8e,#f4b942);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    background-clip:text; text-transform:uppercase;
+  }
+  canvas { border-radius:14px; box-shadow:0 0 40px rgba(82,183,136,.15); max-width:100%; }
+  .controls { margin-top:18px; display:flex; gap:12px; align-items:center; }
+  button {
+    padding:11px 28px; border:none; border-radius:50px;
+    font-size:.95em; font-weight:700; cursor:pointer;
+    transition:transform .15s; letter-spacing:1px;
+  }
+  button:hover { transform:scale(1.06); }
+  #recordBtn  { background:linear-gradient(135deg,#e77d8e,#b04055); color:#fff; box-shadow:0 4px 16px rgba(231,125,142,.4); }
+  #downloadBtn{ background:linear-gradient(135deg,#52b788,#2d7a55); color:#000; display:none; box-shadow:0 4px 16px rgba(82,183,136,.4); }
+  #status { margin-top:10px; font-size:.84em; opacity:.55; letter-spacing:.4px; }
+</style>
+</head>
+<body>
+<div class="title">🌿 Prana — Start the Workflow</div>
+<canvas id="stage" width="960" height="540"></canvas>
+<div class="controls">
+  <button id="recordBtn">⏺ &nbsp;Record MP4</button>
+  <button id="downloadBtn">⬇ &nbsp;Download Video</button>
+</div>
+<p id="status">Watch where to tap on GitHub — no coding needed. Hit Record to save.</p>
+
+<script>
+const canvas = document.getElementById('stage');
+const ctx    = canvas.getContext('2d');
+const W = 960, H = 540;
+
+/* ── Layout ── */
+const CH  = 40;
+const GHH = 44;
+const TBH = 36;
+const CT  = CH + GHH + TBH; // 120
+const SBW = 210;
+const BAR = 68;
+const CAH = H - CT - BAR;   // 352
+const IY  = H - BAR;        // 472
+
+/* ── GitHub dark colours + Prana accent ── */
+const G = {
+  bg:'#0d1117', hdr:'#161b22', bdr:'#30363d',
+  txt:'#e6edf3', mut:'#8b949e',
+  blue:'#1f6feb', green:'#238636', gbtn:'#2ea043',
+  orange:'#d29922', acc:'#52b788',  // sage green accent
+};
+
+/* ── Scenes ── */
+const SD = 5800;
+const WF_NAME = 'Yoga Planner — Daily Lesson Plan';
+const SCENES = [
+  { label:'Open your GitHub repository',        sub:'Go to github.com and open the repo',              github:'home',     tgt:{x:480,y:280}, click:null },
+  { label:'Tap the  Actions  tab',              sub:'It\'s in the top navigation bar',                 github:'home',     tgt:{x:347,y:108}, click:.42 },
+  { label:'Tap  Yoga Planner  in the list',     sub:'You\'ll find it in the left panel',               github:'actions',  tgt:{x:105,y:CT+70}, click:.42 },
+  { label:'Tap the  Run workflow  button',      sub:'Blue button — top right corner',                  github:'detail',   tgt:{x:875,y:CT+34}, click:.42 },
+  { label:'Tap the green  Run workflow',        sub:'Confirm — this generates today\'s plan now',      github:'dropdown', tgt:{x:793,y:CT+155}, click:.42 },
+  { label:'✅  Done!  Check your logs/',        sub:'Today\'s plan appears in apps/prana/logs/ in ~90 seconds 📋',github:'success',tgt:{x:590,y:CT+180}, click:null },
+];
+const TOTAL = SCENES.length * SD;
+
+/* ── Cursor ── */
+let cx=480,cy=280,tx=480,ty=280;
+let ripples=[];
+let startTime=null, lastSi=-1, clicked=false;
+
+function lerp(a,b,t){ return a+(b-a)*t; }
+
+function rr(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+function drawChrome(){
+  ctx.fillStyle='#2d2d2d'; ctx.fillRect(0,0,W,CH);
+  [['#ff5f57',14],['#ffbd2e',34],['#28c941',54]].forEach(([c,x])=>{
+    ctx.beginPath(); ctx.arc(x,CH/2,6,0,Math.PI*2); ctx.fillStyle=c; ctx.fill();
+  });
+  rr(75,7,W-150,CH-14,5);
+  ctx.fillStyle='#1a1a1a'; ctx.fill();
+  ctx.font='12px "Segoe UI"'; ctx.fillStyle='#999'; ctx.textAlign='center';
+  ctx.fillText('github.com/egg4lab/gitgiggle/actions',W/2,CH-10);
+}
+
+function drawHeader(){
+  ctx.fillStyle=G.hdr; ctx.fillRect(0,CH,W,GHH);
+  ctx.fillStyle=G.bdr; ctx.fillRect(0,CH+GHH-1,W,1);
+  ctx.font='bold 14px "Segoe UI"'; ctx.fillStyle=G.txt; ctx.textAlign='left';
+  ctx.fillText('🐙  egg4lab / gitgiggle',18,CH+28);
+  ctx.font='12px "Segoe UI"'; ctx.fillStyle=G.mut; ctx.textAlign='right';
+  ctx.fillText('☆ Star   🍴 Fork',W-18,CH+28);
+}
+
+const TABS=[['<> Code',72],['⊙ Issues',66],['↗ Pulls',100],['▷ Actions',84],['⊞ Projects',76],['⚙ Settings',76]];
+let tabPos=[];
+(()=>{ let x=18; TABS.forEach(([l,w])=>{ tabPos.push({l,w,x}); x+=w+6; }); })();
+
+function drawTabs(active){
+  const ty2=CH+GHH;
+  ctx.fillStyle=G.hdr; ctx.fillRect(0,ty2,W,TBH);
+  ctx.fillStyle=G.bdr; ctx.fillRect(0,ty2+TBH-1,W,1);
+  tabPos.forEach((t,i)=>{
+    const on=i===active;
+    ctx.font=(on?'bold ':'')+'13px "Segoe UI"';
+    ctx.fillStyle=on?G.txt:G.mut; ctx.textAlign='left';
+    ctx.fillText(t.l,t.x,ty2+23);
+    if(on){ ctx.fillStyle='#f78166'; ctx.fillRect(t.x-2,ty2+TBH-2,t.w+2,2); }
+  });
+}
+
+function drawSidebar(hi){
+  ctx.fillStyle=G.bg; ctx.fillRect(0,CT,SBW,CAH);
+  ctx.fillStyle=G.bdr; ctx.fillRect(SBW-1,CT,1,CAH);
+  ctx.font='bold 11px "Segoe UI"'; ctx.fillStyle=G.mut; ctx.textAlign='left';
+  ctx.fillText('ALL WORKFLOWS',14,CT+26);
+  const wy=CT+50;
+  if(hi){
+    rr(4,wy-13,SBW-8,26,5);
+    ctx.fillStyle='rgba(82,183,136,.12)'; ctx.fill();
+    ctx.fillStyle=G.acc; ctx.fillRect(4,wy-13,3,26);
+  }
+  ctx.font=(hi?'bold ':'')+'12px "Segoe UI"';
+  ctx.fillStyle=hi?G.txt:G.mut;
+  ctx.fillText('🌿  Yoga Planner…',18,wy+5);
+}
+
+function drawWorkflowDetail(showBtn, btnGlow){
+  const cx2=SBW;
+  ctx.font='bold 14px "Segoe UI"'; ctx.fillStyle=G.txt; ctx.textAlign='left';
+  ctx.fillText('Yoga Planner — Daily Lesson Plan',cx2+16,CT+32);
+  if(showBtn){
+    const bx=W-150,by=CT+14,bw=130,bh=28;
+    rr(bx,by,bw,bh,6);
+    ctx.fillStyle=btnGlow?'#1a5fb4':G.blue; ctx.fill();
+    if(btnGlow){
+      ctx.shadowColor=G.acc; ctx.shadowBlur=18;
+      rr(bx,by,bw,bh,6); ctx.fill(); ctx.shadowBlur=0;
+      ctx.strokeStyle=G.acc; ctx.lineWidth=1.5; ctx.stroke();
+    }
+    ctx.font='bold 12px "Segoe UI"'; ctx.fillStyle='#fff'; ctx.textAlign='center';
+    ctx.fillText('Run workflow  ▾',bx+65,by+19);
+  }
+  ctx.fillStyle=G.bdr; ctx.fillRect(cx2,CT+50,W-cx2,1);
+  const runs=[{d:'2026-04-29',l:'Scheduled'},{d:'2026-04-28',l:'Scheduled'},{d:'2026-04-27',l:'Scheduled'}];
+  runs.forEach((r,i)=>{
+    const ry=CT+64+i*58;
+    ctx.beginPath(); ctx.arc(cx2+20,ry+18,7,0,Math.PI*2);
+    ctx.fillStyle='#3fb950'; ctx.fill();
+    ctx.font='11px monospace'; ctx.fillStyle='#fff'; ctx.textAlign='center';
+    ctx.fillText('✓',cx2+20,ry+22);
+    ctx.font='bold 13px "Segoe UI"'; ctx.fillStyle=G.txt; ctx.textAlign='left';
+    ctx.fillText('yoga daily plan — '+r.d,cx2+38,ry+16);
+    ctx.font='11px "Segoe UI"'; ctx.fillStyle=G.mut;
+    ctx.fillText(r.l+'  ·  '+r.d,cx2+38,ry+30);
+    ctx.fillStyle=G.bdr; ctx.fillRect(cx2,ry+50,W-cx2,1);
+  });
+}
+
+function drawDropdown(greenGlow){
+  const dx=W-280,dy=CT+46,dw=252,dh=126;
+  ctx.shadowColor='rgba(0,0,0,.7)'; ctx.shadowBlur=24;
+  rr(dx,dy,dw,dh,8); ctx.fillStyle='#1c2128'; ctx.fill();
+  ctx.shadowBlur=0; ctx.strokeStyle=G.bdr; ctx.lineWidth=1; ctx.stroke();
+  ctx.font='bold 13px "Segoe UI"'; ctx.fillStyle=G.txt; ctx.textAlign='left';
+  ctx.fillText('Run workflow',dx+14,dy+22);
+  ctx.font='12px "Segoe UI"'; ctx.fillStyle=G.mut;
+  ctx.fillText('Use workflow from',dx+14,dy+42);
+  rr(dx+10,dy+50,dw-20,26,5);
+  ctx.fillStyle=G.bg; ctx.fill(); ctx.strokeStyle=G.bdr; ctx.lineWidth=1; ctx.stroke();
+  ctx.font='13px "Segoe UI"'; ctx.fillStyle=G.txt;
+  ctx.fillText('Branch: main  ▾',dx+18,dy+67);
+  const gbx=dx+10,gby=dy+86,gbw=dw-20,gbh=28;
+  rr(gbx,gby,gbw,gbh,6);
+  ctx.fillStyle=greenGlow?'#196c2e':G.gbtn; ctx.fill();
+  if(greenGlow){
+    ctx.shadowColor='#3fb950'; ctx.shadowBlur=16;
+    rr(gbx,gby,gbw,gbh,6); ctx.fill(); ctx.shadowBlur=0;
+    ctx.strokeStyle='#3fb950'; ctx.lineWidth=1.5; ctx.stroke();
+  }
+  ctx.font='bold 13px "Segoe UI"'; ctx.fillStyle='#fff'; ctx.textAlign='center';
+  ctx.fillText('Run workflow',dx+dw/2,gby+19);
+}
+
+function drawHomeContent(){
+  ctx.fillStyle=G.bg; ctx.fillRect(0,CT,W,CAH);
+  ctx.fillStyle=G.bdr; ctx.fillRect(0,CT+46,W,1);
+  const files=[['📁 .github','workflows/'],['📁 apps','beeper · prana · …'],['📄 README.md','GitGiggle project']];
+  files.forEach(([n,d],i)=>{
+    const fy=CT+20+i*44;
+    ctx.font='14px "Segoe UI"'; ctx.fillStyle='#58a6ff'; ctx.textAlign='left';
+    ctx.fillText(n,20,fy+14);
+    ctx.fillStyle=G.mut; ctx.font='12px "Segoe UI"';
+    ctx.fillText(d,200,fy+14);
+    ctx.fillStyle=G.bdr; ctx.fillRect(0,fy+26,W,1);
+  });
+  rr(W/2+20,CT+10,W/2-40,180,8);
+  ctx.fillStyle=G.hdr; ctx.fill(); ctx.strokeStyle=G.bdr; ctx.lineWidth=1; ctx.stroke();
+  ctx.font='bold 18px "Segoe UI"'; ctx.fillStyle=G.txt; ctx.textAlign='left';
+  ctx.fillText('GitGiggle',W/2+36,CT+40);
+  ctx.font='13px "Segoe UI"'; ctx.fillStyle=G.mut;
+  ctx.fillText('AI-powered tools in one repo',W/2+36,CT+62);
+  ctx.fillText('⚡ Beeper  ·  🌿 Prana  ·  and more',W/2+36,CT+84);
+}
+
+function drawActionsHome(){
+  ctx.fillStyle=G.bg; ctx.fillRect(0,CT,W,CAH);
+  drawSidebar(false);
+  ctx.font='bold 17px "Segoe UI"'; ctx.fillStyle=G.txt; ctx.textAlign='left';
+  ctx.fillText('Actions',SBW+16,CT+32);
+  ctx.fillStyle=G.bdr; ctx.fillRect(SBW,CT+46,W-SBW,1);
+  const wfs=[
+    {n:'AI Digest',t:'schedule · 06:17 Taipei'},
+    {n:'Deploy GitHub Pages',t:'on: push to main'},
+    {n:'Yoga Planner — Daily Lesson Plan',t:'schedule · 06:00 Taipei'},
+  ];
+  wfs.forEach((wf,i)=>{
+    const wy=CT+62+i*62;
+    ctx.beginPath(); ctx.arc(SBW+20,wy+18,7,0,Math.PI*2);
+    ctx.fillStyle='#3fb950'; ctx.fill();
+    ctx.font='bold 13px "Segoe UI"'; ctx.fillStyle=G.txt; ctx.textAlign='left';
+    ctx.fillText(wf.n,SBW+38,wy+14);
+    ctx.font='11px "Segoe UI"'; ctx.fillStyle=G.mut;
+    ctx.fillText(wf.t,SBW+38,wy+30);
+    ctx.fillStyle=G.bdr; ctx.fillRect(SBW,wy+52,W-SBW,1);
+  });
+}
+
+function drawSuccess(prog){
+  ctx.fillStyle=G.bg; ctx.fillRect(0,CT,W,CAH);
+  drawSidebar(true);
+  drawWorkflowDetail(false,false);
+  const ry=CT+64;
+  ctx.beginPath(); ctx.arc(SBW+20,ry+18,7,0,Math.PI*2);
+  if(prog<.35){
+    ctx.fillStyle=G.orange; ctx.fill();
+    const a=prog*Math.PI*12;
+    ctx.beginPath(); ctx.arc(SBW+20,ry+18,5,a,a+Math.PI*1.3);
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+  } else {
+    ctx.fillStyle='#3fb950'; ctx.fill();
+    ctx.font='11px monospace'; ctx.fillStyle='#fff'; ctx.textAlign='center';
+    ctx.fillText('✓',SBW+20,ry+22);
+  }
+  ctx.font='bold 13px "Segoe UI"'; ctx.fillStyle=G.txt; ctx.textAlign='left';
+  ctx.fillText('yoga daily plan — workflow_dispatch',SBW+38,ry+16);
+  ctx.font='11px "Segoe UI"'; ctx.fillStyle=prog<.35?G.orange:'#3fb950';
+  ctx.fillText(prog<.35?'In progress…':'Success',SBW+38,ry+30);
+  ctx.fillStyle=G.bdr; ctx.fillRect(SBW,ry+50,W-SBW,1);
+
+  if(prog>.4){
+    const a=Math.min((prog-.4)/.25,1);
+    ctx.save(); ctx.globalAlpha=a;
+    rr(SBW+20,CT+128,W-SBW-40,180,12);
+    ctx.fillStyle='rgba(13,17,23,.9)'; ctx.fill();
+    ctx.strokeStyle='#3fb950'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.font='52px "Segoe UI"'; ctx.fillStyle='#3fb950'; ctx.textAlign='center';
+    ctx.fillText('✅',W/2+SBW/4,CT+218);
+    ctx.font='bold 18px "Segoe UI"'; ctx.fillStyle=G.txt;
+    ctx.fillText('Workflow triggered!',W/2+SBW/4,CT+258);
+    ctx.font='14px "Segoe UI"'; ctx.fillStyle=G.mut;
+    ctx.fillText('📋 Plan appears in apps/prana/logs/ in ~90 seconds',W/2+SBW/4,CT+285);
+    ctx.restore();
+  }
+}
+
+function drawInstruction(si,prog){
+  ctx.fillStyle='rgba(13,17,23,.96)'; ctx.fillRect(0,IY,W,BAR);
+  ctx.fillStyle=G.bdr; ctx.fillRect(0,IY,W,1);
+  ctx.fillStyle=G.acc+'44'; ctx.fillRect(0,IY,W*((si*SD+prog*SD)/TOTAL),3);
+
+  ctx.beginPath(); ctx.arc(34,IY+34,16,0,Math.PI*2);
+  ctx.fillStyle=G.acc; ctx.fill();
+  ctx.font='bold 14px "Segoe UI"'; ctx.fillStyle='#000'; ctx.textAlign='center';
+  ctx.fillText(si+1,34,IY+39);
+
+  const s=SCENES[si];
+  ctx.font='bold 17px "Segoe UI"'; ctx.fillStyle=G.txt; ctx.textAlign='left';
+  ctx.fillText(s.label,62,IY+28);
+  ctx.font='13px "Segoe UI"'; ctx.fillStyle=G.mut;
+  ctx.fillText(s.sub,62,IY+50);
+
+  SCENES.forEach((_,i)=>{
+    ctx.beginPath();
+    ctx.arc(W-20-(SCENES.length-1-i)*14,IY+34,i===si?5:3,0,Math.PI*2);
+    ctx.fillStyle=i===si?G.acc:G.bdr; ctx.fill();
+  });
+}
+
+function drawHighlight(x,y,t){
+  const p=.5+.5*Math.sin(t*.008);
+  ctx.save();
+  ctx.strokeStyle=G.acc; ctx.lineWidth=2+p;
+  ctx.globalAlpha=.5+.4*p;
+  ctx.beginPath(); ctx.arc(x,y,22+p*4,0,Math.PI*2); ctx.stroke();
+  ctx.globalAlpha=.15+.1*p;
+  ctx.beginPath(); ctx.arc(x,y,22+p*4,0,Math.PI*2);
+  ctx.fillStyle=G.acc; ctx.fill();
+  ctx.restore();
+}
+
+function drawCursor(x,y){
+  ctx.save(); ctx.translate(x,y);
+  ctx.beginPath();
+  ctx.moveTo(0,0); ctx.lineTo(0,18); ctx.lineTo(4,13.5);
+  ctx.lineTo(6.5,19.5); ctx.lineTo(9,18.5); ctx.lineTo(6.5,12); ctx.lineTo(11,12);
+  ctx.closePath();
+  ctx.fillStyle='#fff'; ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,.5)'; ctx.lineWidth=.8; ctx.stroke();
+  ctx.restore();
+}
+
+function drawRipples(){
+  ripples=ripples.filter(r=>r.a>0);
+  ripples.forEach(r=>{ r.r+=2; r.a-=.025;
+    ctx.beginPath(); ctx.arc(r.x,r.y,r.r,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(255,220,50,${r.a})`; ctx.lineWidth=2; ctx.stroke();
+  });
+}
+
+function animate(ts){
+  if(!startTime) startTime=ts;
+  const elapsed=ts-startTime;
+  const si=Math.min(Math.floor((elapsed%TOTAL)/SD),SCENES.length-1);
+  const phase=(elapsed%TOTAL)%SD;
+  const prog=phase/SD;
+  const sc=SCENES[si];
+
+  if(si!==lastSi){ lastSi=si; clicked=false; }
+
+  tx=sc.tgt.x; ty=sc.tgt.y;
+  cx=lerp(cx,tx,.08); cy=lerp(cy,ty,.08);
+
+  if(sc.click!==null && prog>=sc.click && !clicked){
+    ripples.push({x:tx,y:ty,r:0,a:1});
+    clicked=true;
+  }
+
+  ctx.fillStyle=G.bg; ctx.fillRect(0,0,W,H);
+  drawChrome(); drawHeader();
+
+  if(si===0){
+    drawTabs(-1); drawHomeContent();
+  } else if(si===1){
+    drawTabs(prog>sc.click?3:-1);
+    drawHomeContent();
+    if(prog<sc.click) drawHighlight(sc.tgt.x,sc.tgt.y,elapsed);
+  } else if(si===2){
+    drawTabs(3); drawActionsHome();
+    if(prog<sc.click) drawHighlight(sc.tgt.x,sc.tgt.y,elapsed);
+  } else if(si===3){
+    drawTabs(3);
+    ctx.fillStyle=G.bg; ctx.fillRect(0,CT,W,CAH);
+    drawSidebar(true);
+    drawWorkflowDetail(true,prog>=sc.click);
+    if(prog<sc.click) drawHighlight(sc.tgt.x,sc.tgt.y,elapsed);
+  } else if(si===4){
+    drawTabs(3);
+    ctx.fillStyle=G.bg; ctx.fillRect(0,CT,W,CAH);
+    drawSidebar(true);
+    drawWorkflowDetail(true,false);
+    drawDropdown(prog>=sc.click);
+    if(prog<sc.click) drawHighlight(sc.tgt.x,sc.tgt.y,elapsed);
+  } else {
+    drawTabs(3);
+    drawSuccess(prog);
+  }
+
+  drawInstruction(si,prog);
+  drawRipples();
+  drawCursor(cx,cy);
+  requestAnimationFrame(animate);
+}
+
+requestAnimationFrame(animate);
+
+let recorder=null, chunks=[];
+document.getElementById('recordBtn').addEventListener('click',()=>{
+  if(recorder&&recorder.state==='recording'){
+    recorder.stop();
+    document.getElementById('recordBtn').textContent='⏺  Record MP4';
+    document.getElementById('status').textContent='Processing…';
+    return;
+  }
+  startTime=null; chunks=[];
+  const stream=canvas.captureStream(30);
+  const mime=['video/mp4','video/webm;codecs=vp9','video/webm'].find(m=>MediaRecorder.isTypeSupported(m));
+  recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:5_000_000});
+  recorder.ondataavailable=e=>chunks.push(e.data);
+  recorder.onstop=()=>{
+    const blob=new Blob(chunks,{type:mime});
+    const url=URL.createObjectURL(blob);
+    const btn=document.getElementById('downloadBtn');
+    btn.style.display='inline-block';
+    btn.onclick=()=>{ const a=document.createElement('a'); a.href=url; a.download='prana-activate.'+(mime.includes('mp4')?'mp4':'webm'); a.click(); };
+    document.getElementById('status').textContent=`✅ Ready! ${(blob.size/1024/1024).toFixed(1)} MB — click Download.`;
+  };
+  recorder.start(100);
+  document.getElementById('recordBtn').textContent='⏹  Stop Recording';
+  document.getElementById('status').textContent=`🔴 Recording ${SCENES.length} steps (~${Math.round(TOTAL/1000)}s)…`;
+  setTimeout(()=>{ if(recorder&&recorder.state==='recording'){ recorder.stop(); document.getElementById('recordBtn').textContent='⏺  Record MP4'; } },TOTAL+600);
+});
+</script>
+</body>
+</html>
