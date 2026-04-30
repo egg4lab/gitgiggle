@@ -5,7 +5,7 @@ practicing_since: 2025-11
 location: Taichung studio
 schedule: [Tue, Thu]
 last_practice: 2026-04-23
-last_asana_given: Trikonasana B
+last_asana_given: Trikonasana B and C
 ---
 
 ## Notes
