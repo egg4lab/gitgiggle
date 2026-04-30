@@ -49,9 +49,10 @@ def main() -> None:
 ## TASK
 Produce today's lesson plan as markdown with these sections:
 
-1. **Roster** — table: Student | Assigned Sequence | Modifications | Last Practice | Days Since
+1. **Roster** — table: Student | Studio | Assigned Sequence | Modifications | Last Practice | Days Since
 2. **Watch list** — anyone overdue (>5 days), injured, or needing teacher attention
-3. **Coach notes** — 2–3 bullets on what to emphasize today across the group
+3. **Coach notes** — grouped by studio location (Hsinchu / Taipei / Yilan / Taichung).
+   For each studio: 2–3 bullets on what to emphasize today with that group.
 4. **Reminders** — anything I should communicate before/after class
 
 Be concise. Engineer-to-engineer tone is fine — I'm the coach, not a beginner.
