@@ -1,4 +1,4 @@
-# Deploy full site from main (apps/fastingApp, apps/ashtangaApp, projects/…).
+# Deploy full site from main (apps/mysore-tracker, apps/fasting-tracker, apps/leave-calculator, …).
 name: Deploy GitHub Pages
 
 on:
@@ -22,7 +22,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout (Git LFS for large MP4 under apps/ashtangaApp/videos)
+      - name: Checkout (Git LFS for large MP4 under apps/mysore-tracker/videos)
         uses: actions/checkout@v4
         with:
           lfs: true

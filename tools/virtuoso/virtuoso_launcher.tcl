@@ -1,7 +1,8 @@
 #!/bin/sh
 # Cadence Virtuoso launcher (Tcl/Tk). UNIX/Linux: chmod +x && ./virtuoso_launcher.tcl
-# -*- tcl -*-
-exec wish "$0" ${1+"$@"}
+# The next line is run by /bin/sh and ignored by Tcl.
+#\
+exec wish "$0" "$@"
 
 package require Tk
 
