@@ -6,9 +6,9 @@ Tools and static apps for personal use, published with **GitHub Pages** from the
 
 | App | URL |
 |-----|-----|
-| **100 Hour Fasting Journey** | […/apps/fastingApp/](https://egg4lab.github.io/gitgiggle/apps/fastingApp/) |
-| **Mysore Practice Tracker (Ashtanga)** | […/apps/ashtangaApp/](https://egg4lab.github.io/gitgiggle/apps/ashtangaApp/) |
-| **Office Leave Time Calculator** | […/apps/workHoursApp/](https://egg4lab.github.io/gitgiggle/apps/workHoursApp/) |
+| **100 Hour Fasting Journey** | […/apps/fasting-tracker/](https://egg4lab.github.io/gitgiggle/apps/fasting-tracker/) |
+| **Mysore Practice Tracker (Ashtanga)** | […/apps/mysore-tracker/](https://egg4lab.github.io/gitgiggle/apps/mysore-tracker/) |
+| **Office Leave Time Calculator** | […/apps/leave-calculator/](https://egg4lab.github.io/gitgiggle/apps/leave-calculator/) |
 
 Legacy paths redirect: `/fastingApp/` → `/apps/fastingApp/`, `/classReservation/` → `/projects/classReservation/`, `/workHoursApp/` → `/apps/workHoursApp/`.
 
@@ -17,9 +17,9 @@ Legacy paths redirect: `/fastingApp/` → `/apps/fastingApp/`, `/classReservatio
 ```
 .github/workflows/     # GitHub Actions (Pages deploy)
 apps/
-  fastingApp/            # Fasting timer & motivation (static HTML)
-  ashtangaApp/           # Mysore tracker: index.html, photos/, videos/ (MP4 via Git LFS)
-  workHoursApp/          # Office leave-time calculator (static HTML)
+  fasting-tracker/       # Fasting timer & motivation (static HTML)
+  mysore-tracker/        # Mysore tracker: index.html, photos/, videos/ (MP4 via Git LFS)
+  leave-calculator/      # Office leave-time calculator (static HTML)
 projects/
   classReservation/      # Standalone class-reservation demo (static)
 fastingApp/              # Tiny HTML redirect → apps/fastingApp
@@ -44,7 +44,7 @@ See [tools/virtuoso/README.md](tools/virtuoso/README.md) for how to run the laun
 
 ## Git LFS
 
-Practice videos under `apps/ashtangaApp/videos/*.mp4` are tracked with **Git LFS** (see `.gitattributes`). Install [Git LFS](https://git-lfs.com/) before cloning or pushing large videos.
+Practice videos under `apps/mysore-tracker/videos/*.mp4` are tracked with **Git LFS** (see `.gitattributes`). Install [Git LFS](https://git-lfs.com/) before cloning or pushing large videos.
 
 ## Local preview
 

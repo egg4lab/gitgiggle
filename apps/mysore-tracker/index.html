@@ -746,12 +746,12 @@ function openMaster(key){
 
 /* Optional: paste YouTube URLs; keys must match the videos/... path used in the page. */
 const VIDEO_REMOTE = {
-  'videos/Ashtanga Led Primary Series _ David & Jelena Yoga.mp4': '',
-  'videos/Ashtanga Yoga Full Primary Series with Laruga Glaser.mp4': '',
-  'videos/Ashtanga Yoga Full Primary Series with Ty Landrum.mp4': '',
-  'videos/Ashtanga Yoga Full Primary Series — One Hour Guided Class (Fast Pace).mp4': '',
-  'videos/Primary Series Ashtanga Vinyasa Led Class _  Practice Ashtanga with Doron!.mp4': '',
-  "videos/The Power of Anatomy in Yoga _ Vishesh Arora's Epic Flow.mp4": '',
+  'videos/Ashtanga Led Primary Series _ David & Jelena Yoga.mp4': 'https://github.com/egg4lab/gitgiggle/releases/download/videos-v1/Ashtanga.Led.Primary.Series._.David.Jelena.Yoga.mp4',
+  'videos/Ashtanga Yoga Full Primary Series with Laruga Glaser.mp4': 'https://github.com/egg4lab/gitgiggle/releases/download/videos-v1/Ashtanga.Yoga.Full.Primary.Series.with.Laruga.Glaser.mp4',
+  'videos/Ashtanga Yoga Full Primary Series with Ty Landrum.mp4': 'https://github.com/egg4lab/gitgiggle/releases/download/videos-v1/Ashtanga.Yoga.Full.Primary.Series.with.Ty.Landrum.mp4',
+  'videos/Ashtanga Yoga Full Primary Series — One Hour Guided Class (Fast Pace).mp4': 'https://github.com/egg4lab/gitgiggle/releases/download/videos-v1/Ashtanga.Yoga.Full.Primary.Series.One.Hour.Guided.Class.Fast.Pace.mp4',
+  'videos/Primary Series Ashtanga Vinyasa Led Class _  Practice Ashtanga with Doron!.mp4': 'https://github.com/egg4lab/gitgiggle/releases/download/videos-v1/Primary.Series.Ashtanga.Vinyasa.Led.Class._.Practice.Ashtanga.with.Doron.mp4',
+  "videos/The Power of Anatomy in Yoga _ Vishesh Arora's Epic Flow.mp4": 'https://github.com/egg4lab/gitgiggle/releases/download/videos-v1/The.Power.of.Anatomy.in.Yoga._.Vishesh.Arora.s.Epic.Flow.mp4',
 };
 function encodePathSegments(p){
   if (!p || p.startsWith('http') || p.startsWith('data:') || p.startsWith('blob:')) return p;

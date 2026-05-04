@@ -22,10 +22,8 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout (Git LFS for large MP4 under apps/mysore-tracker/videos)
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          lfs: true
       - name: Configure Pages
         uses: actions/configure-pages@v4
       - name: Upload site

@@ -1,5 +1,5 @@
 # Large practice videos (Git LFS keeps the main repo clone small)
-apps/ashtangaApp/videos/*.mp4 filter=lfs diff=lfs merge=lfs -text
+apps/mysore-tracker/videos/*.mp4 filter=lfs diff=lfs merge=lfs -text
 
 # UNIX shebang scripts (wish/Tcl)
 tools/virtuoso/*.tcl text eol=lf
