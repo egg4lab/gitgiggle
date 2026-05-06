@@ -601,7 +601,7 @@ document.getElementById('recordBtn').addEventListener('click', () => {
   recorder.start(100);
   document.getElementById('recordBtn').textContent = '⏹ \u00A0Stop Recording';
   document.getElementById('status').textContent =
-    `🔴 Recording all ${words.length} words (${(TOTAL / 1000).toFixed0()}s)… or stop anytime.`;
+    `🔴 Recording all ${words.length} words (${Math.round(TOTAL / 1000)}s)… or stop anytime.`;
 
   setTimeout(() => {
     if (recorder && recorder.state === 'recording') {
@@ -611,8 +611,6 @@ document.getElementById('recordBtn').addEventListener('click', () => {
   }, TOTAL + 600);
 });
 
-String.prototype.toFixed0 = function() { return Math.round(+this).toString(); };
-Number.prototype.toFixed0 = function() { return Math.round(this).toString(); };
 </script>
 </body>
 </html>
