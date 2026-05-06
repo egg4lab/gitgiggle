@@ -1,0 +1,24 @@
+---
+description: GitGiggle repository defaults for all AI edits
+globs:
+alwaysApply: true
+---
+
+# GitGiggle default rule
+
+Follow these defaults unless the user explicitly asks otherwise:
+
+1. Keep the repository structure intact:
+   - `apps/` for publishable static apps
+   - `projects/` for demos
+   - `tools/` for scripts/utilities
+2. Prefer minimal, local edits over broad rewrites.
+3. Avoid introducing frameworks/build systems for simple static changes.
+4. Preserve existing redirect behavior and relative paths.
+5. Do not modify large media assets unless explicitly requested.
+
+Before finishing:
+
+- Verify changed HTML/CSS/JS paths are valid from repo root.
+- Keep diffs small and readable.
+- Provide a short verification summary.
