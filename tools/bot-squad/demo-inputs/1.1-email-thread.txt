@@ -1,0 +1,32 @@
+From: alice.chen@corp.example.com
+To: dev-team@corp.example.com
+Cc: bob.lin@corp.example.com
+Date: Mon, 25 May 2026 09:14:22 +0800
+Subject: URGENT: Production API timeout — need JIRA tickets by EOD
+Message-ID: <thread-abc123@corp.example.com>
+
+Hi team,
+
+We're seeing 504 timeouts on the /v2/orders endpoint since 08:00. Bob's logs show
+the DB connection pool maxing out under load.
+
+Action needed:
+1. Bob — investigate connection pool settings ASAP (today)
+2. Carol — add circuit breaker for downstream payment service (by Wed)
+3. DevOps — scale read replicas if pool fix isn't enough
+
+See dashboard: https://grafana.corp.example.com/d/api-latency
+
+Also FYI: new feature request from Sales — export orders to CSV (low priority).
+
+Thanks,
+Alice
+
+---
+From: bob.lin@corp.example.com
+Date: Mon, 25 May 2026 09:32:05 +0800
+
+Confirmed — pool size is 20, peak concurrent was 47. I'll bump to 50 and add
+metrics. Should have a fix deployed by 14:00.
+
+Bob

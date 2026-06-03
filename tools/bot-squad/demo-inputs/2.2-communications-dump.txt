@@ -1,0 +1,19 @@
+--- Email excerpt ---
+From: james.hsu@geosat.tw
+Subject: Partnership inquiry — infrastructure inspection
+Phone: +886-3-1234-5678
+LinkedIn: linkedin.com/in/jameshsu-geosat
+
+--- Research note ---
+Coretronic Smart Vision division lead: Dr. Mei-Ling Huang (黃美玲)
+Title: VP, Enterprise Solutions
+Email: ml.huang@coretronic.com
+Company: Coretronic Corporation
+
+--- Meeting notes ---
+Attendees:
+- Kevin Su, BD Manager, Avilon Robotics — kevin.su@avilon.io
+- info@noreply.gov.tw (skip — generic)
+- Sophie Chen, CAA liaison — s.chen@caa.gov.tw, +886-2-2345-6789
+
+Output format: JSON

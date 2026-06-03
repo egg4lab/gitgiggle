@@ -1,0 +1,10 @@
+Recording manifest — Sprint Planning 2026-05-23
+
+| file | format | duration | recorded_at | source | notes |
+|------|--------|----------|-------------|--------|-------|
+| C:\Recordings\standup-0523.wav | wav | 47:12 | 2026-05-23 09:00 | desktop (OBS) | clean, slight fan noise |
+| C:\Users\me\Downloads\Zoom\standup-0523-audio.m4a | m4a | 46:58 | 2026-05-23 09:00 | Zoom export | duplicate of above? |
+| \\share\meetings\phone-memo-0523.3gp | 3gp | 02:15 | 2026-05-23 09:45 | phone | hallway follow-up with PM |
+| C:\Recordings\standup-0523-part2.wav | wav | 12:30 | 2026-05-23 09:50 | desktop | continuation after Zoom drop |
+
+Goal: single chronological timeline for STT. Flag overlaps and recommend canonical files.

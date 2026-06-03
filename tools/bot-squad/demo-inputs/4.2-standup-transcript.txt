@@ -1,0 +1,24 @@
+Sprint Planning — 2026-05-23 (transcript excerpt)
+
+Alice (PM): Let's lock scope for sprint 42. Top priority is the API timeout fix from Monday.
+
+Bob (Eng): Pool fix is deployed. Monitoring shows p99 back under 200ms. I'll close ORD-1847 today.
+
+Carol (Eng): Circuit breaker PR is up for review. Need DevOps to review by tomorrow.
+
+Dave (DevOps): Can review today. Also — decision: we defer read-replica scaling unless p99 spikes again.
+
+Alice: Agreed. Open question: do we pull CSV export into this sprint or next?
+
+Bob: Next sprint. Analytics pipeline is the bottleneck anyway.
+
+Carol: I'll document the deferral in the release notes.
+
+Alice: Action items — Bob closes ORD-1847, Carol gets CB merged by Friday, Dave reviews PR today.
+
+---
+
+## PROJECT CONTEXT
+
+Open JIRA: ORD-1847 (pool fix), ORD-1852 (circuit breaker), ORD-1801 (CSV export — backlog)
+Milestone: Phase 2 launch 2026-07-01
