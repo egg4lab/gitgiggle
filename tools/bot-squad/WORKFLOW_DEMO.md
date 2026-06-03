@@ -1,15 +1,15 @@
 # GitGiggle Bot Squad — Workflow Demonstrations
 
-Nine funny-named task bots, bootstrapped from the **Beeper** and **Prana** patterns in `helpers/`. Each bot is a self-contained Python agent: `config/agent.yml` + `scripts/run.py` + `logs/`.
+Nine funny-named task bots, bootstrapped from the **Beeper** and **Prana** patterns in `gigglers/`. Each bot is a self-contained Python agent: `config/agent.yml` + `scripts/run.py` + `logs/`.
 
 ## Elder Statesmen (the templates)
 
 | Bot | Path | What it does | Trigger |
 |-----|------|--------------|---------|
-| **Beeper** | `helpers/beeper/` | AI news digest → HTML email via Brevo | GitHub Actions cron + manual |
-| **Prana** | `helpers/prana/` | Ashtanga daily lesson plan from student `.md` files | GitHub Actions cron + manual |
+| **Beeper** | `gigglers/beeper/` | AI news digest → HTML email via Brevo | GitHub Actions cron + manual |
+| **Prana** | `gigglers/prana/` | Ashtanga daily lesson plan from student `.md` files | GitHub Actions cron + manual |
 
-**ParsePilot** (`helpers/parsepilot/`) is the unified multi-task runner — all 9 tasks in one mega-prompt via `run_task.py {task_id}`.
+**ParsePilot** (`gigglers/parsepilot/`) is the unified multi-task runner — all 9 tasks in one mega-prompt via `run_task.py {task_id}`.
 
 ---
 
@@ -36,7 +36,7 @@ Nine funny-named task bots, bootstrapped from the **Beeper** and **Prana** patte
 $env:ANTHROPIC_API_KEY = "sk-ant-..."
 
 # Install deps for any bot (same requirements everywhere)
-pip install -r helpers/mimemcmarkdown/scripts/requirements.txt
+pip install -r gigglers/mimemcmarkdown/scripts/requirements.txt
 ```
 
 ---
@@ -53,7 +53,7 @@ flowchart LR
 **Demo run:**
 
 ```powershell
-cd helpers/mimemcmarkdown
+cd gigglers/mimemcmarkdown
 python scripts/run.py --file ../../tools/bot-squad/demo-inputs/1.1-email-thread.txt
 # → logs/parsed-2026-05-25.md
 ```
@@ -76,7 +76,7 @@ flowchart LR
 
 ```powershell
 # Step 1: parse
-cd helpers/mimemcmarkdown
+cd gigglers/mimemcmarkdown
 python scripts/run.py --file ../../tools/bot-squad/demo-inputs/1.1-email-thread.txt
 
 # Step 2: spin into JIRA CSV
@@ -102,7 +102,7 @@ flowchart LR
 **Demo run:**
 
 ```powershell
-cd helpers/propellerpete
+cd gigglers/propellerpete
 python scripts/run.py --file ../../tools/bot-squad/demo-inputs/2.1-drone-research-seed.txt
 ```
 
@@ -123,7 +123,7 @@ flowchart LR
 **Demo run:**
 
 ```powershell
-cd helpers/rolodexraccoon
+cd gigglers/rolodexraccoon
 python scripts/run.py --file ../../tools/bot-squad/demo-inputs/2.2-communications-dump.txt
 ```
 
@@ -144,7 +144,7 @@ flowchart LR
 **Demo run:**
 
 ```powershell
-cd helpers/vaultwhisperer
+cd gigglers/vaultwhisperer
 python scripts/run.py --file ../../tools/bot-squad/demo-inputs/3.1-message-plus-vault-context.md
 ```
 
@@ -164,7 +164,7 @@ flowchart LR
 **Demo run:**
 
 ```powershell
-cd helpers/podiumpolly
+cd gigglers/podiumpolly
 python scripts/run.py --file ../../tools/bot-squad/demo-inputs/3.2-keynote-notes.md
 ```
 
@@ -182,7 +182,7 @@ flowchart LR
 **Demo run:**
 
 ```powershell
-cd helpers/memoirmachine
+cd gigglers/memoirmachine
 python scripts/run.py --file ../../tools/bot-squad/demo-inputs/3.3-class-transcripts.txt
 ```
 
@@ -201,7 +201,7 @@ flowchart LR
 **Demo run:**
 
 ```powershell
-cd helpers/audiopotluck
+cd gigglers/audiopotluck
 python scripts/run.py --file ../../tools/bot-squad/demo-inputs/4.1-recording-inventory.txt
 ```
 
@@ -234,7 +234,7 @@ flowchart LR
 **Demo run:**
 
 ```powershell
-cd helpers/minutesmeantime
+cd gigglers/minutesmeantime
 python scripts/run.py --file ../../tools/bot-squad/demo-inputs/4.2-standup-transcript.txt
 ```
 
@@ -245,7 +245,7 @@ python scripts/run.py --file ../../tools/bot-squad/demo-inputs/4.2-standup-trans
 Run any task by ID without switching directories:
 
 ```powershell
-cd helpers/parsepilot
+cd gigglers/parsepilot
 python scripts/run_task.py 1.1 --file ../../tools/bot-squad/demo-inputs/1.1-email-thread.txt
 python scripts/run_task.py 1.2 --file ../../tools/bot-squad/demo-inputs/1.2-parsed-email.md
 python scripts/run_task.py 4.2 --file ../../tools/bot-squad/demo-inputs/4.2-standup-transcript.txt

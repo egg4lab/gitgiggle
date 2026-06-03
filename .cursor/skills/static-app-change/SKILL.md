@@ -5,11 +5,11 @@ description: Safely implement small static site/app updates in this repository
 
 # Static App Change Skill
 
-Use this skill when asked to update HTML/CSS/JS in `helpers/` or `projects/`.
+Use this skill when asked to update HTML/CSS/JS in `gigglers/` or `projects/`.
 
 ## Inputs to collect
 
-1. Target app path (for example `helpers/leave-calculator/`).
+1. Target app path (for example `gigglers/leave-calculator/`).
 2. Exact behavior/UI change requested.
 3. Constraints (mobile layout, style consistency, no new dependencies).
 

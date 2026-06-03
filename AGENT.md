@@ -4,10 +4,10 @@ This file provides default guidance for AI agents working in this repository.
 
 ## Repository intent
 
-GitGiggle hosts personal helper bots, static tools, and project demos:
+GitGiggle hosts personal giggler bots, static tools, and project demos:
 
-- `helpers/` for AI bots, automations, and publishable helper tools
-- `apps/` for legacy redirect stubs only (old GitHub Pages URLs)
+- `gigglers/` for AI bots, automations, and publishable tools
+- `apps/` and `helpers/` for legacy redirect stubs only (old GitHub Pages URLs)
 - `projects/` for project demos
 - `tools/` for scripts and utilities
 

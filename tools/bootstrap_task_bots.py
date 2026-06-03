@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Bootstrap ten task-specific bots under helpers/ following beeper/prana conventions."""
+"""Bootstrap ten task-specific bots under gigglers/ following beeper/prana conventions."""
 from __future__ import annotations
 
 import pathlib
 import textwrap
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
-HELPERS = REPO / "helpers"
+GIGGLERS = REPO / "gigglers"
 
 GITIGNORE = """__pycache__/
 *.pyc
@@ -434,7 +434,7 @@ On GitHub → Settings → Secrets and variables → Actions → New repository 
 
 ### 2. Install dependencies
 ```bash
-cd helpers/{folder}
+cd gigglers/{folder}
 pip install -r scripts/requirements.txt
 ```
 
@@ -485,7 +485,7 @@ README.md
 
 def bootstrap() -> None:
     for bot in BOTS:
-        root = HELPERS / bot["folder"]
+        root = GIGGLERS / bot["folder"]
         (root / "config").mkdir(parents=True, exist_ok=True)
         (root / "scripts").mkdir(parents=True, exist_ok=True)
         (root / "logs").mkdir(parents=True, exist_ok=True)
@@ -506,7 +506,7 @@ def bootstrap() -> None:
             LOGS_README.format(log_prefix=bot["log_prefix"]),
             encoding="utf-8",
         )
-        print(f"Created helpers/{bot['folder']}/ ({bot['display_name']})")
+        print(f"Created gigglers/{bot['folder']}/ ({bot['display_name']})")
 
 
 if __name__ == "__main__":
