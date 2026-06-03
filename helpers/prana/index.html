@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRANA — Your AI Ashtanga Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --sage:   #52b788;
+  --lotus:  #e77d8e;
+  --gold:   #f4b942;
+  --mist:   #a8c5da;
+  --bg:     #080d16;
+  --card:   #0e1822;
+  --card2:  #0a1320;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── MIST PARTICLES ── */
+#mist { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.mote {
+  position: absolute; border-radius: 50%; background: #fff;
+  animation: twinkle var(--d, 4s) ease-in-out infinite alternate;
+  animation-delay: var(--dl, 0s);
+}
+@keyframes twinkle { 0%{opacity:.05;transform:scale(.7)} 100%{opacity:.7;transform:scale(1.1)} }
+
+/* ── SCENE ── */
+.scene {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 40px 16px 80px; min-height: 100vh;
+  max-width: 980px; margin: 0 auto;
+}
+
+/* ── HEADER ── */
+header { text-align: center; margin-bottom: 32px; }
+
+.logo-title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(2.4rem, 7vw, 4.5rem);
+  font-weight: 900;
+  background: linear-gradient(90deg, var(--sage) 0%, var(--lotus) 40%, var(--gold) 80%, var(--sage) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; background-size: 300%; letter-spacing: 6px;
+  animation: shimmer 5s linear infinite;
+  filter: drop-shadow(0 0 20px rgba(82,183,136,.35));
+}
+@keyframes shimmer { 0%{background-position:0%} 100%{background-position:300%} }
+
+.tagline {
+  font-family: 'Orbitron', monospace; font-size: .78rem;
+  color: #6a8fa8; letter-spacing: 3px; margin-top: 8px; text-transform: uppercase;
+}
+
+/* ── PROGRESS BAR ── */
+.progress-bar-wrap {
+  width: 100%; max-width: 900px;
+  background: rgba(255,255,255,.04); border-radius: 4px;
+  height: 4px; margin-bottom: 28px; overflow: hidden;
+}
+.progress-bar {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--sage), var(--lotus));
+  border-radius: 4px;
+  transition: width .6s ease;
+  box-shadow: 0 0 10px var(--sage);
+}
+
+/* ── STAGE ── */
+.stage {
+  width: 100%; max-width: 900px;
+  background: var(--card); border: 1px solid #182d40; border-radius: 24px;
+  padding: 36px 28px; position: relative; overflow: hidden;
+  box-shadow: 0 0 80px rgba(82,183,136,.05), 0 0 160px rgba(231,125,142,.03);
+}
+.stage::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(82,183,136,.06) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+/* ── ROBOT WRAPPER ── */
+.robot-wrap {
+  display: flex; justify-content: center;
+  margin-bottom: 32px; position: relative;
+}
+
+/* ── ROBOT ── */
+.robot {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center;
+  animation: float 4.2s ease-in-out infinite;
+  filter: drop-shadow(0 20px 30px rgba(82,183,136,.12));
+}
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+
+.robot.celebrate {
+  animation: celebrate .18s ease-in-out infinite alternate;
+}
+@keyframes celebrate {
+  0%  { transform: rotate(-4deg) scale(1.04); filter: drop-shadow(0 0 28px var(--sage)) brightness(1.3); }
+  100%{ transform: rotate(4deg)  scale(1.04); filter: drop-shadow(0 0 28px var(--lotus)) brightness(1.3); }
+}
+
+/* Antenna */
+.antenna {
+  width: 5px; height: 32px;
+  background: linear-gradient(180deg, #223344, var(--sage));
+  border-radius: 3px; margin-bottom: -2px;
+  box-shadow: 0 0 6px var(--sage);
+}
+.antenna-ball {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff 0%, var(--gold) 60%);
+  box-shadow: 0 0 16px var(--gold), 0 0 32px rgba(244,185,66,.5);
+  animation: blink-ball 2s ease-in-out infinite;
+  position: relative; left: -4.5px; top: 2px;
+}
+@keyframes blink-ball {
+  0%,100%{opacity:1;transform:scale(1);box-shadow:0 0 16px var(--gold),0 0 32px rgba(244,185,66,.5)}
+  50%{opacity:.3;transform:scale(.65);box-shadow:none}
+}
+
+/* Head */
+.head {
+  width: 100px; height: 86px;
+  background: linear-gradient(145deg, #163828 0%, #0c2218 60%, #061510 100%);
+  border: 2px solid var(--sage); border-radius: 22px;
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  position: relative;
+  box-shadow: 0 0 24px rgba(82,183,136,.25), inset 0 0 24px rgba(82,183,136,.05);
+}
+.head::before, .head::after {
+  content: ''; position: absolute; top: 50%; transform: translateY(-50%);
+  width: 8px; height: 22px; background: #163828; border-radius: 4px;
+  border: 1px solid rgba(82,183,136,.4);
+}
+.head::before { left: -9px; }
+.head::after  { right: -9px; }
+
+/* Eyes */
+.eyes { display: flex; gap: 14px; position: relative; }
+.eye {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #c8f5e0, var(--sage));
+  box-shadow: 0 0 12px var(--sage), 0 0 24px rgba(82,183,136,.35);
+  position: relative;
+  animation: eyeblink 5s ease-in-out infinite;
+  transform-origin: center;
+}
+.eye.right { animation-delay: .25s; }
+@keyframes eyeblink {
+  0%,88%,100%{ transform: scaleY(1) translateX(0); }
+  92%{ transform: scaleY(.05) translateX(0); }
+  95%{ transform: scaleY(1) translateX(3px); }
+  98%{ transform: scaleY(1) translateX(-3px); }
+}
+.eye::after {
+  content: ''; position: absolute;
+  top: 5px; left: 5px; width: 7px; height: 7px;
+  border-radius: 50%; background: rgba(255,255,255,.9);
+}
+
+/* Mouth — softer lotus LED bar */
+.mouth {
+  position: absolute; bottom: 11px;
+  width: 52px; height: 6px; border-radius: 3px;
+  background: repeating-linear-gradient(90deg, var(--lotus) 0 6px, transparent 6px 10px);
+  animation: mouthrun .5s linear infinite;
+  box-shadow: 0 0 8px var(--lotus);
+}
+@keyframes mouthrun { to { background-position: 10px 0; } }
+
+/* Neck */
+.neck {
+  width: 28px; height: 10px;
+  background: #0c2218;
+  border-left: 2px solid rgba(82,183,136,.4);
+  border-right: 2px solid rgba(82,183,136,.4);
+}
+
+/* Body wrapper */
+.body-wrap { position: relative; }
+
+/* Arms — zen wave motion */
+.arms {
+  position: absolute; top: 12px;
+  width: 160px; left: 50%; transform: translateX(-50%);
+  display: flex; justify-content: space-between;
+  pointer-events: none;
+}
+.arm {
+  width: 20px; height: 62px;
+  background: linear-gradient(180deg, #163828, #0c2218);
+  border: 2px solid rgba(82,183,136,.6); border-radius: 10px;
+  position: relative;
+  box-shadow: 0 0 8px rgba(82,183,136,.15);
+}
+.arm.left  { transform-origin: top center; animation: armL 4.2s ease-in-out infinite; }
+.arm.right { transform-origin: top center; animation: armR 4.2s ease-in-out infinite; }
+@keyframes armL { 0%,100%{transform:rotate(-8deg)} 50%{transform:rotate(30deg)} }
+@keyframes armR { 0%,100%{transform:rotate(8deg)}  50%{transform:rotate(-30deg)} }
+.arm::after {
+  content: ''; position: absolute; bottom: -5px; left: 50%;
+  transform: translateX(-50%);
+  width: 14px; height: 10px;
+  background: #163828; border-radius: 5px;
+  border: 1px solid rgba(82,183,136,.5);
+}
+
+/* Body */
+.body {
+  width: 118px; height: 108px;
+  background: linear-gradient(160deg, #163828 0%, #091910 100%);
+  border: 2px solid var(--sage); border-radius: 18px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px;
+  box-shadow: 0 0 24px rgba(82,183,136,.15);
+  position: relative; overflow: hidden;
+}
+.body::before {
+  content: ''; position: absolute; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 8px, rgba(82,183,136,.02) 8px, rgba(82,183,136,.02) 9px);
+}
+
+/* Chest screen */
+.chest-screen {
+  width: 76px; height: 44px; background: #000;
+  border: 1px solid rgba(82,183,136,.8); border-radius: 7px;
+  overflow: hidden; position: relative;
+  box-shadow: inset 0 0 10px rgba(82,183,136,.1);
+}
+.scan-line {
+  position: absolute; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--sage), transparent);
+  opacity: .6; animation: scanline 2.4s linear infinite;
+}
+@keyframes scanline { from{top:-2px} to{top:110%} }
+.screen-text {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Orbitron', monospace; font-size: 7px;
+  color: var(--sage); letter-spacing: 1px;
+  text-align: center; line-height: 1.5;
+  text-shadow: 0 0 6px var(--sage);
+}
+
+/* Token counter */
+.token-counter {
+  position: absolute; inset: 0;
+  display: none; align-items: center; justify-content: center;
+  font-family: 'Orbitron', monospace; font-size: 8px;
+  color: var(--lotus); text-align: center; line-height: 1.4;
+  text-shadow: 0 0 8px var(--lotus);
+}
+
+/* Scroll slot (practice log output) */
+.scroll-slot {
+  width: 64px; height: 8px; background: #000;
+  border: 1px solid rgba(244,185,66,.7); border-radius: 4px;
+  box-shadow: inset 0 0 6px rgba(244,185,66,.1), 0 0 6px rgba(244,185,66,.2);
+  position: relative; overflow: hidden;
+}
+.scroll-slot::after {
+  content: '';
+  position: absolute; top: 50%; left: -100%;
+  height: 100%; width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(244,185,66,.5), transparent);
+  transform: translateY(-50%);
+  animation: slotshine 2.2s linear infinite;
+}
+@keyframes slotshine { to { left: 140%; } }
+
+/* Legs */
+.legs { display: flex; gap: 18px; margin-top: 5px; }
+.leg {
+  width: 22px; height: 34px;
+  background: linear-gradient(180deg, #163828, #0c2218);
+  border: 2px solid rgba(82,183,136,.6); border-radius: 0 0 10px 10px;
+  box-shadow: 0 0 8px rgba(82,183,136,.1);
+}
+.leg:nth-child(1) { animation: legwalk 1.4s ease-in-out infinite alternate; }
+.leg:nth-child(2) { animation: legwalk 1.4s ease-in-out infinite alternate-reverse; }
+@keyframes legwalk { from{transform:rotate(-7deg) translateY(0)} to{transform:rotate(7deg) translateY(-2px)} }
+.leg::after {
+  content: ''; display: block;
+  width: 28px; height: 8px; background: #0c2218;
+  border: 2px solid rgba(82,183,136,.5); border-radius: 4px;
+  position: relative; left: -5px; top: 0;
+}
+
+/* ── STATUS ROW ── */
+.status-row {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: 24px; margin-bottom: 28px;
+}
+.stat-chip {
+  background: rgba(0,0,0,.4); border: 1px solid #182d40;
+  border-radius: 12px; padding: 12px 20px; text-align: center; min-width: 110px;
+  transition: all .4s;
+}
+.stat-chip.lit { border-color: var(--sage); box-shadow: 0 0 14px rgba(82,183,136,.2); }
+.stat-num {
+  font-family: 'Orbitron', monospace; font-size: 1.4rem; font-weight: 700;
+  color: var(--sage); display: block;
+}
+.stat-chip.lit .stat-num { text-shadow: 0 0 10px var(--sage); }
+.stat-label { font-size: .7rem; color: #6a8fa8; letter-spacing: 1px; margin-top: 3px; }
+
+/* ── PHASE PILLS ── */
+.phase-bar {
+  display: flex; justify-content: center;
+  gap: 10px; margin-bottom: 24px; flex-wrap: wrap;
+}
+.phase-pill {
+  font-family: 'Orbitron', monospace; font-size: .68rem; letter-spacing: 1px;
+  padding: 6px 16px; border-radius: 20px; border: 1px solid #182d40;
+  color: #223344; transition: all .4s; cursor: default; user-select: none;
+}
+.phase-pill.active { border-color: var(--sage); color: var(--sage); background: rgba(82,183,136,.08); box-shadow: 0 0 14px rgba(82,183,136,.2); }
+.phase-pill.done   { border-color: var(--lotus); color: var(--lotus); background: rgba(231,125,142,.06); }
+
+/* ── ACTION DISPLAY ── */
+.action-display {
+  position: relative; margin-bottom: 24px; min-height: 140px;
+}
+
+.float-zone {
+  position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 2;
+}
+.fword {
+  position: absolute; font-size: clamp(.6rem, 1.5vw, .85rem); font-weight: 700;
+  border-radius: 6px; padding: 5px 12px; opacity: 0; white-space: nowrap;
+  animation: floatUp var(--dur,2.5s) ease-out var(--delay,0s) forwards;
+  letter-spacing: 1px;
+}
+@keyframes floatUp {
+  0%  { opacity:0; transform: translateY(28px) scale(.8); }
+  15% { opacity:1; transform: translateY(0)    scale(1);  }
+  80% { opacity:.9; transform: translateY(-12px) scale(1); }
+  100%{ opacity:0; transform: translateY(-40px) scale(.9);}
+}
+
+/* Terminal */
+.terminal {
+  background: #000; border: 1px solid #1a3a28; border-radius: 12px;
+  padding: 18px 18px 14px; font-family: 'Courier New', monospace;
+  font-size: .82rem; color: var(--sage); min-height: 100px;
+  position: relative; overflow: hidden;
+}
+.term-chrome {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 12px;
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot.r { background: #ff5f57; } .dot.y { background: #ffbd2e; } .dot.g { background: #28c941; }
+.term-title { font-size: .65rem; color: #334; flex: 1; text-align: center; letter-spacing: 1px; }
+.terminal-body { line-height: 1.75; }
+.tline { display: block; opacity: 0; }
+.tline.show { animation: fadein .3s forwards; }
+@keyframes fadein { to { opacity: 1; } }
+.cursor { display: inline-block; animation: cur .7s step-end infinite; }
+@keyframes cur { 50% { opacity:0; } }
+
+/* ── SCROLL FLY ── */
+.scroll-fly {
+  position: fixed; font-size: 3rem; pointer-events: none;
+  z-index: 9999; opacity: 0;
+}
+.scroll-fly.go { animation: flyScroll 2s cubic-bezier(.4,0,.2,1) forwards; }
+@keyframes flyScroll {
+  0%  { opacity:1; transform:scale(1)   translate(0,0) rotate(0deg); }
+  50% { opacity:1; transform:scale(1.5) translate(160px,-140px) rotate(-10deg); }
+  100%{ opacity:0; transform:scale(.3)  translate(340px,-360px) rotate(-24deg); }
+}
+
+/* ── CONFETTI ── */
+.confetto {
+  position: fixed; width: 8px; height: 8px; border-radius: 2px;
+  pointer-events: none; z-index: 9990;
+  animation: confettifall var(--dur,2s) ease-in var(--dl,0s) forwards;
+}
+@keyframes confettifall {
+  0%  { opacity:1; transform: translateY(0) rotate(0deg) scale(1); }
+  100%{ opacity:0; transform: translateY(var(--dy,300px)) rotate(var(--rot,360deg)) scale(.4); }
+}
+
+/* ── SUCCESS BADGE ── */
+.success-badge {
+  display: none; text-align: center; padding: 20px 28px; margin-top: 20px;
+  border: 2px solid var(--gold); border-radius: 18px;
+  background: rgba(244,185,66,.05);
+  animation: popIn .5s cubic-bezier(.18,.89,.32,1.28) forwards;
+}
+.success-badge.show { display: block; }
+@keyframes popIn { from{transform:scale(.5);opacity:0} to{transform:scale(1);opacity:1} }
+.success-badge .big { font-size: 3.2rem; display: block; margin-bottom: 10px; }
+.success-badge p {
+  font-family: 'Orbitron', monospace; font-size: .9rem;
+  color: var(--gold); letter-spacing: 2px;
+}
+
+/* ── STEP CARDS ── */
+.steps {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 16px; margin-top: 28px;
+}
+@media(max-width:580px) { .steps { grid-template-columns: 1fr; } }
+
+.step-card {
+  background: rgba(0,0,0,.35); border: 1px solid #182d40; border-radius: 16px;
+  padding: 22px 16px; text-align: center; transition: all .5s; opacity: .38;
+}
+.step-card.lit {
+  border-color: var(--sage); opacity: 1;
+  box-shadow: 0 0 24px rgba(82,183,136,.14);
+  transform: translateY(-5px);
+}
+.step-card.lit.p2 { border-color: var(--lotus); box-shadow: 0 0 24px rgba(231,125,142,.14); }
+.step-card.lit.p3 { border-color: var(--gold);  box-shadow: 0 0 24px rgba(244,185,66,.14); }
+.step-icon { font-size: 2.4rem; margin-bottom: 10px; }
+.step-title {
+  font-family: 'Orbitron', monospace; font-size: .72rem;
+  letter-spacing: 2px; color: var(--sage); margin-bottom: 8px;
+}
+.step-card.p2 .step-title { color: var(--lotus); }
+.step-card.p3 .step-title { color: var(--gold); }
+.step-desc { font-size: .78rem; color: #6a8fa8; line-height: 1.6; }
+
+/* ── CONTROLS ── */
+.controls {
+  display: flex; justify-content: center; gap: 14px;
+  margin-top: 30px; flex-wrap: wrap;
+}
+.btn {
+  font-family: 'Orbitron', monospace; font-size: .75rem;
+  letter-spacing: 2px; padding: 13px 32px; border-radius: 30px;
+  border: none; cursor: pointer; transition: all .2s; font-weight: 700;
+}
+.btn-play {
+  background: linear-gradient(90deg, var(--lotus), var(--sage));
+  color: #000;
+  box-shadow: 0 0 28px rgba(82,183,136,.35), 0 0 56px rgba(231,125,142,.15);
+  animation: glow-pulse 2.4s ease-in-out infinite;
+}
+@keyframes glow-pulse {
+  0%,100%{ box-shadow: 0 0 28px rgba(82,183,136,.35), 0 0 56px rgba(231,125,142,.15); }
+  50%    { box-shadow: 0 0 42px rgba(82,183,136,.6),  0 0 84px rgba(231,125,142,.3);  }
+}
+.btn-play:hover { transform: scale(1.07); }
+.btn-play:disabled { opacity:.35; cursor:not-allowed; animation:none; }
+
+.btn-test {
+  background: linear-gradient(90deg, var(--gold), #e8950a);
+  color: #000;
+  box-shadow: 0 0 24px rgba(244,185,66,.35);
+  animation: glow-gold 2.4s ease-in-out infinite;
+}
+@keyframes glow-gold {
+  0%,100%{ box-shadow: 0 0 24px rgba(244,185,66,.35); }
+  50%    { box-shadow: 0 0 42px rgba(244,185,66,.65); }
+}
+.btn-test:hover { transform: scale(1.07); }
+
+.btn-reset {
+  background: transparent; color: #6a8fa8; border: 1px solid #223344;
+}
+.btn-reset:hover { border-color: var(--lotus); color: var(--lotus); }
+.btn:disabled { opacity:.35; cursor:not-allowed; animation:none; }
+
+/* ── TICKER ── */
+.ticker-wrap {
+  width: 100%; max-width: 900px; overflow: hidden;
+  background: rgba(82,183,136,.02); border: 1px solid #0e2218; border-radius: 8px;
+  margin-top: 22px; padding: 9px 0; position: relative;
+}
+.ticker-wrap::before, .ticker-wrap::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 40px; z-index: 2;
+  pointer-events: none;
+}
+.ticker-wrap::before { left: 0; background: linear-gradient(90deg, var(--bg), transparent); }
+.ticker-wrap::after  { right:0; background: linear-gradient(-90deg, var(--bg), transparent); }
+.ticker {
+  display: flex; gap: 60px; white-space: nowrap;
+  animation: ticker 34s linear infinite;
+  font-size: .72rem; color: #334455; font-family: 'Courier New', monospace;
+}
+@keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+.ticker span { color: var(--sage); font-weight: 700; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 10000;
+  background: rgba(8,13,22,.92); backdrop-filter: blur(8px);
+  display: none; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: #0e1822; border: 1px solid var(--sage);
+  border-radius: 20px; padding: 36px 32px;
+  max-width: 480px; width: 100%;
+  box-shadow: 0 0 60px rgba(82,183,136,.18), 0 0 120px rgba(231,125,142,.08);
+  position: relative; animation: slideUp .35s cubic-bezier(.18,.89,.32,1.28);
+}
+@keyframes slideUp { from{transform:translateY(40px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+.modal h2 {
+  font-family: 'Orbitron', monospace; font-size: 1rem; letter-spacing: 2px;
+  color: var(--sage); margin-bottom: 8px;
+}
+.modal p.sub { font-size: .82rem; color: #6a8fa8; margin-bottom: 20px; line-height: 1.6; }
+
+.token-panel { display: none; }
+.token-panel.show { display: block; }
+.token-panel label { font-size: .75rem; color: #6a8fa8; letter-spacing: 1px; display: block; margin-bottom: 6px; }
+.token-panel input {
+  width: 100%; background: #000; border: 1px solid var(--sage);
+  border-radius: 8px; padding: 10px 14px; color: var(--sage);
+  font-family: 'Courier New', monospace; font-size: .85rem; margin-bottom: 12px;
+}
+.token-panel input:focus { outline: none; box-shadow: 0 0 10px rgba(82,183,136,.3); }
+.token-panel input::placeholder { color: #223344; }
+
+.send-anim { text-align: center; padding: 20px 0; display: none; }
+.send-anim.show { display: block; }
+.send-spinner {
+  width: 56px; height: 56px; margin: 0 auto 16px;
+  border: 3px solid #182d40; border-top-color: var(--sage);
+  border-radius: 50%; animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.send-anim p { font-family: 'Orbitron', monospace; font-size: .8rem; color: #6a8fa8; letter-spacing: 1px; }
+
+.result-panel { display: none; }
+.result-panel.show { display: block; }
+.result-success {
+  background: rgba(82,183,136,.06); border: 1px solid var(--sage);
+  border-radius: 12px; padding: 18px; text-align: center; display: none;
+}
+.result-success.show { display: block; animation: popIn .4s ease; }
+.result-success .big { font-size: 2.4rem; margin-bottom: 8px; display: block; }
+.result-success p { font-size: .82rem; color: var(--sage); font-family: 'Orbitron', monospace; letter-spacing: 1px; }
+
+.result-warn {
+  background: rgba(255,100,0,.07); border: 1px solid #ff6600;
+  border-radius: 12px; padding: 18px; text-align: center; display: none;
+}
+.result-warn.show { display: block; animation: popIn .4s ease; }
+.result-warn .big { font-size: 2rem; margin-bottom: 8px; display: block; }
+.result-warn p { font-size: .8rem; color: #ff8800; font-family: 'Orbitron', monospace; letter-spacing: 1px; }
+
+.modal-link {
+  display: inline-block; margin-top: 14px; font-size: .75rem;
+  color: var(--sage); text-decoration: none; letter-spacing: 1px;
+  font-family: 'Orbitron', monospace;
+}
+.modal-link:hover { text-decoration: underline; }
+
+.modal-close {
+  position: absolute; top: 14px; right: 16px;
+  background: none; border: none; color: #6a8fa8; cursor: pointer;
+  font-size: 1.2rem; line-height: 1;
+}
+.modal-close:hover { color: #fff; }
+</style>
+</head>
+<body>
+
+<div id="mist"></div>
+
+<div class="scroll-fly" id="scroll-fly">🧘</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2>🌿 TRIGGER PRANA NOW</h2>
+    <p class="sub">Fire the GitHub Actions workflow and get today's lesson plan committed to <code style="color:var(--sage)">logs/</code> in ~90 seconds.</p>
+
+    <div class="token-panel" id="token-panel">
+      <label>PASTE YOUR GITHUB PAT TO ENABLE REAL TRIGGER</label>
+      <input type="password" id="pat-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-play" style="flex:1;padding:11px 16px;font-size:.7rem;" onclick="saveAndSend()">SAVE &amp; TRIGGER</button>
+        <button class="btn btn-reset" style="padding:11px 16px;font-size:.7rem;" onclick="closeModal()">CANCEL</button>
+      </div>
+    </div>
+
+    <div class="send-anim" id="send-anim">
+      <div class="send-spinner"></div>
+      <p>DISPATCHING WORKFLOW…</p>
+    </div>
+
+    <div class="result-panel" id="result-panel">
+      <div class="result-success" id="result-success">
+        <span class="big">🌿</span>
+        <p>WORKFLOW TRIGGERED!</p>
+        <p style="color:#6a8fa8;font-family:Inter,sans-serif;font-size:.8rem;margin-top:8px;letter-spacing:0">Check logs/ in ~90 seconds.</p>
+      </div>
+      <div class="result-warn" id="result-warn">
+        <span class="big">⚠️</span>
+        <p>DEMO MODE</p>
+        <p style="color:#6a8fa8;font-family:Inter,sans-serif;font-size:.78rem;margin-top:8px;letter-spacing:0">Workflow not triggered. Check your token or network.</p>
+      </div>
+      <a class="modal-link" href="https://github.com/egg4lab/gitgiggle/actions/workflows/daily-plan.yml" target="_blank" rel="noopener">
+        Check live run →
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="scene">
+
+  <header>
+    <div class="logo-title">🌿 PRANA 🌿</div>
+    <div class="tagline">Your AI Ashtanga Planner</div>
+  </header>
+
+  <div class="progress-bar-wrap">
+    <div class="progress-bar" id="progress-bar"></div>
+  </div>
+
+  <div class="stage">
+
+    <!-- Robot -->
+    <div class="robot-wrap">
+      <div class="robot" id="robot">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="antenna-ball"></div>
+          <div class="antenna"></div>
+        </div>
+        <div class="head">
+          <div class="eyes">
+            <div class="eye left" id="eye-l"></div>
+            <div class="eye right" id="eye-r"></div>
+          </div>
+          <div class="mouth"></div>
+        </div>
+        <div class="neck"></div>
+        <div class="body-wrap">
+          <div class="arms">
+            <div class="arm left"></div>
+            <div class="arm right"></div>
+          </div>
+          <div class="body">
+            <div class="chest-screen">
+              <div class="scan-line"></div>
+              <div class="screen-text" id="screen-text">PRANA<br>v1.0</div>
+              <div class="token-counter" id="token-counter">TOKENS<br><span id="tok-num">0</span></div>
+            </div>
+            <div class="scroll-slot"></div>
+          </div>
+        </div>
+        <div class="legs">
+          <div class="leg"></div>
+          <div class="leg"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="status-row" id="stats-row">
+      <div class="stat-chip" id="sc-students">
+        <span class="stat-num" id="sn-students">0</span>
+        <div class="stat-label">🧘 STUDENTS PLANNED</div>
+      </div>
+      <div class="stat-chip" id="sc-asanas">
+        <span class="stat-num" id="sn-asanas">0</span>
+        <div class="stat-label">🌸 ASANAS MAPPED</div>
+      </div>
+      <div class="stat-chip" id="sc-tokens">
+        <span class="stat-num" id="sn-tokens">0</span>
+        <div class="stat-label">🧠 TOKENS USED</div>
+      </div>
+      <div class="stat-chip" id="sc-time">
+        <span class="stat-num" id="sn-time">0s</span>
+        <div class="stat-label">⏱️ TIME TAKEN</div>
+      </div>
+    </div>
+
+    <!-- Phase pills -->
+    <div class="phase-bar">
+      <div class="phase-pill" id="pill-0">① RISE</div>
+      <div class="phase-pill" id="pill-1">② ASSESS</div>
+      <div class="phase-pill" id="pill-2">③ PLAN</div>
+      <div class="phase-pill" id="pill-3">④ COMMIT</div>
+    </div>
+
+    <!-- Action display -->
+    <div class="action-display">
+      <div class="float-zone" id="float-zone"></div>
+      <div class="terminal">
+        <div class="term-chrome">
+          <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+          <span class="term-title">prana-runtime — bash</span>
+        </div>
+        <div class="terminal-body" id="term-body">
+          <span class="tline show" style="color:#334455"># Prana is resting. Press ▶ PRACTICE to begin the demo.</span>
+          <span class="tline show"><span class="cursor">▋</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step cards -->
+    <div class="steps">
+      <div class="step-card p1" id="card-1">
+        <div class="step-icon">📖</div>
+        <div class="step-title">READ</div>
+        <div class="step-desc">Prana loads every student profile — name, level, last asana given, days since practice, and active modifications.</div>
+      </div>
+      <div class="step-card p2" id="card-2">
+        <div class="step-icon">🧠</div>
+        <div class="step-title">THINK</div>
+        <div class="step-desc">Claude Opus maps the next asana for each student, flags anyone overdue, and writes coach notes — Mysore method, terse.</div>
+      </div>
+      <div class="step-card p3" id="card-3">
+        <div class="step-icon">📝</div>
+        <div class="step-title">COMMIT</div>
+        <div class="step-desc">Prana writes today's plan to <code style="color:var(--gold)">logs/YYYY-MM-DD.md</code> and commits it — open on your phone before class.</div>
+      </div>
+    </div>
+
+    <!-- Success badge -->
+    <div class="success-badge" id="success">
+      <span class="big">🙏</span>
+      <p>PLAN COMMITTED — NAMASTE</p>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button class="btn btn-play" id="btn-play" onclick="startShow()">▶ PRACTICE</button>
+      <button class="btn btn-test" onclick="openTestModal()">🌿 TRIGGER NOW</button>
+      <button class="btn btn-reset" onclick="resetShow()">↺ RESET</button>
+    </div>
+
+  </div><!-- /stage -->
+
+  <!-- Ticker -->
+  <div class="ticker-wrap">
+    <div class="ticker" id="ticker">
+      <span>PRANA STATUS:</span> ONLINE &nbsp;|&nbsp;
+      <span>AI ENGINE:</span> Claude Opus 4.7 &nbsp;|&nbsp;
+      <span>DAILY PLAN:</span> 06:00 Taipei &nbsp;|&nbsp;
+      <span>WEEKLY REVIEW:</span> Sunday 20:00 Taipei &nbsp;|&nbsp;
+      <span>STUDENTS:</span> Alice · Bob · Carol &nbsp;|&nbsp;
+      <span>SERIES:</span> Primary · Intermediate · Modified &nbsp;|&nbsp;
+      <span>LAST LOG:</span> logs/2026-04-30.md &nbsp;|&nbsp;
+      <span>COST:</span> ~$0.05 / run &nbsp;|&nbsp;
+      <span>PRANA STATUS:</span> ONLINE &nbsp;|&nbsp;
+      <span>AI ENGINE:</span> Claude Opus 4.7 &nbsp;|&nbsp;
+      <span>DAILY PLAN:</span> 06:00 Taipei &nbsp;|&nbsp;
+      <span>WEEKLY REVIEW:</span> Sunday 20:00 Taipei &nbsp;|&nbsp;
+      <span>STUDENTS:</span> Alice · Bob · Carol &nbsp;|&nbsp;
+      <span>SERIES:</span> Primary · Intermediate · Modified &nbsp;|&nbsp;
+      <span>LAST LOG:</span> logs/2026-04-30.md &nbsp;|&nbsp;
+      <span>COST:</span> ~$0.05 / run &nbsp;|&nbsp;
+    </div>
+  </div>
+
+</div><!-- /scene -->
+
+<script>
+/* ══════════════════════════════════════════
+   MIST PARTICLES
+══════════════════════════════════════════ */
+(function buildMist() {
+  const c = document.getElementById('mist');
+  for (let i = 0; i < 100; i++) {
+    const s = document.createElement('div');
+    s.className = 'mote';
+    const sz = Math.random() * 2.2 + .3;
+    s.style.cssText = `
+      left:${(Math.random()*100).toFixed(2)}%;
+      top:${(Math.random()*100).toFixed(2)}%;
+      width:${sz}px; height:${sz}px;
+      --d:${(Math.random()*6+3).toFixed(1)}s;
+      --dl:${(Math.random()*8).toFixed(1)}s;
+      background: hsl(${140+Math.random()*40},60%,${70+Math.random()*30}%);
+    `;
+    c.appendChild(s);
+  }
+})();
+
+/* ══════════════════════════════════════════
+   SEQUENCE DATA
+══════════════════════════════════════════ */
+const PHASES = [
+  {
+    pill: 0, screen: 'RISE\n06:00',
+    words: [
+      { t:'CRON FIRED',      c:'#52b788' },
+      { t:'06:00 TAIPEI',    c:'#f4b942' },
+      { t:'RUNNER ONLINE',   c:'#52b788' },
+      { t:'CHECKOUT ✓',      c:'#a8c5da' },
+      { t:'DEPS READY',      c:'#52b788' },
+    ],
+    logs: [
+      ['$ GitHub Actions runner started (ubuntu-latest)', '#52b788'],
+      ['$ Loading workflow: daily-plan.yml', '#52b788'],
+      ['$ Trigger: cron 0 22 * * * → 06:00 Taipei ⏰', '#f4b942'],
+      ['$ Secret loaded: ANTHROPIC_API_KEY ✓', '#52b788'],
+      ['$ actions/checkout@v4 — repo cloned ✓', '#a8c5da'],
+      ['$ pip install -r scripts/requirements.txt ✓', '#52b788'],
+    ],
+    card: null, progress: 12, duration: 3600,
+  },
+  {
+    pill: 1, screen: 'READ\nSTUDS',
+    words: [
+      { t:'ALICE CHEN',       c:'#52b788' },
+      { t:'BOB LIN',          c:'#e77d8e' },
+      { t:'CAROL WU',         c:'#f4b942' },
+      { t:'MARI D',           c:'#52b788' },
+      { t:'PRIMARY SERIES',   c:'#a8c5da' },
+      { t:'INTERMEDIATE',     c:'#e77d8e' },
+      { t:'MODIFIED',         c:'#f4b942' },
+    ],
+    logs: [
+      ['$ Loading students/alice-chen.md  → level: Primary, last: Marichyasana D', '#52b788'],
+      ['$ Loading students/bob-lin.md     → level: Intermediate, last: Laghu Vajrasana', '#52b788'],
+      ['$ Loading students/carol-wu.md    → level: Primary (modified), last: Janu B', '#52b788'],
+      ['$ Loading sequences/primary.md ✓', '#a8c5da'],
+      ['$ Loading sequences/intermediate.md ✓', '#a8c5da'],
+      ['$ Loading sequences/modified.md ✓', '#a8c5da'],
+      ['$ 3 students · 3 sequences loaded — ready for Claude ✓', '#f4b942'],
+    ],
+    card: 'card-1', progress: 38, duration: 4000,
+    statUpdate: () => {
+      countTo('sn-students', 3, 1800, null, () => document.getElementById('sc-students').classList.add('lit'));
+      countTo('sn-asanas', 12, 2200, null, () => document.getElementById('sc-asanas').classList.add('lit'));
+    },
+  },
+  {
+    pill: 2, screen: 'CLAUDE\nOPUS',
+    words: [
+      { t:'TOKENISING…',      c:'#e77d8e' },
+      { t:'CLAUDE OPUS 4.7',  c:'#e77d8e' },
+      { t:'ASANA MAP ✓',      c:'#e77d8e' },
+      { t:'WATCH LIST',       c:'#f4b942' },
+      { t:'COACH NOTES',      c:'#e77d8e' },
+      { t:'PLAN DRAFTED',     c:'#f4b942' },
+    ],
+    logs: [
+      ['$ Calling Anthropic API…', '#52b788'],
+      ['$ Model: claude-opus-4-7  max_tokens: 2500', '#a8c5da'],
+      ['$ System: Mysore-style Ashtanga teacher assistant', '#a8c5da'],
+      ['$ Input tokens:  1,843', '#a8c5da'],
+      ['$ Output tokens: 1,104', '#a8c5da'],
+      ['$ Total: 2,947 tokens — response received ✓', '#e77d8e'],
+      ['$ Plan sections: Roster | Watch list | Coach notes | Reminders', '#f4b942'],
+    ],
+    card: 'card-2', progress: 68, duration: 4200,
+    statUpdate: () => {
+      countTo('sn-tokens', 2947, 3000, ',', () => document.getElementById('sc-tokens').classList.add('lit'));
+      showTokenCounter();
+    },
+  },
+  {
+    pill: 3, screen: 'GIT\nPUSH',
+    words: [
+      { t:'LOG WRITTEN',      c:'#f4b942' },
+      { t:'GIT ADD logs/',    c:'#f4b942' },
+      { t:'COMMIT ✓',         c:'#52b788' },
+      { t:'GIT PUSH ✓',       c:'#52b788' },
+      { t:'TEACH TODAY 🙏',   c:'#e77d8e' },
+    ],
+    logs: [
+      ['$ Writing logs/2026-04-30.md ✓', '#52b788'],
+      ['$ git config user.name "yoga-agent"', '#a8c5da'],
+      ['$ git add logs/', '#a8c5da'],
+      ['$ git diff --staged — changes detected ✓', '#52b788'],
+      ['$ git commit -m "daily plan 2026-04-30"', '#52b788'],
+      ['$ git push — origin/main updated ✓ 🎉', '#f4b942'],
+    ],
+    card: 'card-3', progress: 100, duration: 3500,
+    statUpdate: () => {
+      setTimeout(() => { countToTime(); document.getElementById('sc-time').classList.add('lit'); }, 1800);
+    },
+  },
+];
+
+/* ══════════════════════════════════════════
+   STATE
+══════════════════════════════════════════ */
+let running = false, done = [];
+
+/* ══════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════ */
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+function log(text, color='#52b788') {
+  const tb = document.getElementById('term-body');
+  const s  = document.createElement('span');
+  s.className = 'tline';
+  s.style.color = color;
+  s.textContent = text;
+  tb.appendChild(s);
+  requestAnimationFrame(() => s.classList.add('show'));
+  tb.parentElement.scrollTop = tb.parentElement.scrollHeight;
+}
+
+function clearTerm() { document.getElementById('term-body').innerHTML = ''; }
+
+function setScreen(txt) { document.getElementById('screen-text').textContent = txt; }
+
+function spawnWords(words) {
+  const zone = document.getElementById('float-zone');
+  zone.innerHTML = '';
+  words.forEach((w, i) => {
+    const el = document.createElement('div');
+    el.className = 'fword';
+    el.textContent = w.t;
+    el.style.cssText = `
+      color:${w.c};
+      background:${w.c}18;
+      border:1px solid ${w.c}44;
+      left:${8 + Math.random()*68}%;
+      top:${8 + Math.random()*68}%;
+      --delay:${(i * .38).toFixed(2)}s;
+      --dur:${(2.4 + Math.random()*.8).toFixed(2)}s;
+    `;
+    zone.appendChild(el);
+    setTimeout(() => el.remove && el.remove(), 4000);
+  });
+}
+
+function setPill(idx, state) { document.getElementById(`pill-${idx}`).className = 'phase-pill ' + state; }
+function setProgress(pct) { document.getElementById('progress-bar').style.width = pct + '%'; }
+function setCard(id) { if (id) document.getElementById(id).classList.add('lit'); }
+
+function countTo(elId, target, duration, sep, onDone) {
+  const el = document.getElementById(elId);
+  const step = 16;
+  const steps = duration / step;
+  let cur = 0, frame = 0;
+  const t = setInterval(() => {
+    frame++;
+    cur = Math.round((frame / steps) * target);
+    if (cur >= target) { cur = target; clearInterval(t); if(onDone) onDone(); }
+    el.textContent = sep ? cur.toLocaleString() : cur;
+  }, step);
+}
+
+function countToTime() {
+  const el = document.getElementById('sn-time');
+  let t = 0;
+  const iv = setInterval(() => {
+    t++;
+    el.textContent = t + 's';
+    if (t >= 88) clearInterval(iv);
+  }, 80);
+}
+
+function showTokenCounter() {
+  const st = document.getElementById('screen-text');
+  const tc = document.getElementById('token-counter');
+  st.style.display = 'none';
+  tc.style.display = 'flex';
+  const num = document.getElementById('tok-num');
+  let v = 0;
+  const iv = setInterval(() => {
+    v += 58;
+    if (v >= 2947) { v = 2947; clearInterval(iv); }
+    num.textContent = v.toLocaleString();
+  }, 40);
+  setTimeout(() => {
+    tc.style.display = 'none';
+    st.style.display = 'flex';
+  }, 3200);
+}
+
+function doScrollFly() {
+  const el = document.getElementById('scroll-fly');
+  const robot = document.getElementById('robot');
+  const r = robot.getBoundingClientRect();
+  el.style.left = (r.left + r.width / 2 - 20) + 'px';
+  el.style.top  = (r.top  + r.height/ 2 - 20) + 'px';
+  el.classList.add('go');
+  setTimeout(() => el.classList.remove('go'), 2100);
+}
+
+function launchConfetti() {
+  const colors = ['#52b788','#e77d8e','#f4b942','#a8c5da','#c3f0ca','#ffffff'];
+  for (let i = 0; i < 80; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetto';
+    const color = colors[Math.floor(Math.random()*colors.length)];
+    const x = 20 + Math.random() * 60;
+    const rotDir = Math.random() > .5 ? 1 : -1;
+    c.style.cssText = `
+      background:${color};
+      left:${x}vw; top:30vh;
+      width:${6+Math.random()*6}px;
+      height:${6+Math.random()*6}px;
+      border-radius:${Math.random()>0.5?'50%':'2px'};
+      --dur:${(1.2+Math.random()*1.4).toFixed(2)}s;
+      --dl:${(Math.random()*.6).toFixed(2)}s;
+      --dy:${(200+Math.random()*300).toFixed(0)}px;
+      --rot:${(rotDir*(180+Math.random()*360)).toFixed(0)}deg;
+    `;
+    document.body.appendChild(c);
+    setTimeout(() => c.remove && c.remove(), 2500);
+  }
+}
+
+function celebrate() {
+  const robot = document.getElementById('robot');
+  robot.classList.add('celebrate');
+  ['eye-l','eye-r'].forEach(id => {
+    const e = document.getElementById(id);
+    e.style.background = 'radial-gradient(circle at 35% 35%, #fff, var(--gold))';
+    e.style.boxShadow  = '0 0 16px var(--gold)';
+  });
+  setTimeout(() => {
+    robot.classList.remove('celebrate');
+    ['eye-l','eye-r'].forEach(id => {
+      const e = document.getElementById(id);
+      e.style.background = '';
+      e.style.boxShadow  = '';
+    });
+  }, 3200);
+}
+
+/* ══════════════════════════════════════════
+   SEQUENCE ENGINE
+══════════════════════════════════════════ */
+async function runPhase(phase, idx) {
+  done.forEach(i => setPill(i, 'done'));
+  setPill(idx, 'active');
+  setScreen(phase.screen);
+  setProgress(phase.progress);
+  spawnWords(phase.words);
+  setCard(phase.card);
+  if (phase.statUpdate) phase.statUpdate();
+
+  for (let i = 0; i < phase.logs.length; i++) {
+    await sleep(480 * i);
+    log(phase.logs[i][0], phase.logs[i][1]);
+  }
+
+  if (idx === PHASES.length - 1) {
+    await sleep(700);
+    doScrollFly();
+    await sleep(1200);
+    launchConfetti();
+    celebrate();
+    await sleep(600);
+    document.getElementById('success').classList.add('show');
+  }
+  done.push(idx);
+}
+
+async function startShow() {
+  if (running) return;
+  running = true;
+  document.getElementById('btn-play').disabled = true;
+  clearTerm();
+
+  for (let i = 0; i < PHASES.length; i++) {
+    await runPhase(PHASES[i], i);
+    await sleep(PHASES[i].duration);
+  }
+
+  done.forEach(i => setPill(i, 'done'));
+  running = false;
+}
+
+function resetShow() {
+  if (running) return;
+  done = [];
+  document.querySelectorAll('.phase-pill').forEach(el => el.className = 'phase-pill');
+  document.querySelectorAll('.step-card').forEach(el => el.classList.remove('lit'));
+  document.querySelectorAll('.stat-chip').forEach(el => el.classList.remove('lit'));
+  ['sn-students','sn-asanas','sn-tokens'].forEach(id => document.getElementById(id).textContent = '0');
+  document.getElementById('sn-time').textContent = '0s';
+  document.getElementById('success').classList.remove('show');
+  document.getElementById('float-zone').innerHTML = '';
+  document.getElementById('progress-bar').style.width = '0%';
+  document.getElementById('screen-text').textContent = 'PRANA\nv1.0';
+  document.getElementById('token-counter').style.display = 'none';
+  document.getElementById('screen-text').style.display = 'flex';
+  document.getElementById('btn-play').disabled = false;
+  clearTerm();
+  log('# Prana is resting. Press ▶ PRACTICE to begin the demo.', '#334455');
+}
+
+/* ══════════════════════════════════════════
+   TRIGGER MODAL
+══════════════════════════════════════════ */
+const GH_WORKFLOW_URL = 'https://api.github.com/repos/egg4lab/gitgiggle/actions/workflows/daily-plan.yml/dispatches';
+const GH_ACTIONS_URL  = 'https://github.com/egg4lab/gitgiggle/actions/workflows/daily-plan.yml';
+const TOKEN_KEY = 'prana_gh_token';
+
+function openTestModal() {
+  resetModalState();
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) {
+    document.getElementById('token-panel').classList.add('show');
+  } else {
+    triggerWorkflow(token);
+  }
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+
+function resetModalState() {
+  document.getElementById('token-panel').classList.remove('show');
+  document.getElementById('send-anim').classList.remove('show');
+  document.getElementById('result-panel').classList.remove('show');
+  document.getElementById('result-success').classList.remove('show');
+  document.getElementById('result-warn').classList.remove('show');
+  document.getElementById('pat-input').value = '';
+}
+
+function saveAndSend() {
+  const val = document.getElementById('pat-input').value.trim();
+  if (!val) { document.getElementById('pat-input').focus(); return; }
+  localStorage.setItem(TOKEN_KEY, val);
+  document.getElementById('token-panel').classList.remove('show');
+  triggerWorkflow(val);
+}
+
+async function triggerWorkflow(token) {
+  document.getElementById('send-anim').classList.add('show');
+  let ok = false;
+  try {
+    const resp = await fetch(GH_WORKFLOW_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json',
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+      body: JSON.stringify({ ref: 'main' }),
+    });
+    ok = (resp.status === 204);
+  } catch(e) { ok = false; }
+
+  document.getElementById('send-anim').classList.remove('show');
+  document.getElementById('result-panel').classList.add('show');
+  if (ok) {
+    document.getElementById('result-success').classList.add('show');
+  } else {
+    document.getElementById('result-warn').classList.add('show');
+    localStorage.removeItem(TOKEN_KEY);
+  }
+}
+
+document.getElementById('modal-overlay').addEventListener('click', function(e){
+  if (e.target === this) closeModal();
+});
+
+(function initHashToken() {
+  const h = location.hash.slice(1);
+  if (h && (h.startsWith('ghp_') || h.startsWith('gho_') || h.startsWith('github_pat_'))) {
+    localStorage.setItem(TOKEN_KEY, h);
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+})();
+
+window.addEventListener('load', () => {
+  setTimeout(() => { startShow(); }, 1000);
+});
+</script>
+</body>
+</html>

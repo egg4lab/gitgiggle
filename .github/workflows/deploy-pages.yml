@@ -1,4 +1,4 @@
-# Deploy full site from main (apps/mysore-tracker, apps/fasting-tracker, apps/leave-calculator, …).
+# Deploy full site from main (helpers/mysore-tracker, helpers/fasting-tracker, helpers/leave-calculator, …).
 name: Deploy GitHub Pages
 
 on:

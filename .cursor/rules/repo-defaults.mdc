@@ -9,7 +9,7 @@ alwaysApply: true
 Follow these defaults unless the user explicitly asks otherwise:
 
 1. Keep the repository structure intact:
-   - `apps/` for publishable static apps
+- `helpers/` for AI bots, automations, and publishable static helper tools
    - `projects/` for demos
    - `tools/` for scripts/utilities
 2. Prefer minimal, local edits over broad rewrites.

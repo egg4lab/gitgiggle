@@ -37,7 +37,7 @@ function Invoke-Bot {
         [string]$Label
     )
     $cmd = "python scripts/run.py --file `"$InputFile`""
-    $cwd = Join-Path $RepoRoot "apps/$AppFolder"
+    $cwd = Join-Path $RepoRoot "helpers/$AppFolder"
     Write-Host "`n=== $Label ===" -ForegroundColor Cyan
     Write-Host "cd $cwd"
     Write-Host $cmd
@@ -58,7 +58,7 @@ function Invoke-ParsePilot {
         [string]$Label
     )
     $cmd = "python scripts/run_task.py $TaskId --file `"$InputFile`""
-    $cwd = Join-Path $RepoRoot "apps/parsepilot"
+    $cwd = Join-Path $RepoRoot "helpers/parsepilot"
     Write-Host "`n=== $Label (ParsePilot $TaskId) ===" -ForegroundColor Cyan
     Write-Host "cd $cwd"
     Write-Host $cmd

@@ -20,18 +20,18 @@ jobs:
           python-version: '3.12'
 
       - name: Install deps
-        run: pip install -r apps/prana/scripts/requirements.txt
+        run: pip install -r helpers/prana/scripts/requirements.txt
 
       - name: Generate daily plan
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_KEY }}
           TZ: Asia/Taipei
-        run: python apps/prana/scripts/daily_plan.py
+        run: python helpers/prana/scripts/daily_plan.py
 
       - name: Commit log
         run: |
           git config user.name "yoga-agent"
           git config user.email "agent@users.noreply.github.com"
-          git add apps/prana/logs/
+          git add helpers/prana/logs/
           git diff --staged --quiet || git commit -m "yoga daily plan $(TZ=Asia/Taipei date +%F)"
           git push

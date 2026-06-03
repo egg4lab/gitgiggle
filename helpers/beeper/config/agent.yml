@@ -1,0 +1,12 @@
+# Beeper agent configuration.
+model: claude-haiku-4-5-20251001
+max_tokens: 1800
+
+# News query — edit to change what Beeper watches
+news_query: >
+  ChatGPT OR "large language model" OR "AI agent" OR "generative AI"
+  OR "machine learning" OR "Claude AI" OR "Gemini AI" OR "OpenAI"
+  OR "AI regulation" OR "AI chip"
+
+# Number of articles to fetch and summarise
+article_count: 7

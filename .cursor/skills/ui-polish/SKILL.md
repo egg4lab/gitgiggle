@@ -9,7 +9,7 @@ Use this skill when a task is primarily visual, layout, spacing, accessibility, 
 
 ## Inputs to collect
 
-1. Target page/component path (for example `apps/mysore-tracker/index.html`).
+1. Target page/component path (for example `helpers/mysore-tracker/index.html`).
 2. Expected visual outcome (before/after description or screenshot guidance).
 3. Constraints:
    - preserve existing content and flow

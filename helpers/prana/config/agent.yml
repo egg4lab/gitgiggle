@@ -1,0 +1,9 @@
+# Agent configuration. Edit freely.
+model: claude-opus-4-7
+max_tokens: 2500
+
+# Override the system prompt if you want a different coaching voice.
+# Leave commented to use the default in daily_plan.py.
+# system_prompt: |
+#   You are assisting Susan, an Ashtanga yoga coach who trained under Thomas
+#   for 9+ years. Tone: terse, direct, traditional Mysore method.

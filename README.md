@@ -1,54 +1,59 @@
 # GitGiggle
 
-Tools and static apps for personal use, published with **GitHub Pages** from the `main` branch (see `.github/workflows/deploy-pages.yml`).
+Personal helper bots, static tools, and automations — published with **GitHub Pages** from the `main` branch (see `.github/workflows/deploy-pages.yml`).
 
-## Published web apps
+## Published web helpers
 
-| App | URL |
-|-----|-----|
-| **100 Hour Fasting Journey** | […/apps/fasting-tracker/](https://egg4lab.github.io/gitgiggle/apps/fasting-tracker/) |
-| **Mysore Practice Tracker (Ashtanga)** | […/apps/mysore-tracker/](https://egg4lab.github.io/gitgiggle/apps/mysore-tracker/) |
-| **Office Leave Time Calculator** | […/apps/leave-calculator/](https://egg4lab.github.io/gitgiggle/apps/leave-calculator/) |
+| Helper | URL |
+|--------|-----|
+| **100 Hour Fasting Journey** | […/helpers/fasting-tracker/](https://egg4lab.github.io/gitgiggle/helpers/fasting-tracker/) |
+| **Mysore Practice Tracker (Ashtanga)** | […/helpers/mysore-tracker/](https://egg4lab.github.io/gitgiggle/helpers/mysore-tracker/) |
+| **Office Leave Time Calculator** | […/helpers/leave-calculator/](https://egg4lab.github.io/gitgiggle/helpers/leave-calculator/) |
 
-Legacy paths redirect: `/fastingApp/` → `/apps/fastingApp/`, `/classReservation/` → `/projects/classReservation/`, `/workHoursApp/` → `/apps/workHoursApp/`.
+Legacy paths redirect: `/apps/*` → `/helpers/*`, `/fastingApp/` → `/helpers/fastingApp/`, `/classReservation/` → `/projects/classReservation/`, `/workHoursApp/` → `/helpers/workHoursApp/`.
 
 ## Repository layout
 
 ```
 .github/workflows/     # GitHub Actions (Pages deploy)
-apps/
-  fasting-tracker/       # Fasting timer & motivation (static HTML)
-  mysore-tracker/        # Mysore tracker: index.html, photos/, videos/ (MP4 via Git LFS)
-  leave-calculator/      # Office leave-time calculator (static HTML)
+helpers/               # AI bots, automations, and static helper tools
+  beeper/              # AI news digest bot
+  prana/               # Ashtanga lesson planner bot
+  mimemcmarkdown/ …    # Task bot squad (see tools/bot-squad/)
+  fasting-tracker/     # Fasting timer (static HTML)
+  mysore-tracker/      # Mysore tracker (photos/, videos/ via Git LFS)
+  leave-calculator/    # Office leave-time calculator (static HTML)
+apps/                  # Legacy redirect stubs only (old /apps/* GitHub Pages URLs)
 projects/
-  classReservation/      # Standalone class-reservation demo (static)
-fastingApp/              # Tiny HTML redirect → apps/fastingApp
-classReservation/        # tiny HTML redirect → projects/classReservation
-workHoursApp/            # tiny HTML redirect → apps/workHoursApp
+  classReservation/    # Standalone class-reservation demo (static)
+fastingApp/            # Tiny HTML redirect → helpers/fastingApp
+classReservation/      # tiny HTML redirect → projects/classReservation
+workHoursApp/          # tiny HTML redirect → helpers/workHoursApp
 tools/
-  Enable-GitHubPages.ps1 # Optional: enable Pages via API (needs PAT)
-  virtuoso/
-    README.md              # Quick guide: workstation setup and usage
-    virtuoso_launcher.tcl  # Tcl/Tk (wish): REF_BASE_LIB + Cadence env, launch Virtuoso (UNIX/Linux)
+  bot-squad/           # Workflow demos for task bots
+  bootstrap_task_bots.py
+  Enable-GitHubPages.ps1
+  virtuoso/            # Cadence/Virtuoso launcher (UNIX/Linux)
 ```
 
 See [tools/virtuoso/README.md](tools/virtuoso/README.md) for how to run the launcher on your workstation.
 
-### Canonical published structure
+### Canonical structure
 
-- Keep publishable apps under `apps/`
+- Keep bots and helper tools under `helpers/`
 - Keep project demos under `projects/`
-- Keep root-level app folders (`fastingApp/`, `classReservation/`, `workHoursApp/`) as redirect-only entry points
-- Keep scripts/utilities under `tools/` (e.g. `tools/virtuoso/` for Cadence/Virtuoso helpers)
+- Keep root-level folders (`fastingApp/`, `classReservation/`, `workHoursApp/`) as redirect-only entry points
+- Keep `apps/` as redirect-only stubs for old GitHub Pages URLs
+- Keep scripts/utilities under `tools/`
 - Keep local experiments out of publish paths and git tracking
 
 ## Git LFS
 
-Practice videos under `apps/mysore-tracker/videos/*.mp4` are tracked with **Git LFS** (see `.gitattributes`). Install [Git LFS](https://git-lfs.com/) before cloning or pushing large videos.
+Practice videos under `helpers/mysore-tracker/videos/*.mp4` are tracked with **Git LFS** (see `.gitattributes`). Install [Git LFS](https://git-lfs.com/) before cloning or pushing large videos.
 
 ## Local preview
 
-Open any `index.html` under `apps/` in a browser, or run a static server from the repo root so asset paths resolve correctly.
+Open any `index.html` under `helpers/` in a browser, or run a static server from the repo root so asset paths resolve correctly.
 
 ## Clone
 

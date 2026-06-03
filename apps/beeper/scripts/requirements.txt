@@ -1,2 +1,0 @@
-# stdlib only — no pip dependencies needed
-# urllib, json, os are all built into Python 3
