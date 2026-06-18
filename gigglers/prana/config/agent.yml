@@ -1,5 +1,5 @@
 # Agent configuration. Edit freely.
-model: claude-opus-4-7
+model: claude-opus-4-8
 max_tokens: 2500
 
 # Override the system prompt if you want a different coaching voice.
