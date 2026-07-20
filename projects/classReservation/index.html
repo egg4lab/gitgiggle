@@ -13,63 +13,113 @@
       --group: #fce4ec;
       --busy: #ddd;
       --border: #ccc;
-      --bg: #f7f7f7;
+      --bg: #f5f6f8;
       --accent: #3f51b5;
+      --text: #1a1a1a;
+      --text-muted: #555;
+      --fs-base: 16px;
+      --fs-sm: 14px;
+      --fs-lg: 18px;
+      --fs-xl: 22px;
+      --radius: 8px;
     }
 
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+      font-size: var(--fs-base);
+      line-height: 1.55;
       background: var(--bg);
-      color: #333;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
     }
 
     header {
       background: var(--accent);
       color: #fff;
-      padding: 10px 20px;
+      padding: 16px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     }
 
     header h1 {
       margin: 0;
-      font-size: 18px;
+      font-size: var(--fs-xl);
+      font-weight: 600;
+      letter-spacing: 0.02em;
     }
 
     header .user-info {
-      font-size: 14px;
+      font-size: var(--fs-base);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     main {
-      padding: 15px;
+      padding: 20px 24px 32px;
+      max-width: 1400px;
+      margin: 0 auto;
     }
 
     .top-bar {
       display: flex;
       flex-wrap: wrap;
-      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px 24px;
+      margin-bottom: 16px;
+      padding: 16px 18px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .bar-section {
+      display: flex;
+      align-items: center;
       gap: 10px;
-      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .bar-label {
+      font-size: var(--fs-sm);
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
     }
 
     .view-switch, .legend, .controls {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: wrap;
     }
 
     button {
       cursor: pointer;
-      border-radius: 4px;
+      border-radius: 6px;
       border: 1px solid var(--border);
       background: white;
-      padding: 5px 10px;
-      font-size: 13px;
+      padding: 10px 16px;
+      font-size: var(--fs-base);
+      font-weight: 500;
+      line-height: 1.2;
+      min-height: 42px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    button:hover {
+      background: #f0f0f0;
     }
 
     button.primary {
@@ -78,36 +128,63 @@
       color: #fff;
     }
 
+    button.primary:hover {
+      background: #354495;
+    }
+
     button.active {
       background: var(--accent);
       color: #fff;
+      border-color: var(--accent);
     }
 
     select, input[type="password"], input[type="text"], textarea {
-      padding: 4px 6px;
-      border-radius: 4px;
+      padding: 10px 12px;
+      border-radius: 6px;
       border: 1px solid var(--border);
-      font-size: 13px;
+      font-size: var(--fs-base);
       font-family: inherit;
+      line-height: 1.4;
+      min-height: 42px;
     }
 
     textarea {
       resize: vertical;
       width: 100%;
+      min-height: 80px;
+    }
+
+    .legend .bar-label:not(:first-child) {
+      margin-left: 8px;
     }
 
     .legend-item {
       display: flex;
       align-items: center;
-      gap: 4px;
-      font-size: 12px;
+      gap: 6px;
+      font-size: var(--fs-base);
+      font-weight: 500;
+    }
+
+    button:focus-visible,
+    select:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .scroll-panel {
+      max-height: 400px;
+      overflow-y: auto;
     }
 
     .legend-color {
-      width: 14px;
-      height: 14px;
-      border-radius: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
       border: 1px solid #aaa;
+      flex-shrink: 0;
     }
 
     .hc { background: var(--hc); }
@@ -118,25 +195,26 @@
 
     .calendar {
       background: #fff;
-      border-radius: 6px;
+      border-radius: var(--radius);
       border: 1px solid var(--border);
       overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
 
     .calendar-header {
       display: grid;
-      grid-template-columns: 80px repeat(7, 1fr);
-      background: #f1f1f1;
-      border-bottom: 1px solid var(--border);
+      grid-template-columns: 88px repeat(7, 1fr);
+      background: #eceef2;
+      border-bottom: 2px solid var(--border);
     }
 
     .calendar-header div {
-      padding: 6px 4px;
-      font-size: 12px;
+      padding: 12px 6px;
+      font-size: var(--fs-sm);
       text-align: center;
-      font-weight: bold;
+      font-weight: 700;
       border-left: 1px solid var(--border);
+      color: var(--text);
     }
 
     .calendar-header div:first-child {
@@ -144,35 +222,38 @@
     }
 
     .calendar-body {
-      max-height: 70vh;
+      max-height: 72vh;
       overflow-y: auto;
     }
 
     .calendar-row {
       display: grid;
-      grid-template-columns: 80px repeat(7, 1fr);
+      grid-template-columns: 88px repeat(7, 1fr);
       border-bottom: 1px solid #eee;
-      min-height: 36px;
+      min-height: 44px;
     }
 
     .time-cell {
-      padding: 4px;
-      font-size: 11px;
+      padding: 8px 10px;
+      font-size: var(--fs-sm);
+      font-weight: 600;
       border-right: 1px solid var(--border);
       text-align: right;
-      color: #666;
+      color: var(--text-muted);
+      background: #fafafa;
     }
 
     .slot-cell {
       border-right: 1px solid #f1f1f1;
-      font-size: 11px;
+      font-size: var(--fs-sm);
       position: relative;
       cursor: pointer;
-      padding: 2px;
+      padding: 4px 6px;
+      line-height: 1.35;
     }
 
     .slot-cell:hover {
-      background: #f5f5f5;
+      background: #f5f7fa;
     }
 
     .slot-cell.busy {
@@ -181,11 +262,12 @@
     }
 
     .slot-tag {
-      display: inline-block;
-      padding: 2px 4px;
-      border-radius: 3px;
-      font-size: 10px;
-      margin-bottom: 2px;
+      display: block;
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-size: var(--fs-sm);
+      margin-bottom: 3px;
+      font-weight: 500;
     }
 
     .slot-location {
@@ -242,9 +324,9 @@
       background: #f44336;
       color: white;
       border-radius: 50%;
-      width: 18px;
-      height: 18px;
-      font-size: 10px;
+      width: 22px;
+      height: 22px;
+      font-size: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -262,16 +344,28 @@
       }
 
       .calendar-header {
-        grid-template-columns: 60px repeat(4, 1fr);
+        grid-template-columns: 72px repeat(4, 1fr);
       }
 
       .calendar-row {
-        grid-template-columns: 60px repeat(4, 1fr);
+        grid-template-columns: 72px repeat(4, 1fr);
+      }
+
+      main {
+        padding: 16px;
+      }
+
+      header h1 {
+        font-size: var(--fs-lg);
       }
 
       .top-bar {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: stretch;
+      }
+
+      .bar-section {
+        width: 100%;
       }
     }
 
@@ -279,61 +373,100 @@
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.35);
+      background: rgba(0,0,0,0.4);
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 1000;
+      padding: 16px;
     }
 
     .modal {
       background: #fff;
-      border-radius: 6px;
-      padding: 15px;
-      min-width: 260px;
-      max-width: 500px;
+      border-radius: var(--radius);
+      padding: 24px;
+      min-width: 300px;
+      max-width: 520px;
+      width: 100%;
       max-height: 90vh;
       overflow-y: auto;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
     }
 
     .modal h2 {
       margin-top: 0;
-      font-size: 18px;
-      margin-bottom: 10px;
+      font-size: var(--fs-xl);
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text);
     }
 
     .modal-row {
-      margin-bottom: 8px;
-      font-size: 13px;
+      margin-bottom: 14px;
+      font-size: var(--fs-base);
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
     }
 
     .modal-row label {
-      font-weight: bold;
+      font-weight: 700;
+      font-size: var(--fs-sm);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .modal-row div:not(.modal-footer) {
+      font-size: var(--fs-base);
+      line-height: 1.5;
     }
 
     .modal-footer {
       display: flex;
       justify-content: flex-end;
-      gap: 8px;
-      margin-top: 10px;
+      gap: 10px;
+      margin-top: 18px;
+      padding-top: 8px;
     }
 
     .text-muted {
-      font-size: 11px;
-      color: #777;
+      font-size: var(--fs-sm);
+      color: var(--text-muted);
+      line-height: 1.5;
     }
 
-    .notification-info {
-      font-size: 11px;
-      margin-top: 6px;
-      padding: 4px 6px;
-      background: #fafafa;
-      border-radius: 4px;
-      border: 1px dashed #ccc;
+    .rules-panel {
+      margin-bottom: 18px;
+      padding: 16px 20px;
+      background: #fff;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .rules-panel h2 {
+      margin: 0 0 12px;
+      font-size: var(--fs-lg);
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .rules-panel ul {
+      margin: 0;
+      padding-left: 1.35em;
+      font-size: var(--fs-base);
+      line-height: 1.65;
+      color: var(--text);
+    }
+
+    .rules-panel li {
+      margin-bottom: 8px;
+    }
+
+    .rules-panel li:last-child {
+      margin-bottom: 0;
     }
 
     .hidden { display: none !important; }
@@ -344,9 +477,10 @@
     }
 
     .schedule-item {
-      padding: 8px;
+      padding: 12px 10px;
       border-bottom: 1px solid #eee;
-      font-size: 12px;
+      font-size: var(--fs-base);
+      line-height: 1.5;
     }
 
     .schedule-item:last-child {
@@ -355,45 +489,79 @@
 
     .coach-panel {
       background: white;
-      border-radius: 6px;
-      padding: 15px;
-      margin-bottom: 15px;
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 18px;
       border: 1px solid var(--border);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     }
 
     .coach-panel h3 {
       margin-top: 0;
-      font-size: 16px;
+      font-size: var(--fs-lg);
+      font-weight: 600;
+      margin-bottom: 4px;
     }
 
     .student-list {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 10px;
-      margin-top: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+      margin-top: 14px;
     }
 
     .student-card {
       border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 8px;
-      font-size: 12px;
+      border-radius: var(--radius);
+      padding: 14px;
+      font-size: var(--fs-base);
+      background: #fafbfc;
     }
 
     .student-card h4 {
-      margin: 0 0 4px 0;
-      font-size: 13px;
+      margin: 0 0 8px 0;
+      font-size: var(--fs-base);
+      font-weight: 700;
     }
 
     .student-card input {
       width: 100%;
-      margin-top: 4px;
+      margin-top: 6px;
+    }
+
+    .student-card .passcode-display {
+      background: #eee;
+      padding: 8px 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: var(--fs-base);
+      font-weight: 600;
+    }
+
+    .student-card .passcode-label {
+      font-size: var(--fs-sm);
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .student-card .update-btn {
+      margin-top: 8px;
+      width: 100%;
+    }
+
+    .student-card .status-msg {
+      margin-top: 8px;
+      font-size: var(--fs-sm);
+      color: #2e7d32;
+      display: none;
     }
 
     .inbox-item {
-      padding: 8px;
+      padding: 12px 10px;
       border-bottom: 1px solid #eee;
-      font-size: 12px;
+      font-size: var(--fs-base);
+      line-height: 1.5;
     }
 
     .inbox-item.unread {
@@ -412,11 +580,18 @@
     }
 
     .holiday-label {
-      font-size: 9px;
+      font-size: 12px;
       color: #856404;
-      font-weight: bold;
-      margin-top: 2px;
+      font-weight: 700;
+      margin-top: 4px;
       text-align: center;
+      line-height: 1.3;
+    }
+
+    .daily-count {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
     }
 
     .holiday-cell {
@@ -430,22 +605,20 @@
     <h1>Class Reservation System</h1>
     <div class="user-info" id="userInfo">
       Not logged in
-      <button id="notificationBtn" class="hidden" style="margin-left: 10px; padding: 4px 8px;">
-        ??? Inbox <span class="notification-badge" id="notificationBadge" data-count="0"></span>
-      </button>
+      <button id="notificationBtn" class="hidden">Inbox <span class="notification-badge" id="notificationBadge" data-count="0"></span></button>
     </div>
   </header>
 
   <main>
     <div class="top-bar">
-      <div class="view-switch">
+      <div class="bar-section view-switch">
         <button id="loginBtn" class="primary">Login</button>
         <button id="logoutBtn" class="hidden">Logout</button>
         <span id="roleLabel" class="text-muted"></span>
       </div>
 
-      <div class="controls">
-        <span style="font-size: 12px; font-weight: bold;">View:</span>
+      <div class="bar-section controls">
+        <span class="bar-label">View</span>
         <button id="weeklyViewBtn" class="active">Weekly</button>
         <button id="monthlyViewBtn">Monthly</button>
         <button id="todayBtn">Today</button>
@@ -453,8 +626,8 @@
         <button id="nextBtn">Next &gt;</button>
       </div>
 
-      <div class="legend">
-        <span style="font-size: 12px; font-weight: bold;">Locations:</span>
+      <div class="bar-section legend">
+        <span class="bar-label">Locations</span>
         <div class="legend-item">
           <span class="legend-color hc"></span> Hsin-Chu
         </div>
@@ -464,7 +637,7 @@
         <div class="legend-item">
           <span class="legend-color yl"></span> Yi-Lan
         </div>
-        <span style="font-size: 12px; font-weight: bold; margin-left:8px;">Types:</span>
+        <span class="bar-label">Types</span>
         <div class="legend-item">
           <span class="legend-color oneonone"></span> 1 on 1
         </div>
@@ -474,13 +647,15 @@
       </div>
     </div>
 
-    <div class="notification-info">
-      <strong>Rules:</strong>
-      - Coach offers 1 on 1 sessions (100 minutes), 3?? per day, across Hsin-Chu, TaiPei, Yi-Lan (1.5hr travel buffer).<br />
-      - Coach location schedule: Hsin-Chu (Fri-Sun), Taipei (Mon-Tue), Yi-Lan (Wed-Thu).<br />
-      - Group classes are visible to all students and block 1 on 1 availability in the same time.<br />
-      - Coach can cancel a 1 on 1 class but must notify the student at least 2 hours in advance.<br />
-      - Students log in with a passcode and only see coach availability (not other students).
+    <div class="rules-panel">
+      <h2>Booking rules</h2>
+      <ul>
+        <li>Coach offers 1-on-1 sessions (100 minutes), 3–6 per day, across Hsin-Chu, TaiPei, and Yi-Lan (1.5 hr travel buffer between locations).</li>
+        <li>Coach location schedule: Hsin-Chu (Fri–Sun), Taipei (Mon–Tue), Yi-Lan (Wed–Thu).</li>
+        <li>Group classes are visible to all students and block 1-on-1 availability at the same time.</li>
+        <li>Coach can cancel a 1-on-1 session but must notify the student at least 2 hours in advance.</li>
+        <li>Students log in with a passcode and only see coach availability (not other students' bookings).</li>
+      </ul>
     </div>
 
     <!-- Coach Admin Panel -->
@@ -577,7 +752,7 @@
   <div class="modal-backdrop hidden" id="inboxModalBackdrop">
     <div class="modal">
       <h2>Notifications</h2>
-      <div id="inboxContent" style="max-height: 400px; overflow-y: auto;">
+      <div id="inboxContent" class="scroll-panel">
         <!-- Populated dynamically -->
       </div>
       <div class="modal-footer">
@@ -980,7 +1155,7 @@
             <div class="daily-bar-fill ${stats.ratio < 0.34 ? 'low' : stats.ratio < 0.67 ? 'medium' : 'high'}" 
                  style="width: ${Math.round(stats.ratio * 100)}%"></div>
           </div>
-          <small style="font-size: 9px;">${stats.count}/${MAX_SESSIONS_PER_DAY}</small>
+          <small class="daily-count">${stats.count}/${MAX_SESSIONS_PER_DAY}</small>
         `;
         container.appendChild(cell);
       }
@@ -1371,13 +1546,11 @@
         const name = studentId.charAt(0).toUpperCase() + studentId.slice(1).replace(/(\d+)/, ' $1');
         card.innerHTML = `
           <h4>${name}</h4>
-          <div style="margin: 4px 0; font-size: 11px; color: #666;">Current Passcode:</div>
-          <div style="background: #f5f5f5; padding: 4px; border-radius: 3px; margin-bottom: 6px;">
-            <code style="font-size: 12px; font-weight: bold;">${passcodes[studentId]}</code>
-          </div>
-          <input type="text" id="newPwd_${studentId}" placeholder="Enter new passcode" style="margin-top: 4px; width: 100%; padding: 4px;" />
-          <button onclick="resetStudentPasscode('${studentId}')" style="margin-top: 6px; width: 100%; padding: 6px; background: #3f51b5; color: white; border: none; border-radius: 4px; cursor: pointer;">Update Passcode</button>
-          <div id="status_${studentId}" style="margin-top: 4px; font-size: 11px; color: #4caf50; display: none;">? Updated successfully</div>
+          <div class="passcode-label">Current passcode</div>
+          <div class="passcode-display">${passcodes[studentId]}</div>
+          <input type="text" id="newPwd_${studentId}" placeholder="Enter new passcode" />
+          <button class="primary update-btn" onclick="resetStudentPasscode('${studentId}')">Update passcode</button>
+          <div id="status_${studentId}" class="status-msg">Updated successfully</div>
         `;
         list.appendChild(card);
       });
@@ -1400,7 +1573,7 @@
       // Show success message
       statusDiv.style.display = 'block';
       statusDiv.style.color = '#4caf50';
-      statusDiv.textContent = '? Passcode updated successfully';
+      statusDiv.textContent = 'Passcode updated successfully';
       
       // Clear input
       input.value = '';
