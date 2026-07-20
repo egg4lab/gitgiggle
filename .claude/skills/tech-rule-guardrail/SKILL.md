@@ -7,8 +7,13 @@ description: Run the Technology Rule Guardrail pipeline for GDS/OASIS layer-lega
 
 Early, node-aware verification of GDS/OASIS layer usage against a versioned
 legality baseline — catching technology-data violations before signoff,
-without touching any editor or signoff environment. Full background and
-measurable success criteria are in `README.md` in this skill directory.
+without touching any editor or signoff environment. This is the utility
+implementation of Proposal A. The original business case, schedule, and
+measurable success criteria are in `PROPOSAL.md`; current implementation
+status against that schedule (phase-by-phase and criteria-by-criteria) is
+tracked in `README.md`; a verified, runnable step-by-step walkthrough
+against this repo's own demo files is in `WALKTHROUGH.md` (PowerShell and
+Git Bash variants).
 
 ## When to use this skill
 
