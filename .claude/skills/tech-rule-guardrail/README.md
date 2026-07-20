@@ -5,10 +5,10 @@ versioned technology-layer legality baseline — catching illegal,
 deprecated, or reserved layer usage before signoff or data handoff, in
 minutes, without modifying any editor or signoff environment.
 
-This is the utility implementation of **Proposal A** (see the sibling
-proposal document for the full business write-up). It is also registered
-as a Claude Code skill (`SKILL.md`) so an assistant can drive the pipeline
-on request.
+This is the utility implementation of **Proposal A** — see `PROPOSAL.md`
+in this same directory for the full business write-up, schedule, and
+measurable success criteria. It is also registered as a Claude Code skill
+(`SKILL.md`) so an assistant can drive the pipeline on request.
 
 ## Why
 
@@ -159,40 +159,85 @@ tech-rule-guardrail/
     └── run_pipeline.sh/.ps1       end-to-end orchestration
 ```
 
-## Roadmap (maps to Proposal A's phases)
+## Roadmap
 
-- [x] Phase 1 — baseline schema (`config/baseline.example.yaml`), versioned
+Mirrors `PROPOSAL.md`'s phases and week numbering exactly, so status here
+is directly traceable back to the schedule that was committed to.
+
+**Phase 1 — Technology baseline (Week 1–3)**
+- [x] Legality-rule schema defined: `allowed` / `deprecated` / `reserved`
+      layer-datatype pairs (`config/baseline.example.yaml`).
+- [x] Version-controlled — every check is traceable to a baseline revision
       via git.
-- [x] Phase 2 — extraction (`dump_layers.rb`) + comparison engine
-      (`check_violations.py`) → `violations.json`. Windows portability fixes
-      applied: `klayout.exe` is a GUI-subsystem binary that doesn't block on
-      a bare call, and paths containing a space-hyphen-space (e.g. an
-      `OneDrive - <org>` folder) broke naive argument passing — both fixed
-      in `run_pipeline.ps1` via `Start-Process -Wait` with a single
-      pre-quoted argument string.
-- [x] Phase 3 — AI report generation (`generate_report.sh/.ps1`); waiver
-      mechanism (`waivers.yaml`).
-- [ ] Phase 3 (semi-automated rule authoring) — not yet implemented: paste a
-      technology-document excerpt to Claude and have it draft candidate
-      `allowed` / `deprecated` / `reserved` baseline entries for human
-      review. The `tech-rule-guardrail` skill can do this conversationally
-      today; a standalone script isn't needed yet.
-- [ ] Phase 4 — pilot with real blocks, tune false positives, integrate into
-      the pre-handoff checklist. In progress:
-  - [x] First real-block dry run: `config/baseline_gpdk045.yaml` drafted
-        from a real GPDK045 layer map, exercised end-to-end against a real
-        block (`Input_Data/DiffOpAmp.gds`) — clean run (0 violations) and a
-        deliberately mutated copy with one shape injected on a
-        reserved-layer placeholder (simulating an engineer drawing on a
-        layer without realizing it's OPC-reserved) — correctly flagged 1/1,
-        nothing else mis-flagged. Outputs kept for reference under
-        `Input_Data/guardrail_out_good/` and `guardrail_out_bad/`.
-  - [ ] Baseline still DRAFT, pending design-team sign-off: whether
-        `prBoundary`/`SEALRING` are excluded from tapeout delivery, whether
-        `*dum`/`*dummy` layers should be reserved rather than allowed, and
-        — most importantly — the real OPC-reserved layer/datatype number
-        for this node (currently a `200/0` placeholder with no engineering
-        meaning).
-  - [ ] Not yet run across multiple real blocks or tuned for false-positive
-        rate.
-  - [ ] Not yet integrated into the pre-handoff checklist.
+- [x] First real baseline built from an actual node's layer map:
+      `config/baseline_gpdk045.yaml`, derived from `Input_Data/gpdk045.layermap`.
+- [ ] Collecting/normalizing layer maps across multiple target nodes — only
+      one (demo) node covered so far; real production nodes not yet added.
+
+**Phase 2 — Check engine (Week 4–7)**
+- [x] GDS/OASIS layer-usage extraction, per cell (`scripts/dump_layers.rb`,
+      KLayout batch mode).
+- [x] Comparison engine: extracted usage vs. baseline
+      (`scripts/check_violations.py`).
+- [x] Machine-readable violation database (`violations.json`: cell, bbox
+      coordinates, layer/datatype, rule violated).
+- [x] Windows portability verified on both entry points: `klayout.exe` is a
+      GUI-subsystem binary that doesn't block on a bare call from
+      PowerShell (fixed via `Start-Process -Wait` in `run_pipeline.ps1`,
+      not needed in bash which blocks correctly on its own); paths
+      containing a space-hyphen-space (e.g. an `OneDrive - <org>` folder)
+      broke naive PowerShell argument passing (fixed via a single
+      pre-quoted argument string); `python3` isn't registered by the
+      Windows Python.org installer (fixed via a `python3`→`python`
+      fallback in `run_pipeline.sh`).
+- [ ] Per-*hierarchy-level* extraction, as distinct from per-cell — current
+      extraction is per-cell across the flattened read, not yet
+      hierarchy-depth-aware.
+
+**Phase 3 — AI enablement (Week 8–10)**
+- [x] AI-generated natural-language explanation per violation category plus
+      a per-block risk summary (`scripts/generate_report.ps1/.sh` →
+      `report.md`).
+- [~] AI-suggested corrections: current implementation infers a plausible
+      intended layer from category + baseline context; not yet using
+      geometry-context or historical-fix data specifically, as the proposal
+      describes.
+- [ ] AI-assisted authoring of new baseline rules from technology
+      documents, as a standalone script — the `tech-rule-guardrail` skill
+      can already do this conversationally today (paste a doc excerpt, get
+      draft baseline entries for human review), which was judged sufficient
+      for now over building a dedicated script.
+
+**Phase 4 — Pilot & rollout (Week 11–14)**
+- [x] Waiver mechanism for intentional custom usage (`waivers.yaml`,
+      `--waivers` flag, `waived_count` in output).
+- [x] User guide delivered: `WALKTHROUGH.md`, step-by-step, with both
+      PowerShell and Git Bash variants, verified by actually running every
+      command before writing it down.
+- [~] Run on real blocks: one real block (`Input_Data/DiffOpAmp.gds`)
+      exercised end-to-end — a clean run (0 violations) and a deliberately
+      mutated copy simulating a designer drawing on a layer without
+      realizing it's OPC-reserved (1/1 correctly caught, nothing else
+      mis-flagged). This is a mechanism validation, not yet the "2–3 real
+      blocks with pilot teams" the proposal calls for.
+- [ ] False-positive tuning against pilot teams — not started, no pilot
+      teams engaged yet.
+- [ ] Integration into the pre-handoff checklist — not done.
+
+## Measurable criteria status
+
+Per the "Criteria (Measurable)" section of `PROPOSAL.md`:
+
+- **≥ 95% detection rate**, validated against a curated known-issue set —
+  not yet formally measured. The "Validating detection rate" section below
+  describes the method; only a single-violation synthetic injection has
+  been demonstrated so far (1/1 caught), which is not a statistically
+  meaningful sample.
+- **Batch check runtime ≤ 10 minutes** — comfortably met on the one real
+  block tested (full pipeline completes in well under a minute); not yet
+  benchmarked on larger production-scale blocks.
+- **Every run auto-generates a report** (violation list + AI summary +
+  suggested fix) — met; demonstrated in both
+  `Input_Data/guardrail_out_good/` and `guardrail_out_bad/`.
+- **≥ 2 pilot design/layout teams adopting** — not started; zero pilot
+  teams engaged so far.
