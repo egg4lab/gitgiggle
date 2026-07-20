@@ -164,7 +164,12 @@ tech-rule-guardrail/
 - [x] Phase 1 — baseline schema (`config/baseline.example.yaml`), versioned
       via git.
 - [x] Phase 2 — extraction (`dump_layers.rb`) + comparison engine
-      (`check_violations.py`) → `violations.json`.
+      (`check_violations.py`) → `violations.json`. Windows portability fixes
+      applied: `klayout.exe` is a GUI-subsystem binary that doesn't block on
+      a bare call, and paths containing a space-hyphen-space (e.g. an
+      `OneDrive - <org>` folder) broke naive argument passing — both fixed
+      in `run_pipeline.ps1` via `Start-Process -Wait` with a single
+      pre-quoted argument string.
 - [x] Phase 3 — AI report generation (`generate_report.sh/.ps1`); waiver
       mechanism (`waivers.yaml`).
 - [ ] Phase 3 (semi-automated rule authoring) — not yet implemented: paste a
@@ -173,4 +178,21 @@ tech-rule-guardrail/
       review. The `tech-rule-guardrail` skill can do this conversationally
       today; a standalone script isn't needed yet.
 - [ ] Phase 4 — pilot with real blocks, tune false positives, integrate into
-      the pre-handoff checklist.
+      the pre-handoff checklist. In progress:
+  - [x] First real-block dry run: `config/baseline_gpdk045.yaml` drafted
+        from a real GPDK045 layer map, exercised end-to-end against a real
+        block (`Input_Data/DiffOpAmp.gds`) — clean run (0 violations) and a
+        deliberately mutated copy with one shape injected on a
+        reserved-layer placeholder (simulating an engineer drawing on a
+        layer without realizing it's OPC-reserved) — correctly flagged 1/1,
+        nothing else mis-flagged. Outputs kept for reference under
+        `Input_Data/guardrail_out_good/` and `guardrail_out_bad/`.
+  - [ ] Baseline still DRAFT, pending design-team sign-off: whether
+        `prBoundary`/`SEALRING` are excluded from tapeout delivery, whether
+        `*dum`/`*dummy` layers should be reserved rather than allowed, and
+        — most importantly — the real OPC-reserved layer/datatype number
+        for this node (currently a `200/0` placeholder with no engineering
+        meaning).
+  - [ ] Not yet run across multiple real blocks or tuned for false-positive
+        rate.
+  - [ ] Not yet integrated into the pre-handoff checklist.
