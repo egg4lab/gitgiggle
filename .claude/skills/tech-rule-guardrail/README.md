@@ -213,7 +213,10 @@ is directly traceable back to the schedule that was committed to.
       `--waivers` flag, `waived_count` in output).
 - [x] User guide delivered: `WALKTHROUGH.md`, step-by-step, with both
       PowerShell and Git Bash variants, verified by actually running every
-      command before writing it down.
+      command before writing it down. `SKILL.md` now cross-links
+      `PROPOSAL.md` / `README.md` / `WALKTHROUGH.md` so all four docs are
+      discoverable from any one of them, rather than the walkthrough being
+      an orphaned file.
 - [~] Run on real blocks: one real block (`Input_Data/DiffOpAmp.gds`)
       exercised end-to-end — a clean run (0 violations) and a deliberately
       mutated copy simulating a designer drawing on a layer without
