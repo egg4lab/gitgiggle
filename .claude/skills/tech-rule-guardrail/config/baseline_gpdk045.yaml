@@ -127,7 +127,6 @@ allowed:
   - {layer: 64,  dt: 0, name: SRAM}
   - {layer: 66,  dt: 0, name: SEALRING}
   - {layer: 68,  dt: 0, name: ANALOG}
-  - {layer: 69,  dt: 0, name: FUSE}
   - {layer: 86,  dt: 0, name: FILLER}
 
 deprecated: []
@@ -141,6 +140,12 @@ reserved:
   - {layer: 65, dt: 0, name: PO_text}
   - {layer: 67, dt: 0, name: LOGO}
   - {layer: 87, dt: 0, name: VIAEXCL}
-  # PLACEHOLDER for demo purposes only -- replace 200/0 with this node's real
-  # OPC-reserved layer/datatype number once known. Not a real GPDK045 layer.
-  - {layer: 200, dt: 0, name: OPC_KeepOut_PLACEHOLDER}
+  # DEMO STAND-IN: GPDK045 is a generic teaching PDK with no real OPC/RET
+  # layer defined anywhere in its DRC/LVS decks (confirmed by searching the
+  # Assura/Diva rule files directly). Layer 69/0 is genuinely defined in
+  # gpdk045.layermap as "FUSE", unrelated to OPC in real life -- it's
+  # repurposed here purely to exercise the guardrail mechanism against a
+  # layer number that actually exists in this technology, rather than an
+  # arbitrary invented number. Replace with the real OPC-reserved
+  # layer/datatype once known from the actual target process.
+  - {layer: 69, dt: 0, name: FUSE_pretend_OPC}

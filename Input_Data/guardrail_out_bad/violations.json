@@ -1,22 +1,22 @@
 {
   "schema_version": 1,
   "node": "gpdk045",
-  "source_file": "DiffOpAmp_demo.gds",
+  "source_file": "DiffOpAmp_demo_v2.gds",
   "baseline_file": "baseline_gpdk045.yaml",
   "violation_count": 1,
   "waived_count": 0,
   "violations": [
     {
       "cell": "DiffOpAmp",
-      "layer": 200,
+      "layer": 69,
       "dt": 0,
       "layer_name": "",
       "shape_count": 1,
       "bbox_um": [
-        17.284,
-        49.56,
-        18.784,
-        50.31
+        23.7655,
+        1.505,
+        25.0155,
+        2.105
       ],
       "category": "reserved",
       "rule_violated": "reserved-layer-usage"

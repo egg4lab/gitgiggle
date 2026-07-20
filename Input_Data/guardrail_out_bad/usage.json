@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "source_file": "DiffOpAmp_demo.gds",
+  "source_file": "DiffOpAmp_demo_v2.gds",
   "dbu": 0.0005,
   "layers": {
     "6/0": {
@@ -4173,17 +4173,17 @@
         }
       ]
     },
-    "200/0": {
+    "69/0": {
       "layer_name": "",
       "cells": [
         {
           "name": "DiffOpAmp",
           "shape_count": 1,
           "bbox_um": [
-            17.284,
-            49.56,
-            18.784,
-            50.31
+            23.7655,
+            1.505,
+            25.0155,
+            2.105
           ]
         }
       ]
