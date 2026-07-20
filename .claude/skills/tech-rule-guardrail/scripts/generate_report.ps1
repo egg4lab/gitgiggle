@@ -19,6 +19,10 @@ plain English what likely went wrong and suggest the probable intended
 layer. Then produce a per-block risk summary (high/medium/low) based on
 violation counts and categories. Output a markdown report with sections:
 Summary, Findings by Category, Suggested Fixes, Risk Ranking.
+
+Output ONLY the markdown report itself to stdout. Do not attempt to write,
+create, or save any files -- the caller redirects your stdout to a file.
+Do not include any meta-commentary about your process or tool access.
 "@
 
 claude -p $prompt | Out-File -Encoding utf8 $OutFile
