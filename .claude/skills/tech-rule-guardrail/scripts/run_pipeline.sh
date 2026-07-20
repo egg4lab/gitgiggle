@@ -13,6 +13,11 @@ OUTDIR="${4:-./guardrail_out}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 mkdir -p "$OUTDIR"
 
+# Prefer python3 (Linux/Mac convention); fall back to python (common on
+# Windows Python.org installs, which don't register a python3 shim).
+PYTHON="python3"
+command -v python3 >/dev/null 2>&1 || PYTHON="python"
+
 echo "[1/3] extracting layer usage from $GDS"
 klayout -b -r "$SCRIPT_DIR/dump_layers.rb" -rd gds="$GDS" -rd out="$OUTDIR/usage.json"
 
@@ -21,7 +26,7 @@ WAIVER_ARGS=()
 if [ -n "$WAIVERS" ]; then
   WAIVER_ARGS=(--waivers "$WAIVERS")
 fi
-python3 "$SCRIPT_DIR/check_violations.py" \
+"$PYTHON" "$SCRIPT_DIR/check_violations.py" \
   --usage "$OUTDIR/usage.json" \
   --baseline "$BASELINE" \
   "${WAIVER_ARGS[@]}" \
