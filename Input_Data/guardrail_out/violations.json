@@ -1,9 +1,0 @@
-{
-  "schema_version": 1,
-  "node": "gpdk045",
-  "source_file": "DiffOpAmp.gds",
-  "baseline_file": "baseline_gpdk045.yaml",
-  "violation_count": 0,
-  "waived_count": 0,
-  "violations": []
-}
