@@ -138,6 +138,14 @@ input:focus{outline:2px solid var(--warn);outline-offset:1px}
 .fail-card .tag{color:var(--bad);font-weight:900;letter-spacing:.3em;font-size:.7rem}
 .fail-card .zh{font-size:1.1rem;font-weight:900;margin:12px 0 6px;line-height:1.6}
 .fail-card .en{font-size:.78rem;color:var(--mute);line-height:1.5}
+/* sync */
+.sync-status{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.sync-badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.68rem;font-weight:800;letter-spacing:.05em;border:1px solid;white-space:nowrap}
+.sync-badge.synced{color:var(--ok);border-color:var(--ok);background:rgba(59,201,122,.12)}
+.sync-badge.pending{color:var(--warn);border-color:var(--warn);background:rgba(255,201,60,.12)}
+.sync-badge.error{color:var(--bad);border-color:var(--bad);background:rgba(228,64,95,.12)}
+.sync-badge.readonly{color:var(--mute);border-color:var(--mute);background:rgba(138,148,168,.12)}
+#syncHint{font-size:.72rem;color:var(--mute)}
 footer{text-align:center;font-size:.66rem;color:var(--mute);padding:22px 0 8px}
 footer button{background:none;border:none;color:var(--mute);text-decoration:underline;font-size:.66rem;cursor:pointer;font-family:inherit}
 .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--panel);border:1px solid var(--ok);color:var(--ok);border-radius:10px;padding:12px 18px;font-size:.85rem;font-weight:800;z-index:70;display:none;max-width:88%;text-align:center}
@@ -219,6 +227,31 @@ footer button{background:none;border:none;color:var(--mute);text-decoration:unde
       <button data-q="fail">諷刺喚醒</button>
     </div>
     <div class="qlist" id="qlist"></div>
+  </div>
+
+  <!-- SYNC -->
+  <div class="card">
+    <h2>雲端同步 <small>GitHub Sync</small></h2>
+    <div class="sync-status">
+      <span class="sync-badge readonly" id="syncBadge">唯讀</span>
+      <span id="syncHint">未設定 Token，資料僅存於本機瀏覽器。</span>
+    </div>
+    <div class="row">
+      <input type="password" id="ghPat" placeholder="GitHub PAT (repo scope)" autocomplete="off">
+    </div>
+    <div class="row">
+      <input type="text" id="ghOwner" placeholder="owner">
+      <input type="text" id="ghRepo" placeholder="repo">
+    </div>
+    <div class="row">
+      <input type="text" id="ghBranch" placeholder="branch">
+      <input type="text" id="ghPath" placeholder="data file path">
+    </div>
+    <div class="row">
+      <button class="btn" id="ghSaveBtn">儲存設定</button>
+      <button class="btn ghost" id="ghSyncBtn">立即同步</button>
+    </div>
+    <div class="fineprint">Token 只存在這台裝置的瀏覽器裡，不會被提交到 repo。沒有 Token 時仍可讀取雲端資料（唯讀），但無法寫入；加入 <code>repo</code> 權限的 Token 後，體重與按鈕紀錄會自動推送並在多台裝置間合併。</div>
   </div>
 
   <footer>
@@ -314,19 +347,158 @@ trend: {
 
 /* ───────────────── STORAGE ───────────────── */
 const KEY="ms100-data";
-let D={weights:{},presses:{}};        // weights: {"YYYY-MM-DD":kg}, presses:{"YYYY-MM-DD":n}
+let D={weights:{},presses:{},updatedAt:null};  // weights: {"YYYY-MM-DD":kg}, presses:{"YYYY-MM-DD":n}
 async function load(){
   try{const raw=localStorage.getItem(KEY); if(raw){D=JSON.parse(raw);} }
   catch(e){/* first run — key not found is fine */}
   if(!D.weights)D.weights={}; if(!D.presses)D.presses={};
+  if(!D.updatedAt)D.updatedAt=new Date(0).toISOString();
 }
 let saveTimer=null;
 function save(){
+  D.updatedAt=new Date().toISOString();
   clearTimeout(saveTimer);
   saveTimer=setTimeout(()=>{
     try{localStorage.setItem(KEY,JSON.stringify(D));}
     catch(e){toast("⚠ 儲存失敗，資料僅在本次工作階段有效");}
+    pushLocalChange();
   },250);
+}
+
+/* ───────────────── GITHUB SYNC ───────────────── */
+const GH_KEYS={pat:"ms100GithubPat",owner:"ms100GithubOwner",repo:"ms100GithubRepo",branch:"ms100GithubBranch",path:"ms100GithubPath"};
+const GH_DEFAULT={owner:"egg4lab",repo:"gitgiggle",branch:"main",path:"gigglers/mouth-sealer-100/ms100-state.json"};
+let remoteSha=null;
+
+function ghSettings(){
+  return {
+    pat:localStorage.getItem(GH_KEYS.pat)||"",
+    owner:localStorage.getItem(GH_KEYS.owner)||GH_DEFAULT.owner,
+    repo:localStorage.getItem(GH_KEYS.repo)||GH_DEFAULT.repo,
+    branch:localStorage.getItem(GH_KEYS.branch)||GH_DEFAULT.branch,
+    path:localStorage.getItem(GH_KEYS.path)||GH_DEFAULT.path
+  };
+}
+function saveGhSettings(){
+  localStorage.setItem(GH_KEYS.pat,document.getElementById("ghPat").value.trim());
+  localStorage.setItem(GH_KEYS.owner,document.getElementById("ghOwner").value.trim()||GH_DEFAULT.owner);
+  localStorage.setItem(GH_KEYS.repo,document.getElementById("ghRepo").value.trim()||GH_DEFAULT.repo);
+  localStorage.setItem(GH_KEYS.branch,document.getElementById("ghBranch").value.trim()||GH_DEFAULT.branch);
+  localStorage.setItem(GH_KEYS.path,document.getElementById("ghPath").value.trim()||GH_DEFAULT.path);
+  remoteSha=null;
+  const s=ghSettings();
+  setSyncStatus(s.pat?"pending":"readonly", s.pat?"設定已儲存，下次變更資料時會自動同步。":"設定已儲存。未提供 Token，僅本機使用。");
+  toast("雲端同步設定已儲存");
+}
+function loadGhSettingsUI(){
+  const s=ghSettings();
+  document.getElementById("ghPat").value=s.pat;
+  document.getElementById("ghOwner").value=s.owner;
+  document.getElementById("ghRepo").value=s.repo;
+  document.getElementById("ghBranch").value=s.branch;
+  document.getElementById("ghPath").value=s.path;
+  setSyncStatus(s.pat?"pending":"readonly");
+}
+function setSyncStatus(status,hint){
+  const badge=document.getElementById("syncBadge");
+  const labels={synced:"已同步",pending:"待同步",error:"同步失敗",readonly:"唯讀"};
+  badge.className="sync-badge "+status; badge.textContent=labels[status]||status;
+  if(hint)document.getElementById("syncHint").textContent=hint;
+}
+function rawUrl(s){return `https://raw.githubusercontent.com/${s.owner}/${s.repo}/${s.branch}/${s.path}`;}
+
+async function fetchRemote(){
+  const s=ghSettings();
+  const res=await fetch(rawUrl(s)+"?t="+Date.now(),{cache:"no-store"});
+  if(!res.ok){
+    if(res.status===404)return {data:{weights:{},presses:{},updatedAt:new Date(0).toISOString()},sha:null};
+    throw new Error("讀取雲端失敗 ("+res.status+")");
+  }
+  const data=await res.json();
+  let sha=null;
+  if(s.pat){
+    try{
+      const apiRes=await fetch(`https://api.github.com/repos/${s.owner}/${s.repo}/contents/${s.path}?ref=${s.branch}`,
+        {headers:{Accept:"application/vnd.github+json",Authorization:"Bearer "+s.pat}});
+      if(apiRes.ok){sha=(await apiRes.json()).sha;}
+    }catch(e){/* sha optional for read-only */}
+  }
+  return {data:{weights:data.weights||{},presses:data.presses||{},updatedAt:data.updatedAt||new Date(0).toISOString()},sha};
+}
+
+function mergeData(local,remote){
+  const localNewer=new Date(local.updatedAt||0).getTime()>=new Date(remote.updatedAt||0).getTime();
+  const primary=localNewer?local:remote, secondary=localNewer?remote:local;
+  return {
+    weights:{...secondary.weights,...primary.weights},
+    presses:{...secondary.presses,...primary.presses},
+    updatedAt:new Date().toISOString()
+  };
+}
+
+async function pushRemote(data){
+  const s=ghSettings();
+  if(!s.pat){setSyncStatus("readonly","沒有 Token，僅本機儲存");return false;}
+  const payload={weights:data.weights,presses:data.presses,updatedAt:data.updatedAt};
+  const content=btoa(unescape(encodeURIComponent(JSON.stringify(payload,null,2)+"\n")));
+  if(!remoteSha){try{const r=await fetchRemote();remoteSha=r.sha;}catch(e){/* new file */}}
+  const body={message:"Update mouth-sealer-100 data",content,branch:s.branch};
+  if(remoteSha)body.sha=remoteSha;
+  const res=await fetch(`https://api.github.com/repos/${s.owner}/${s.repo}/contents/${s.path}`,{
+    method:"PUT",
+    headers:{Accept:"application/vnd.github+json",Authorization:"Bearer "+s.pat,"Content-Type":"application/json"},
+    body:JSON.stringify(body)
+  });
+  if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.message||"推送失敗 ("+res.status+")");}
+  const result=await res.json();
+  remoteSha=result.content&&result.content.sha;
+  setSyncStatus("synced","上次同步 "+new Date().toLocaleString());
+  return true;
+}
+
+async function pushLocalChange(){
+  const s=ghSettings();
+  if(!s.pat){setSyncStatus("readonly");return;}
+  setSyncStatus("pending","同步中…");
+  try{await pushRemote(D);}
+  catch(e){setSyncStatus("error","同步失敗："+e.message+"（可按「立即同步」重試）");}
+}
+
+async function syncNow(){
+  const s=ghSettings();
+  if(!s.pat){toast("請先在「雲端同步」輸入 Token");return;}
+  setSyncStatus("pending","同步中…");
+  try{
+    const remote=await fetchRemote(); remoteSha=remote.sha;
+    D=mergeData(D,remote.data);
+    localStorage.setItem(KEY,JSON.stringify(D));
+    await pushRemote(D);
+    renderStats();renderLog();renderChart();renderMode();
+    toast("雲端同步完成");
+  }catch(e){
+    setSyncStatus("error",e.message);
+    toast("❌ 同步失敗："+e.message);
+  }
+}
+
+async function loadAndMergeFromRemote(){
+  const s=ghSettings();
+  setSyncStatus(s.pat?"pending":"readonly","讀取雲端資料中…");
+  let remote;
+  try{remote=await fetchRemote(); remoteSha=remote.sha;}
+  catch(e){setSyncStatus("error","無法讀取雲端："+e.message+"（使用本機資料）");return;}
+  const merged=mergeData(D,remote.data);
+  const changed=JSON.stringify(merged.weights)!==JSON.stringify(D.weights)||JSON.stringify(merged.presses)!==JSON.stringify(D.presses);
+  D=merged;
+  if(changed){try{localStorage.setItem(KEY,JSON.stringify(D));}catch(e){}}
+  if(s.pat&&merged.updatedAt!==remote.data.updatedAt){
+    setSyncStatus("pending","本機資料較新，同步中…");
+    try{await pushRemote(D);}catch(e){setSyncStatus("error","合併成功但推送失敗："+e.message);}
+  }else if(s.pat){
+    setSyncStatus("synced","已與雲端同步");
+  }else{
+    setSyncStatus("readonly","已從雲端讀取（無 Token，僅唯讀）");
+  }
 }
 
 /* ───────────────── TIME / MODE LOGIC ───────────────── */
@@ -583,16 +755,21 @@ function toast(t){
 }
 document.getElementById("wipe").addEventListener("click",()=>{
   if(!confirm("確定清除全部體重與按鈕記錄？此動作無法復原。"))return;
-  D={weights:{},presses:{}};
-  try{localStorage.removeItem(KEY);}catch(e){}
+  D={weights:{},presses:{},updatedAt:new Date().toISOString()};
+  try{localStorage.setItem(KEY,JSON.stringify(D));}catch(e){}
+  pushLocalChange();
   renderStats();renderLog();renderChart();renderMode();
   toast("已清空。百日戰役，重新開打。");
 });
+document.getElementById("ghSaveBtn").addEventListener("click",saveGhSettings);
+document.getElementById("ghSyncBtn").addEventListener("click",syncNow);
 
 /* ───────────────── INIT ───────────────── */
 (async function(){
   await load();
+  loadGhSettingsUI();
   document.getElementById("wDate").value=today();
+  try{await loadAndMergeFromRemote();}catch(e){/* fall back to local D */}
   renderMode(); renderStats(); renderLog(); renderChart(); renderQuotes("roast");
   setInterval(renderMode,1000);
 })();

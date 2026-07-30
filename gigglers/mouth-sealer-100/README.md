@@ -8,7 +8,26 @@ A tactical night-eating deterrent and 100-day weight-trend tracker. Tracks a wee
 
 ## Data storage
 
-All state (daily weights, nightly craving-button presses) is stored in the browser's `localStorage` under the key `ms100-data`. Nothing is sent to a server or synced across devices — data lives only on the device/browser you use it from. Use **清除全部資料** in the footer to wipe it.
+State (daily weights, nightly craving-button presses) is stored in the browser's `localStorage` under the key `ms100-data`. Use **清除全部資料** in the footer to wipe it (this also pushes the wipe to GitHub if sync is configured).
+
+## GitHub Sync
+
+Data can sync across browsers/devices via `ms100-state.json` in this folder, using the same pattern as [`fasting-tracker`](../fasting-tracker/).
+
+### How it works
+
+- **On load:** the app fetches `ms100-state.json` from GitHub and merges it with local browser data. Merge is per-date: weight/press entries are unioned by date across both sides, and only a genuine same-date conflict is resolved by which side's `updatedAt` is newer — so logging a weigh-in on your phone and a craving-button press on your laptop before either syncs won't clobber each other.
+- **On change:** logging a weight, pressing "按死它", or wiping data updates `localStorage` and pushes to the repo (if a token is configured).
+- **Without a token:** the app still works locally and can read the public JSON file, but cannot write to GitHub.
+
+### Setup (one-time, per device)
+
+1. Create a [GitHub Personal Access Token](https://github.com/settings/tokens) with the **`repo`** scope (classic token) or **Contents: Read and write** on the target repository (fine-grained token).
+2. Open the app and scroll to **雲端同步 GitHub Sync**.
+3. Paste your token and click **儲存設定**. Defaults target `egg4lab/gitgiggle` on branch `main`.
+4. Use **立即同步** to merge immediately, or just use the app — changes sync automatically after you log a weight or press the button.
+
+The token is stored only in this device's browser `localStorage` (under keys namespaced `ms100Github*`, distinct from other gigglers' sync settings) and is never committed to the repo.
 
 ## Use as a phone app
 
