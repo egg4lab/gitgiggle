@@ -9,6 +9,7 @@ Personal giggler bots, static tools, and automations — published with **GitHub
 | **100 Hour Fasting Journey** | […/gigglers/fasting-tracker/](https://egg4lab.github.io/gitgiggle/gigglers/fasting-tracker/) |
 | **Mysore Practice Tracker (Ashtanga)** | […/gigglers/mysore-tracker/](https://egg4lab.github.io/gitgiggle/gigglers/mysore-tracker/) |
 | **Office Leave Time Calculator** | […/gigglers/leave-calculator/](https://egg4lab.github.io/gitgiggle/gigglers/leave-calculator/) |
+| **Mouth-Sealer 100** | […/gigglers/mouth-sealer-100/](https://egg4lab.github.io/gitgiggle/gigglers/mouth-sealer-100/) |
 
 Legacy paths redirect: `/apps/*` and `/helpers/*` → `/gigglers/*`, `/fastingApp/` → `/gigglers/fastingApp/`, `/classReservation/` → `/projects/classReservation/`, `/workHoursApp/` → `/gigglers/workHoursApp/`.
 
@@ -23,6 +24,7 @@ gigglers/               # AI bots, automations, and static tools
   fasting-tracker/     # Fasting timer (static HTML)
   mysore-tracker/      # Mysore tracker (photos/, videos/ via Git LFS)
   leave-calculator/    # Office leave-time calculator (static HTML)
+  mouth-sealer-100/    # Night-eating deterrent + 100-day weight tracker (static HTML)
 apps/                  # Legacy redirect stubs (/apps/* → gigglers/)
 helpers/               # Legacy redirect stubs (/helpers/* → gigglers/)
 projects/

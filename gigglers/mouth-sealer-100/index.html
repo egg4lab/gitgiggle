@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0B0E14">
+<title>封口百日戰術小工具 Mouth-Sealer 100</title>
+<style>
+:root{
+  --ink:#0B0E14; --panel:#151B28; --panel2:#1C2434; --line:#2A3448;
+  --ember:#F2643B; --warn:#FFC93C; --bone:#EDEAE0; --mute:#8A94A8;
+  --ok:#3BC97A; --bad:#E4405F; --water:#4FA3E3;
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:16px}
+body{
+  background:var(--ink); color:var(--bone);
+  font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  min-height:100vh; padding-bottom:56px;
+}
+.wrap{max-width:560px;margin:0 auto;padding:0 14px}
+/* ── header ── */
+header{padding:26px 0 10px;text-align:center}
+.eyebrow{font-size:.68rem;letter-spacing:.35em;color:var(--ember);font-weight:700;text-transform:uppercase}
+h1{font-size:1.8rem;font-weight:900;letter-spacing:.06em;line-height:1.2;margin-top:6px}
+h1 .en{display:block;font-size:.72rem;letter-spacing:.3em;color:var(--mute);font-weight:600;margin-top:4px}
+.statusbar{display:flex;gap:8px;margin:16px 0 8px}
+.stat{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 6px;text-align:center}
+.stat b{display:block;font-size:1.45rem;font-weight:900;color:var(--bone)}
+.stat span{font-size:.66rem;color:var(--mute);letter-spacing:.08em}
+.stat.hot b{color:var(--ember)}
+/* ── cards ── */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:14px 0}
+.card h2{font-size:.85rem;letter-spacing:.18em;color:var(--warn);font-weight:800;margin-bottom:10px}
+.card h2 small{color:var(--mute);letter-spacing:.05em;font-weight:500;margin-left:6px}
+/* mode */
+.mode-flag{display:inline-block;font-size:.7rem;font-weight:800;letter-spacing:.15em;padding:4px 10px;border-radius:999px;border:1px solid}
+.mode-flag.wd{color:var(--ember);border-color:var(--ember)}
+.mode-flag.we{color:var(--water);border-color:var(--water)}
+.seal-state{margin-top:10px;font-size:1.28rem;font-weight:900}
+.seal-state.sealed{color:var(--ember)}
+.seal-state.open{color:var(--ok)}
+.seal-state.fast{color:var(--water)}
+.countdown{font-variant-numeric:tabular-nums;font-size:1rem;color:var(--bone);margin-top:4px}
+.mode-note{font-size:.76rem;color:var(--mute);margin-top:10px;line-height:1.55}
+.mode-note b{color:var(--warn)}
+.night-goal{margin-top:12px;padding:10px 12px;border-left:3px solid var(--ember);background:var(--panel2);border-radius:6px;font-size:.85rem;font-weight:700}
+.night-goal .en{display:block;font-size:.7rem;color:var(--mute);font-weight:500;margin-top:2px}
+/* annihilate button */
+.annihilate-zone{text-align:center;padding:10px 0 4px}
+.big-btn{
+  width:190px;height:190px;border-radius:50%;border:none;cursor:pointer;
+  background:radial-gradient(circle at 32% 28%, #FF8A5C, var(--ember) 58%, #B23A1B);
+  color:#fff;font-family:inherit;font-size:1.7rem;font-weight:900;letter-spacing:.1em;
+  box-shadow:0 0 0 8px #23150F, 0 0 0 10px #3A2418, 0 14px 40px rgba(242,100,59,.35);
+  transition:transform .08s;
+}
+.big-btn:active{transform:scale(.94)}
+.big-btn:disabled{
+  background:radial-gradient(circle at 32% 28%, #3A4356, #232B3B 60%, #171D2A);
+  color:var(--mute);box-shadow:0 0 0 8px #10141D,0 0 0 10px #1B2230;cursor:not-allowed;
+}
+.big-btn small{display:block;font-size:.62rem;letter-spacing:.28em;font-weight:700;margin-top:6px;opacity:.85}
+.press-count{margin-top:14px;font-size:.85rem;color:var(--bone)}
+.press-count b{color:var(--ember);font-size:1.2rem}
+.press-cheer{font-size:.74rem;color:var(--mute);margin-top:3px}
+/* check-in */
+.row{display:flex;gap:8px;margin-bottom:8px}
+input[type=date],input[type=number]{
+  flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  color:var(--bone);font-family:inherit;font-size:1rem;padding:10px;min-width:0;
+}
+input:focus{outline:2px solid var(--warn);outline-offset:1px}
+.btn{
+  background:var(--ember);border:none;border-radius:8px;color:#fff;font-family:inherit;
+  font-weight:800;font-size:.9rem;padding:10px 18px;cursor:pointer;letter-spacing:.08em;
+}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--mute)}
+.btn:active{transform:scale(.97)}
+.judge-msg{margin:8px 0;padding:10px;border-radius:8px;font-size:.85rem;font-weight:700;display:none}
+.judge-msg.ok{display:block;background:rgba(59,201,122,.12);color:var(--ok)}
+.judge-msg.bad{display:block;background:rgba(228,64,95,.12);color:var(--bad)}
+.log{margin-top:12px;max-height:230px;overflow-y:auto;border-top:1px solid var(--line)}
+.log-row{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid var(--line);font-size:.85rem;font-variant-numeric:tabular-nums}
+.log-row .d{color:var(--mute);width:98px}
+.log-row .w{font-weight:800;width:70px}
+.log-row .j{width:26px;text-align:center;font-weight:900}
+.log-row .j.ok{color:var(--ok)} .log-row .j.bad{color:var(--bad)} .log-row .j.na{color:var(--mute)}
+.log-row .presses{font-size:.72rem;color:var(--mute);flex:1}
+.log-row button{background:none;border:1px solid var(--line);border-radius:6px;color:var(--mute);font-size:.7rem;padding:3px 8px;cursor:pointer}
+/* progress */
+.track{margin:10px 0}
+.track .lbl{display:flex;justify-content:space-between;font-size:.72rem;color:var(--mute);margin-bottom:4px;letter-spacing:.06em}
+.bar{height:12px;background:var(--panel2);border-radius:999px;overflow:hidden;border:1px solid var(--line)}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--ember),var(--warn));border-radius:999px;transition:width .4s}
+/* chart */
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tabs button{flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--mute);border-radius:8px;padding:7px 0;font-family:inherit;font-weight:800;font-size:.8rem;cursor:pointer}
+.tabs button.on{background:var(--ember);border-color:var(--ember);color:#fff}
+#chartBox{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:6px}
+#chartBox svg{width:100%;height:auto;display:block}
+.trend-msg{margin-top:10px;padding:10px 12px;border-radius:8px;background:var(--panel2);border-left:3px solid var(--warn);font-size:.85rem;font-weight:700;line-height:1.5}
+.trend-msg .en{display:block;font-size:.72rem;color:var(--mute);font-weight:500}
+.fineprint{font-size:.68rem;color:var(--mute);margin-top:8px;line-height:1.5}
+/* quotes library */
+.qtabs{display:flex;gap:6px;margin-bottom:10px}
+.qtabs button{flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--mute);border-radius:8px;padding:7px 0;font-family:inherit;font-weight:800;font-size:.78rem;cursor:pointer}
+.qtabs button.on{background:var(--warn);border-color:var(--warn);color:#151B28}
+.qlist{max-height:300px;overflow-y:auto}
+.q{padding:10px 4px;border-bottom:1px dashed var(--line)}
+.q .zh{font-size:.9rem;font-weight:700;line-height:1.55}
+.q .en{font-size:.74rem;color:var(--mute);margin-top:3px;line-height:1.45}
+/* overlay */
+#overlay{
+  position:fixed;inset:0;background:rgba(6,8,12,.96);z-index:50;display:none;
+  flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;
+}
+#overlay.show{display:flex}
+.ovr-water{font-size:2.3rem;font-weight:900;color:var(--water);letter-spacing:.1em;animation:pulse 1.2s infinite}
+.ovr-water .en{display:block;font-size:.85rem;letter-spacing:.25em;color:var(--mute);font-weight:600;margin-top:4px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+@media (prefers-reduced-motion:reduce){.ovr-water{animation:none}}
+.ring{position:relative;width:130px;height:130px;margin:26px auto}
+.ring svg{transform:rotate(-90deg)}
+.ring .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2.1rem;font-weight:900;font-variant-numeric:tabular-nums}
+.ovr-quote{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px;max-width:440px;margin-top:6px}
+.ovr-quote .zh{font-size:1.05rem;font-weight:800;line-height:1.6}
+.ovr-quote .en{font-size:.78rem;color:var(--mute);margin-top:8px;line-height:1.5}
+.ovr-actions{display:flex;gap:10px;margin-top:22px}
+#ovrDone:disabled{opacity:.35;cursor:not-allowed}
+/* fail modal */
+#failModal{position:fixed;inset:0;background:rgba(6,8,12,.94);z-index:60;display:none;align-items:center;justify-content:center;padding:24px}
+#failModal.show{display:flex}
+.fail-card{background:var(--panel);border:2px solid var(--bad);border-radius:var(--r);padding:22px;max-width:420px;text-align:center}
+.fail-card .tag{color:var(--bad);font-weight:900;letter-spacing:.3em;font-size:.7rem}
+.fail-card .zh{font-size:1.1rem;font-weight:900;margin:12px 0 6px;line-height:1.6}
+.fail-card .en{font-size:.78rem;color:var(--mute);line-height:1.5}
+footer{text-align:center;font-size:.66rem;color:var(--mute);padding:22px 0 8px}
+footer button{background:none;border:none;color:var(--mute);text-decoration:underline;font-size:.66rem;cursor:pointer;font-family:inherit}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--panel);border:1px solid var(--ok);color:var(--ok);border-radius:10px;padding:12px 18px;font-size:.85rem;font-weight:800;z-index:70;display:none;max-width:88%;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Tactical Ops · Night Shift</div>
+    <h1>封口百日戰術小工具<span class="en">MOUTH-SEALER 100</span></h1>
+  </header>
+
+  <div class="statusbar">
+    <div class="stat hot"><b id="stStreak">0</b><span>連續封口天數</span></div>
+    <div class="stat"><b id="stTotal">0</b><span>累計成功日</span></div>
+    <div class="stat"><b id="stPress">0</b><span>今晚按死次數</span></div>
+  </div>
+
+  <!-- MODE -->
+  <div class="card">
+    <h2>作戰模式 <small>Core Mode</small></h2>
+    <span id="modeFlag" class="mode-flag wd">平日彈性模式</span>
+    <div id="sealState" class="seal-state">—</div>
+    <div id="countdown" class="countdown">—</div>
+    <div id="nightGoal" class="night-goal" style="display:none">
+      今夜目標：享受夜晚飢餓感。那是脂肪在值大夜班。
+      <span class="en">Nightly goal: embrace the empty stomach — fat is on the night shift.</span>
+    </div>
+    <div class="mode-note" id="modeNote"></div>
+  </div>
+
+  <!-- ANNIHILATE -->
+  <div class="card annihilate-zone">
+    <h2 style="text-align:left">按死它 <small>Annihilate Button</small></h2>
+    <button id="bigBtn" class="big-btn">按死它<small>ANNIHILATE</small></button>
+    <div class="press-count">今晚已按死 <b id="pressToday">0</b> 次</div>
+    <div class="press-cheer" id="pressCheer">次數越多＝飢餓感越強＝燒得越旺。加油，主人是你。</div>
+  </div>
+
+  <!-- CHECK-IN -->
+  <div class="card">
+    <h2>晨間打卡 <small>Morning Weigh-in（可補打卡／可修改）</small></h2>
+    <div class="row">
+      <input type="date" id="wDate">
+      <input type="number" id="wKg" step="0.1" min="20" max="300" placeholder="體重 kg">
+      <button class="btn" id="wSave">登錄</button>
+    </div>
+    <div id="judgeMsg" class="judge-msg"></div>
+    <div class="track">
+      <div class="lbl"><span>10 天關卡 10-Day Sprint</span><span id="p10lbl">0 / 10</span></div>
+      <div class="bar"><i id="p10" style="width:0%"></i></div>
+    </div>
+    <div class="track">
+      <div class="lbl"><span>100 天封口挑戰 100-Day Mastery</span><span id="p100lbl">0 / 100</span></div>
+      <div class="bar"><i id="p100" style="width:0%"></i></div>
+    </div>
+    <div class="log" id="log"></div>
+  </div>
+
+  <!-- CHART -->
+  <div class="card">
+    <h2>體重趨勢 <small>Trendline &amp; Analytics</small></h2>
+    <div class="tabs">
+      <button data-r="7" class="on">7 天</button>
+      <button data-r="30">30 天</button>
+      <button data-r="100">100 天</button>
+    </div>
+    <div id="chartBox"></div>
+    <div id="trendMsg" class="trend-msg">先量體重，秤不會自己招供。<span class="en">Log a weight first — the scale won't confess on its own.</span></div>
+    <div class="fineprint">單日體重含水分波動（±1 kg 很正常）；單日輸贏是遊戲規則，趨勢線才是總帳。實線＝每日體重，虛線＝7 日均線。</div>
+  </div>
+
+  <!-- QUOTES -->
+  <div class="card">
+    <h2>語錄庫 <small>Quote Arsenal</small></h2>
+    <div class="qtabs">
+      <button data-q="roast" class="on">毒舌諷刺</button>
+      <button data-q="hype">幽默勵志</button>
+      <button data-q="fail">諷刺喚醒</button>
+    </div>
+    <div class="qlist" id="qlist"></div>
+  </div>
+
+  <footer>
+    Mouth-Sealer 100 · 記錄儲存於此工具，重開仍在<br>
+    <button id="wipe">清除全部資料</button>
+  </footer>
+</div>
+
+<!-- ANNIHILATE OVERLAY -->
+<div id="overlay">
+  <div class="ovr-water">去喝熱水！<span class="en">DRINK WARM WATER NOW</span></div>
+  <div class="ring">
+    <svg width="130" height="130" viewBox="0 0 130 130">
+      <circle cx="65" cy="65" r="56" fill="none" stroke="#2A3448" stroke-width="10"/>
+      <circle id="ringArc" cx="65" cy="65" r="56" fill="none" stroke="#F2643B" stroke-width="10"
+        stroke-linecap="round" stroke-dasharray="351.86" stroke-dashoffset="0"/>
+    </svg>
+    <div class="num" id="ringNum">60</div>
+  </div>
+  <div class="ovr-quote">
+    <div class="zh" id="ovrZh"></div>
+    <div class="en" id="ovrEn"></div>
+  </div>
+  <div class="ovr-actions">
+    <button class="btn ghost" id="ovrNext">下一句 ▸</button>
+    <button class="btn" id="ovrDone" disabled>我按死它了</button>
+  </div>
+</div>
+
+<!-- FAIL MODAL -->
+<div id="failModal">
+  <div class="fail-card">
+    <div class="tag">STREAK RESET · 歸零</div>
+    <div class="zh" id="failZh"></div>
+    <div class="en" id="failEn"></div>
+    <button class="btn" style="margin-top:16px" onclick="document.getElementById('failModal').classList.remove('show')">收到，今天封死</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ───────────────── QUOTES ───────────────── */
+const Q = {
+roast: [
+ {zh:"飢餓是脂肪在燃燒，嘴饞是你的意志力在離家出走。",en:"Hunger is fat burning; a craving is your willpower running away from home."},
+ {zh:"你不是餓，你只是太閒。給我去睡覺。",en:"You're not hungry, you're bored. Go to sleep."},
+ {zh:"享受半夜的飢餓感，那是勝利的聲音。",en:"Enjoy the midnight hunger — that's the sound of victory."},
+ {zh:"慾望最多撲騰 10 分鐘。按死它，它就閉嘴。",en:"A craving thrashes for 10 minutes max. Press it down and it shuts up."},
+ {zh:"今晚餵它一口，明天它帶三個兄弟回來撲騰。斷它糧。",en:"Feed it once tonight, it returns tomorrow with three brothers. Cut its supply line."},
+ {zh:"冰箱不是避難所，是案發現場。",en:"The fridge is not a shelter. It's a crime scene."},
+ {zh:"宵夜不會安慰你，它只會搬進你肚子長住，還不繳房租。",en:"A midnight snack won't comfort you — it moves into your belly rent-free."},
+ {zh:"大吃大喝就是花錢買後悔，還分一百天攤還。",en:"Binging is buying regret on a 100-day installment plan."},
+ {zh:"體重計沒有感情，但它非常記仇。",en:"The scale has no feelings, but it holds grudges."},
+ {zh:"你是身體的主人，不是食慾的外送員。",en:"Be the owner of your body, not your appetite's delivery driver."},
+ {zh:"現在吃的每一口，明早都會站上秤跟你當面對質。",en:"Every bite tonight testifies against you on tomorrow's scale."},
+ {zh:"餓不死人，但後悔會讓你半夜滑手機報減肥營。",en:"Hunger won't kill you; regret will have you signing up for diet camps at 2 a.m."},
+ {zh:"抄食譜、報營、買器材——歸來依舊是原地踏步。錢省下來，封口就好。",en:"Recipes, camps, gadgets — same spot every time. Save the money. Seal the mouth."},
+ {zh:"你的胃在敲門？告訴它：本店明天 13:00 才營業。",en:"Stomach knocking? Tell it: business hours start at 13:00 tomorrow."},
+ {zh:"稀稀拉拉的餓沒有用，要一鼓作氣的餓。",en:"Half-hearted hunger does nothing. Hunger in one clean push."},
+ {zh:"減肥不是研究怎麼吃，是研究怎麼扛住餓。你現在正在扛，很好。",en:"This isn't about how to eat — it's about how to outlast hunger. You're outlasting it right now."},
+ {zh:"食慾在撲騰？讓它撲。你按一次它就短命一次。",en:"Craving thrashing? Let it. Every press shortens its lifespan."}
+],
+hype: [
+ {zh:"現在按下去，拯救明天早上尖叫的體重計。",en:"Press it now and save tomorrow morning's screaming scale."},
+ {zh:"十天的自律，勝過十年的糾結。",en:"Ten days of discipline beat ten years of dithering."},
+ {zh:"封住嘴巴，解鎖最好的自己。",en:"Lock your lips, unlock your best self."},
+ {zh:"忍過這 10 分鐘，爽感比吃完的後悔爽十倍。",en:"Survive these 10 minutes — the high beats post-binge regret tenfold."},
+ {zh:"明早對鏡子說：「老娘好牛，昨晚又沒偷吃。」",en:"Tomorrow, tell the mirror: 'I'm amazing — didn't sneak a single bite.'"},
+ {zh:"夜晚的空腹感＝脂肪的大夜班。讓它加班。",en:"An empty stomach at night = fat working overtime. Let it."},
+ {zh:"這是唯一一件躺著不動就能把自己換成另一個人的事。",en:"The only project where lying still literally transforms you."},
+ {zh:"每一次不吃，都是匯給未來自己的獎金。",en:"Every skipped bite is a bonus wired to future you."},
+ {zh:"變瘦是為了變強。封口只是第一關。",en:"Thin is the gateway; strong is the quest. Sealing is just level one."},
+ {zh:"好皮囊帶你走更遠的地方；肥膘只能帶你進食堂。",en:"A good vessel takes you far; flab only takes you to the cafeteria."},
+ {zh:"今晚封口的你，是明天照鏡子那個人的恩人。",en:"Tonight's sealed mouth is tomorrow's mirror's benefactor."},
+ {zh:"慾望撲騰兩次發現你不理它，它就自己下班了。",en:"Ignore the craving twice and it clocks out on its own."},
+ {zh:"你不用跑、不用跳、不用練。你只要今晚不開口。",en:"No running, no jumping, no training. Just don't open your mouth tonight."}
+],
+fail: [
+ {zh:"昨天開派對了？今天給我封死！",en:"Had a party yesterday? Lock it down today!"},
+ {zh:"體重計今天很誠實，你昨天很囂張。歸零，重來，一鼓作氣。",en:"The scale was honest today; you were bold yesterday. Reset. Restart. One clean push."},
+ {zh:"連續天數陣亡。哀悼 3 秒，16:30 準時封口。",en:"Streak KIA. Mourn for three seconds, then seal at 16:30 sharp."},
+ {zh:"又是第 1 天。這次換你牽繩，別讓食慾遛你。",en:"Day 1 again. This time you hold the leash — don't let the appetite walk you."},
+ {zh:"水分？藉口？秤不聽辯護。今晚用行動上訴。",en:"Water weight? Excuses? The scale hears no defense. Appeal with action tonight."}
+],
+trend: {
+ down:{zh:"趨勢完美，脂肪正在哭泣。",en:"Perfect slope — fat is crying."},
+ flat:{zh:"波動停滯：假日的豬癮在拉扯你，按緊「按死它」！",en:"Plateau: weekend cravings are dragging you down — hammer the button!"},
+ up:{zh:"斜率上升：昨天開派對了？今天給我封死！",en:"Upward spike: had a party yesterday? Lock it down today!"},
+ none:{zh:"先量體重，秤不會自己招供。",en:"Log a weight first — the scale won't confess on its own."}
+}
+};
+
+/* ───────────────── STORAGE ───────────────── */
+const KEY="ms100-data";
+let D={weights:{},presses:{}};        // weights: {"YYYY-MM-DD":kg}, presses:{"YYYY-MM-DD":n}
+async function load(){
+  try{const raw=localStorage.getItem(KEY); if(raw){D=JSON.parse(raw);} }
+  catch(e){/* first run — key not found is fine */}
+  if(!D.weights)D.weights={}; if(!D.presses)D.presses={};
+}
+let saveTimer=null;
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    try{localStorage.setItem(KEY,JSON.stringify(D));}
+    catch(e){toast("⚠ 儲存失敗，資料僅在本次工作階段有效");}
+  },250);
+}
+
+/* ───────────────── TIME / MODE LOGIC ───────────────── */
+const pad=n=>String(n).padStart(2,"0");
+const dstr=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const today=()=>dstr(new Date());
+function addDays(s,n){const d=new Date(s+"T12:00:00");d.setDate(d.getDate()+n);return dstr(d);}
+const isWeekend=d=>{const w=d.getDay();return w===0||w===6;};
+const mins=d=>d.getHours()*60+d.getMinutes();
+// windows in minutes
+const W1=[13*60,16*60], W2=[19*60,22*60], SEAL=16*60+30;
+
+function modeState(now){
+  const m=mins(now), we=isWeekend(now);
+  if(we){
+    if(m>=W1[0]&&m<W1[1]) return {mode:"we",state:"open",until:W1[1],label:"進食視窗開啟（13:00–16:00）"};
+    if(m>=W2[0]&&m<W2[1]) return {mode:"we",state:"open",until:W2[1],label:"進食視窗開啟（19:00–22:00）"};
+    let next = m<W1[0]?W1[0] : (m<W2[0]?W2[0] : W1[0]+1440);
+    return {mode:"we",state:"fast",until:next,label:"視窗鎖定 · 禁食倒數中"};
+  }else{
+    if(m>=SEAL) return {mode:"wd",state:"sealed",until:W1[0]+1440,label:"已全面封口（16:30 後僅限飲水）"};
+    if(m>=W1[0]&&m<W1[1]) return {mode:"wd",state:"open",until:W1[1],label:"進食視窗開啟（13:00–16:00）"};
+    if(m>=W1[1]&&m<SEAL) return {mode:"wd",state:"fast",until:SEAL,label:"視窗已關 · 16:30 全面封口倒數"};
+    return {mode:"wd",state:"fast",until:W1[0],label:"禁食中 · 距開飯倒數"};
+  }
+}
+function fmtCountdown(now,untilMin){
+  let diff=untilMin-mins(now); if(diff<0)diff+=1440;
+  const secAdj = 60-now.getSeconds(); let total=(diff-1)*60+secAdj;
+  if(total<0)total=0;
+  const h=Math.floor(total/3600),mm=Math.floor(total%3600/60),ss=total%60;
+  return `${pad(h)}:${pad(mm)}:${pad(ss)}`;
+}
+function annihilateAllowed(now){
+  const m=mins(now), we=isWeekend(now);
+  if(we) return !((m>=W1[0]&&m<W1[1])||(m>=W2[0]&&m<W2[1]));
+  return m>=SEAL;
+}
+function renderMode(){
+  const now=new Date(), s=modeState(now);
+  const flag=document.getElementById("modeFlag");
+  flag.className="mode-flag "+s.mode;
+  flag.textContent = s.mode==="wd" ? "平日彈性模式 WEEKDAY" : "假日防豬癮模式 WEEKEND GUARD";
+  const st=document.getElementById("sealState");
+  st.className="seal-state "+(s.state==="open"?"open":s.state==="sealed"?"sealed":"fast");
+  st.textContent = s.state==="open"?"🍽 "+s.label : s.state==="sealed"?"🔒 "+s.label : "⏳ "+s.label;
+  document.getElementById("countdown").textContent="倒數 "+fmtCountdown(now,s.until);
+  document.getElementById("modeNote").innerHTML = s.mode==="wd"
+    ? "平日規則：213 斷食，但<b>不論哪個視窗，16:30 後一律封口</b>——所以 19:00–22:00 視窗在平日永遠不算成功封口，有效視窗只有 13:00–16:00。"
+    : "假日規則：嚴格鎖定 213 視窗（13–16 或 19–22），視窗外強制禁食倒數；16:30 封口線放寬。";
+  const night = (s.mode==="wd"&&mins(now)>=SEAL) || (s.mode==="we"&&mins(now)>=W2[1]);
+  document.getElementById("nightGoal").style.display = night?"block":"none";
+  // button: always pressable; time gate is only a hint
+  document.getElementById("pressCheer").textContent = annihilateAllowed(now)
+    ? "封口時段——正是按死它的黃金時間。次數越多＝飢餓感越強＝燒得越旺。"
+    : "非封口時段也能按（預演／白天犯癮都算）。夜裡它才是主戰場。";
+  document.getElementById("pressToday").textContent = D.presses[today()]||0;
+  document.getElementById("stPress").textContent = D.presses[today()]||0;
+}
+
+/* ───────────────── ANNIHILATE OVERLAY ───────────────── */
+let ovrTimer=null, ovrLeft=60;
+const CIRC=351.86;
+function randQuote(){
+  const pool = Math.random()<0.6 ? Q.roast : Q.hype;
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+function showQuote(){
+  const q=randQuote();
+  document.getElementById("ovrZh").textContent=q.zh;
+  document.getElementById("ovrEn").textContent=q.en;
+}
+document.getElementById("bigBtn").addEventListener("click",()=>{
+  const t=today(); D.presses[t]=(D.presses[t]||0)+1; save();
+  renderMode(); renderLog();
+  ovrLeft=60; showQuote();
+  document.getElementById("ovrDone").disabled=true;
+  document.getElementById("overlay").classList.add("show");
+  tick();
+  clearInterval(ovrTimer); ovrTimer=setInterval(tick,1000);
+});
+function tick(){
+  document.getElementById("ringNum").textContent=Math.max(ovrLeft,0);
+  document.getElementById("ringArc").style.strokeDashoffset = CIRC*(1-Math.max(ovrLeft,0)/60);
+  if(ovrLeft<=0){clearInterval(ovrTimer);document.getElementById("ovrDone").disabled=false;
+    document.getElementById("ringNum").textContent="✓";}
+  ovrLeft--;
+}
+document.getElementById("ovrNext").addEventListener("click",showQuote);
+document.getElementById("ovrDone").addEventListener("click",()=>{
+  document.getElementById("overlay").classList.remove("show");
+  toast("按死一隻。今晚戰績 "+(D.presses[today()]||0)+" 次 🔥");
+});
+
+/* ───────────────── CHECK-IN / JUDGE ───────────────── */
+function sortedDates(){return Object.keys(D.weights).sort();}
+function judgeDay(d){          // success of day d = weight(d+1) < weight(d)
+  const a=D.weights[d], b=D.weights[addDays(d,1)];
+  if(a==null||b==null)return null;
+  return b<a;
+}
+function streaks(){
+  const ds=sortedDates(); if(!ds.length)return {cur:0,total:0};
+  let total=0; ds.forEach(d=>{if(judgeDay(d)===true)total++;});
+  // current streak: walk back from latest judged day, require consecutive calendar days
+  let cur=0, d=null;
+  for(let i=ds.length-1;i>=0;i--){ if(judgeDay(ds[i])!==null){d=ds[i];break;} }
+  if(d!==null){
+    if(judgeDay(d)===false) cur=0;
+    else{ while(judgeDay(d)===true){cur++; d=addDays(d,-1);} }
+  }
+  return {cur,total};
+}
+function renderStats(){
+  const s=streaks();
+  document.getElementById("stStreak").textContent=s.cur;
+  document.getElementById("stTotal").textContent=s.total;
+  document.getElementById("p10").style.width=Math.min(s.cur,10)*10+"%";
+  document.getElementById("p10lbl").textContent=Math.min(s.cur,10)+" / 10";
+  document.getElementById("p100").style.width=Math.min(s.cur,100)+"%";
+  document.getElementById("p100lbl").textContent=Math.min(s.cur,100)+" / 100";
+}
+function renderLog(){
+  const box=document.getElementById("log"); box.innerHTML="";
+  const ds=sortedDates().slice(-21).reverse();
+  ds.forEach(d=>{
+    const j=judgeDay(d);
+    const row=document.createElement("div");row.className="log-row";
+    const jm = j===true?'<span class="j ok">✓</span>' : j===false?'<span class="j bad">✗</span>' : '<span class="j na">–</span>';
+    const p=D.presses[d]?`按死 ${D.presses[d]} 次`:"";
+    row.innerHTML=`<span class="d">${d}</span><span class="w">${D.weights[d].toFixed(1)}</span>${jm}<span class="presses">${p}</span>`;
+    const eb=document.createElement("button");eb.textContent="改";
+    eb.onclick=()=>{document.getElementById("wDate").value=d;document.getElementById("wKg").value=D.weights[d];window.scrollTo({top:0,behavior:"smooth"});document.getElementById("wKg").focus();};
+    row.appendChild(eb);
+    box.appendChild(row);
+  });
+}
+document.getElementById("wSave").addEventListener("click",()=>{
+  const d=document.getElementById("wDate").value, kg=parseFloat(document.getElementById("wKg").value);
+  const msg=document.getElementById("judgeMsg");
+  if(!d||isNaN(kg)){msg.className="judge-msg bad";msg.textContent="日期與體重都要填，秤不收白條。";return;}
+  const prevStreak=streaks().cur;
+  D.weights[d]=Math.round(kg*10)/10; save();
+  // judge yesterday relative to this date
+  const y=addDays(d,-1), j=judgeDay(y);
+  if(j===true){
+    msg.className="judge-msg ok";
+    msg.textContent=`✓ ${y} 封口成功！體重下降，脂肪連夜搬家。`;
+  }else if(j===false){
+    msg.className="judge-msg bad";
+    msg.textContent=`✗ ${y} 封口失敗，連續天數歸零。`;
+    const f=Q.fail[Math.floor(Math.random()*Q.fail.length)];
+    document.getElementById("failZh").textContent=f.zh;
+    document.getElementById("failEn").textContent=f.en;
+    document.getElementById("failModal").classList.add("show");
+  }else{
+    msg.className="judge-msg ok";
+    msg.textContent="已登錄。等前後兩天的體重都齊了，才能宣判封口成敗。";
+  }
+  renderStats();renderLog();renderChart();
+  const now=streaks().cur;
+  if(now>=10&&prevStreak<10)toast("🏆 10 天關卡通過！一鼓作氣，繼續。");
+  if(now>=100&&prevStreak<100)toast("👑 100 天封口大師達成。");
+});
+
+/* ───────────────── CHART ───────────────── */
+let range=7;
+document.querySelectorAll(".tabs button").forEach(b=>{
+  b.addEventListener("click",()=>{
+    document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on"); range=+b.dataset.r; renderChart();
+  });
+});
+function seriesFor(nDays){
+  const end=today(), start=addDays(end,-(nDays-1)), out=[];
+  let d=start;
+  for(let i=0;i<nDays;i++){ out.push({d,w:D.weights[d]??null}); d=addDays(d,1); }
+  return out;
+}
+function ma7map(){ // date -> 7-day trailing avg over logged weights
+  const m={};
+  sortedDates().forEach(d=>{
+    let s=0,c=0;
+    for(let k=0;k<7;k++){const w=D.weights[addDays(d,-k)]; if(w!=null){s+=w;c++;}}
+    if(c)m[d]=s/c;
+  });
+  return m;
+}
+function renderChart(){
+  const box=document.getElementById("chartBox");
+  const ser=seriesFor(range), pts=ser.filter(p=>p.w!=null);
+  const tm=document.getElementById("trendMsg");
+  if(pts.length<2){
+    box.innerHTML='<div style="padding:34px 10px;text-align:center;color:#8A94A8;font-size:.8rem">此區間資料不足（需 ≥ 2 筆）</div>';
+    const q=Q.trend.none; tm.innerHTML=q.zh+'<span class="en">'+q.en+'</span>'; return;
+  }
+  const Wd=520,H=220,P={l:40,r:10,t:14,b:24};
+  const ws=pts.map(p=>p.w), lo=Math.min(...ws)-0.4, hi=Math.max(...ws)+0.4;
+  const X=i=>P.l+(Wd-P.l-P.r)*(range===1?0:i/(range-1));
+  const Y=w=>P.t+(H-P.t-P.b)*(1-(w-lo)/(hi-lo));
+  let grid="",labels="";
+  for(let g=0;g<=4;g++){
+    const w=lo+(hi-lo)*g/4, y=Y(w);
+    grid+=`<line x1="${P.l}" y1="${y}" x2="${Wd-P.r}" y2="${y}" stroke="#2A3448" stroke-width="1"/>`;
+    labels+=`<text x="${P.l-6}" y="${y+4}" fill="#8A94A8" font-size="10" text-anchor="end">${w.toFixed(1)}</text>`;
+  }
+  let line="",dots="",started=false;
+  ser.forEach((p,i)=>{ if(p.w!=null){
+    const x=X(i),y=Y(p.w);
+    line += (started?`L${x},${y}`:`M${x},${y}`); started=true;
+    dots+=`<circle cx="${x}" cy="${y}" r="3.4" fill="#F2643B"/>`;
+  }});
+  const M=ma7map(); let mline="",mStarted=false;
+  ser.forEach((p,i)=>{ const v=M[p.d];
+    if(v!=null){const x=X(i),y=Y(Math.min(Math.max(v,lo),hi)); mline+=(mStarted?`L${x},${y}`:`M${x},${y}`);mStarted=true;}
+  });
+  const xl=[0,Math.floor((range-1)/2),range-1].map(i=>
+    `<text x="${X(i)}" y="${H-6}" fill="#8A94A8" font-size="10" text-anchor="middle">${ser[i].d.slice(5)}</text>`).join("");
+  box.innerHTML=`<svg viewBox="0 0 ${Wd} ${H}" xmlns="http://www.w3.org/2000/svg">
+    ${grid}${labels}${xl}
+    <path d="${mline}" fill="none" stroke="#FFC93C" stroke-width="2" stroke-dasharray="5 5" opacity=".85"/>
+    <path d="${line}" fill="none" stroke="#F2643B" stroke-width="2.5"/>
+    ${dots}</svg>`;
+  // slope: linear regression over day-index of logged points
+  const idx=[]; ser.forEach((p,i)=>{if(p.w!=null)idx.push([i,p.w]);});
+  const n=idx.length, sx=idx.reduce((a,p)=>a+p[0],0), sy=idx.reduce((a,p)=>a+p[1],0);
+  const sxx=idx.reduce((a,p)=>a+p[0]*p[0],0), sxy=idx.reduce((a,p)=>a+p[0]*p[1],0);
+  const denom=n*sxx-sx*sx;
+  const slope=denom?(n*sxy-sx*sy)/denom:0; // kg per day
+  const q = slope<-0.02?Q.trend.down : slope>0.02?Q.trend.up : Q.trend.flat;
+  tm.innerHTML=q.zh+`　<span style="color:#8A94A8;font-weight:500">(${(slope*7).toFixed(2)} kg/週)</span><span class="en">${q.en}</span>`;
+}
+
+/* ───────────────── QUOTE LIBRARY ───────────────── */
+function renderQuotes(mode){
+  const box=document.getElementById("qlist"); box.innerHTML="";
+  Q[mode].forEach(q=>{
+    const el=document.createElement("div");el.className="q";
+    el.innerHTML=`<div class="zh">${q.zh}</div><div class="en">${q.en}</div>`;
+    box.appendChild(el);
+  });
+}
+document.querySelectorAll(".qtabs button").forEach(b=>{
+  b.addEventListener("click",()=>{
+    document.querySelectorAll(".qtabs button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on"); renderQuotes(b.dataset.q);
+  });
+});
+
+/* ───────────────── MISC ───────────────── */
+function toast(t){
+  const el=document.getElementById("toast"); el.textContent=t; el.style.display="block";
+  setTimeout(()=>el.style.display="none",3200);
+}
+document.getElementById("wipe").addEventListener("click",()=>{
+  if(!confirm("確定清除全部體重與按鈕記錄？此動作無法復原。"))return;
+  D={weights:{},presses:{}};
+  try{localStorage.removeItem(KEY);}catch(e){}
+  renderStats();renderLog();renderChart();renderMode();
+  toast("已清空。百日戰役，重新開打。");
+});
+
+/* ───────────────── INIT ───────────────── */
+(async function(){
+  await load();
+  document.getElementById("wDate").value=today();
+  renderMode(); renderStats(); renderLog(); renderChart(); renderQuotes("roast");
+  setInterval(renderMode,1000);
+})();
+</script>
+</body>
+</html>
