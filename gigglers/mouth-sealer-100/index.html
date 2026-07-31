@@ -432,16 +432,19 @@ function mergeData(local,remote){
   return {
     weights:{...secondary.weights,...primary.weights},
     presses:{...secondary.presses,...primary.presses},
-    updatedAt:new Date().toISOString()
+    updatedAt:primary.updatedAt||new Date().toISOString()
   };
 }
 
-async function pushRemote(data){
+async function pushRemote(data,retry=true){
   const s=ghSettings();
   if(!s.pat){setSyncStatus("readonly","沒有 Token，僅本機儲存");return false;}
   const payload={weights:data.weights,presses:data.presses,updatedAt:data.updatedAt};
   const content=btoa(unescape(encodeURIComponent(JSON.stringify(payload,null,2)+"\n")));
-  if(!remoteSha){try{const r=await fetchRemote();remoteSha=r.sha;}catch(e){/* new file */}}
+  // always re-check the live sha right before writing -- a cached value can go
+  // stale between page load and save (another device, or a prior push in this
+  // same session), and a stale sha is rejected by GitHub with a 409/422.
+  try{const r=await fetchRemote();remoteSha=r.sha;}catch(e){/* new file, or offline */}
   const body={message:"Update mouth-sealer-100 data",content,branch:s.branch};
   if(remoteSha)body.sha=remoteSha;
   const res=await fetch(`https://api.github.com/repos/${s.owner}/${s.repo}/contents/${s.path}`,{
@@ -449,24 +452,34 @@ async function pushRemote(data){
     headers:{Accept:"application/vnd.github+json",Authorization:"Bearer "+s.pat,"Content-Type":"application/json"},
     body:JSON.stringify(body)
   });
-  if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.message||"推送失敗 ("+res.status+")");}
+  if(!res.ok){
+    const err=await res.json().catch(()=>({}));
+    if(retry&&(res.status===409||res.status===422)){remoteSha=null;return pushRemote(data,false);}
+    throw new Error(err.message||"推送失敗 ("+res.status+")");
+  }
   const result=await res.json();
   remoteSha=result.content&&result.content.sha;
   setSyncStatus("synced","上次同步 "+new Date().toLocaleString());
   return true;
 }
 
+let syncBusy=false;
 async function pushLocalChange(){
+  if(syncBusy)return;
   const s=ghSettings();
   if(!s.pat){setSyncStatus("readonly");return;}
+  syncBusy=true;
   setSyncStatus("pending","同步中…");
   try{await pushRemote(D);}
   catch(e){setSyncStatus("error","同步失敗："+e.message+"（可按「立即同步」重試）");}
+  finally{syncBusy=false;}
 }
 
 async function syncNow(){
+  if(syncBusy){toast("同步進行中，請稍候");return;}
   const s=ghSettings();
   if(!s.pat){toast("請先在「雲端同步」輸入 Token");return;}
+  syncBusy=true;
   setSyncStatus("pending","同步中…");
   try{
     const remote=await fetchRemote(); remoteSha=remote.sha;
@@ -478,7 +491,7 @@ async function syncNow(){
   }catch(e){
     setSyncStatus("error",e.message);
     toast("❌ 同步失敗："+e.message);
-  }
+  }finally{syncBusy=false;}
 }
 
 async function loadAndMergeFromRemote(){
@@ -493,7 +506,9 @@ async function loadAndMergeFromRemote(){
   if(changed){try{localStorage.setItem(KEY,JSON.stringify(D));}catch(e){}}
   if(s.pat&&merged.updatedAt!==remote.data.updatedAt){
     setSyncStatus("pending","本機資料較新，同步中…");
+    syncBusy=true;
     try{await pushRemote(D);}catch(e){setSyncStatus("error","合併成功但推送失敗："+e.message);}
+    finally{syncBusy=false;}
   }else if(s.pat){
     setSyncStatus("synced","已與雲端同步");
   }else{
